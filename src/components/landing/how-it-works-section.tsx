@@ -5,20 +5,23 @@ const steps = [
   {
     icon: Upload,
     step: '01',
-    title: 'Drop your assets',
-    description: 'Drag images or entire folders. JPEG, PNG, WebP, AVIF, HEIC, SVG — all decoded locally.',
+    title: 'Drop your images',
+    description:
+      'Add files or folders. JPEG, PNG, WebP, AVIF, HEIC, GIF, SVG, and more — decoded locally in a Web Worker.',
   },
   {
     icon: Settings,
     step: '02',
-    title: 'Configure the pipeline',
-    description: 'Pick a preset or dial in every codec option. Resize, crop, filter, convert — your call.',
+    title: 'Build your pipeline',
+    description:
+      'Pick a preset, set a size budget, or tune format, resize, crop, and codec options across the Format and Transform tabs.',
   },
   {
     icon: Download,
     step: '03',
-    title: 'Download results',
-    description: 'Export single files or batch zip. See exact byte savings and dimensions before you ship.',
+    title: 'Process and export',
+    description:
+      'Compare before and after, review byte savings and budget stats, then download files individually or as a zip.',
   },
 ]
 
@@ -30,6 +33,9 @@ export function HowItWorksSection() {
           <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
             Three steps. Zero uploads.
           </h2>
+          <p className="mt-4 text-muted-foreground">
+            Open the studio, configure once, and run the same pipeline across your whole queue.
+          </p>
         </div>
 
         <div className="grid gap-8 md:grid-cols-3">

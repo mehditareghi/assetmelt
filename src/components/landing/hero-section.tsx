@@ -45,7 +45,7 @@ export function HeroSection() {
           transition={{ duration: 0.5, delay: 0.25 }}
         >
           Compress, convert, and transform images entirely in your browser.
-          Squoosh-grade codecs, full control, no server required.
+          Set a file-size target, dial in every codec option, or start from a preset — no uploads required.
         </motion.p>
 
         <motion.div

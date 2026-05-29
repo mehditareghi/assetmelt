@@ -1,7 +1,7 @@
 import { motion } from 'motion/react'
 import { Badge } from '@/components/ui/badge'
 
-const codecs = [
+const technologies = [
   'MozJPEG',
   'AVIF',
   'WebP',
@@ -10,6 +10,8 @@ const codecs = [
   'QOI',
   'Lanczos3',
   'Magic Kernel',
+  'HEIC decode',
+  'Web Workers',
 ]
 
 export function TechStrip() {
@@ -22,12 +24,12 @@ export function TechStrip() {
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
         >
-          Powered by
+          Under the hood
         </motion.p>
         <div className="flex flex-wrap items-center justify-center gap-3">
-          {codecs.map((codec, i) => (
+          {technologies.map((item, i) => (
             <motion.div
-              key={codec}
+              key={item}
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
@@ -37,7 +39,7 @@ export function TechStrip() {
                 variant="outline"
                 className="font-mono text-xs transition-colors hover:border-primary/50 hover:bg-primary/5"
               >
-                {codec}
+                {item}
               </Badge>
             </motion.div>
           ))}

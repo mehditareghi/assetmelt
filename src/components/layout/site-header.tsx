@@ -16,9 +16,14 @@ export function SiteHeader({ variant = 'landing' }: SiteHeaderProps) {
 
         <nav className="flex items-center gap-2">
           {variant === 'landing' && (
-            <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">
-              <a href="#features">Features</a>
-            </Button>
+            <>
+              <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">
+                <a href="#features">Features</a>
+              </Button>
+              <Button variant="ghost" size="sm" asChild className="hidden md:inline-flex">
+                <a href="#how-it-works">How it works</a>
+              </Button>
+            </>
           )}
           <ThemeToggle />
           {variant === 'landing' ? (

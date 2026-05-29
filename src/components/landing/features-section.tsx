@@ -1,8 +1,8 @@
 import { motion } from 'motion/react'
 import {
+  Bookmark,
   Layers,
   Lock,
-  Settings2,
   SlidersHorizontal,
   Target,
   Zap,
@@ -11,40 +11,40 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 const features = [
   {
-    icon: Zap,
-    title: 'Squoosh-grade codecs',
-    description:
-      'MozJPEG, AVIF, WebP, Oxipng, JXL, and QOI — the same WASM engines that power Google Squoosh.',
-  },
-  {
-    icon: SlidersHorizontal,
-    title: 'Full control',
-    description:
-      'Every codec parameter exposed. Resize algorithms, filters, crop, rotate — nothing locked behind presets.',
-  },
-  {
     icon: Target,
     title: 'Size budget encoding',
     description:
-      'Set a max file size — AssetMelt finds the highest quality encode that fits, resizing only if it has to.',
+      'Set a max file size — AssetMelt searches for the highest quality encode that fits, resizing only when it has to.',
+  },
+  {
+    icon: Zap,
+    title: 'Squoosh-grade codecs',
+    description:
+      'MozJPEG, AVIF, WebP, Oxipng, JXL, and QOI via WASM — the same engines that power Google Squoosh.',
+  },
+  {
+    icon: SlidersHorizontal,
+    title: 'Full pipeline control',
+    description:
+      'Resize modes, crop, rotate, flip, filters, and advanced codec parameters — with tooltips on every setting.',
+  },
+  {
+    icon: Bookmark,
+    title: 'Presets you can own',
+    description:
+      'Start from built-in presets, save your own, revert unsaved tweaks, or export and import pipeline JSON.',
   },
   {
     icon: Layers,
     title: 'Batch processing',
     description:
-      'Drop a folder of assets, apply one pipeline, download everything as a zip. Built for real workflows.',
-  },
-  {
-    icon: Settings2,
-    title: 'Presets + JSON config',
-    description:
-      'Start fast with presets or export/import pipeline configs as JSON for reproducible builds.',
+      'Queue multiple files, run one pipeline, and download everything as a zip with per-file size stats.',
   },
   {
     icon: Lock,
     title: 'Privacy by design',
     description:
-      'Your images never leave your machine. No accounts, no API keys, no tracking. Just WASM in a tab.',
+      'Images never leave your machine. No accounts, no API keys, no server — just WASM in a tab.',
   },
 ]
 
@@ -54,10 +54,10 @@ export function FeaturesSection() {
       <div className="mx-auto max-w-7xl">
         <div className="mb-16 text-center">
           <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
-            Built for developers who care about assets
+            Everything in the studio, nothing on a server
           </h2>
           <p className="mt-4 text-muted-foreground">
-            Professional tooling for your asset pipeline.
+            From byte-budget exports to batch zips — a complete image pipeline in the browser.
           </p>
         </div>
 
