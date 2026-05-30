@@ -75,7 +75,7 @@ export const mozJpegOptionsSchema = z.object({
   progressive: z.boolean().default(true),
   optimize_coding: z.boolean().default(true),
   smoothing: z.number().min(0).max(100).default(0),
-  color_space: z.enum(['GRAYSCALE', 'RGB', 'YCbCr']).default('YCbCr'),
+  color_space: z.union([z.literal(1), z.literal(2), z.literal(3)]).default(3),
   quant_table: z.number().int().min(0).max(5).default(3),
   trellis_multipass: z.boolean().default(false),
   trellis_opt_zero: z.boolean().default(false),

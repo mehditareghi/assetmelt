@@ -7,6 +7,7 @@ import { detectFormatFromBuffer, isImageFile } from '@/lib/image/format-detectio
 import { getImageDimensions } from '@/lib/image/dimensions'
 import { normalizeResizeConfig } from '@/lib/image/resize-compute'
 import { processImageInWorker } from '@/lib/image/worker-bridge'
+import { normalizeMozJpegOptions } from '@/lib/image/jpeg-encode'
 import { prepareFileForProcessing } from '@/lib/image/heic'
 import type { ProcessableFile } from '@/lib/image/types'
 
@@ -381,6 +382,20 @@ export const useStudioStore = create<StudioState>()(
             },
             ...state.pipeline.sizeBudget,
           },
+        }
+        if (
+          state.pipeline.encode.format === 'jpeg' &&
+          typeof state.pipeline.encode.options.color_space === 'string'
+        ) {
+          state.pipeline = {
+            ...state.pipeline,
+            encode: {
+              format: 'jpeg',
+              options: normalizeMozJpegOptions(
+                state.pipeline.encode.options as Record<string, unknown>,
+              ),
+            },
+          }
         }
         if (state.activePresetId === 'custom') {
           state.activePresetId = 'web-optimized'

@@ -1,3 +1,4 @@
+import { toMozJpegWasmOptions } from '@/lib/image/jpeg-encode'
 import type { PipelineConfig } from '@/lib/schemas/pipeline-schema'
 import type { OutputFormat } from '@/lib/schemas/pipeline-schema'
 
@@ -66,7 +67,7 @@ async function encodeImageData(
       const { encode: encodeJpeg } = await import('@jsquash/jpeg')
       return encodeJpeg(
         imageData,
-        encode.format === 'jpeg' ? (encode.options as Record<string, unknown>) : {},
+        encode.format === 'jpeg' ? toMozJpegWasmOptions(encode.options) : {},
       )
     }
     case 'webp': {

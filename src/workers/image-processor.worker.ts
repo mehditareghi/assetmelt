@@ -10,6 +10,7 @@ import {
   encodeToSizeBudget,
   isSizeBudgetSupported,
 } from '@/lib/image/size-budget-encode'
+import { toMozJpegWasmOptions } from '@/lib/image/jpeg-encode'
 import { formatOutputFilename } from '@/lib/presets'
 
 function postProgress(id: string, progress: number, stage: string) {
@@ -212,7 +213,7 @@ async function encodeImage(
       const { encode: encodeJpeg } = await import('@jsquash/jpeg')
       const buffer = await encodeJpeg(
         imageData,
-        encode.format === 'jpeg' ? (encode.options as Record<string, unknown>) : {},
+        encode.format === 'jpeg' ? toMozJpegWasmOptions(encode.options) : {},
       )
       return { buffer, mimeType: 'image/jpeg' }
     }
