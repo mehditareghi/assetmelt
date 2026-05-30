@@ -9,7 +9,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "release": "commit-and-tag-version",
+    "release": "node scripts/release.mjs",
     "release:first": "commit-and-tag-version --first-release",
     "prepare": "husky"
   },

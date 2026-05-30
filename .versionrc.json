@@ -12,5 +12,6 @@
     { "type": "test", "hidden": true },
     { "type": "style", "hidden": true }
   ],
-  "releaseCommitMessageFormat": "chore(release): {{currentTag}}"
+  "releaseCommitMessageFormat": "chore(release): {{currentTag}}",
+  "preMajor": false
 }

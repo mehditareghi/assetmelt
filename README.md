@@ -50,9 +50,11 @@ feat!: remove legacy preset format   # breaking change → major bump
 
 | Commit type | Version bump |
 |-------------|--------------|
-| `fix:` | patch (0.1.0 → 0.1.1) |
-| `feat:` | minor (0.1.0 → 0.2.0) |
-| `BREAKING CHANGE` / `feat!:` | major (0.1.0 → 1.0.0) |
+| `fix:` | patch — third number (`0.1.0` → `0.1.1`) |
+| `feat:` | minor — middle number (`0.1.3` → `0.2.0`) |
+| `BREAKING CHANGE` / `feat!:` | major — first number (`0.1.0` → `1.0.0`) |
+
+`pnpm release` uses `preMajor: false`, so `feat` bumps the minor segment even while the project is on `0.x`.
 
 Commit messages are validated on commit via commitlint + husky.
 
