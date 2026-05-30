@@ -45,8 +45,22 @@ export const resizeSchema = z.object({
   linearRGB: z.boolean().default(true),
 })
 
+export const cropAspectRatioSchema = z.enum([
+  'free',
+  '1:1',
+  '4:3',
+  '3:2',
+  '16:9',
+  '9:16',
+  '3:4',
+  '2:3',
+])
+
+export type CropAspectRatio = z.infer<typeof cropAspectRatioSchema>
+
 export const cropSchema = z.object({
   enabled: z.boolean().default(false),
+  aspectRatio: cropAspectRatioSchema.default('free'),
   x: z.number().int().min(0).default(0),
   y: z.number().int().min(0).default(0),
   width: z.number().int().min(1).default(100),
@@ -183,6 +197,7 @@ export const pipelineSchema = z.object({
   }),
   crop: cropSchema.default({
     enabled: false,
+    aspectRatio: 'free',
     x: 0,
     y: 0,
     width: 100,

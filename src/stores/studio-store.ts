@@ -9,6 +9,7 @@ import { getImageDimensions } from '@/lib/image/dimensions'
 import { normalizeResizeConfig } from '@/lib/image/resize-compute'
 import { createWasmPreviewInWorker, processImageInWorker } from '@/lib/image/worker-bridge'
 import { normalizeMozJpegOptions } from '@/lib/image/jpeg-encode'
+import { createFullImageCrop } from '@/lib/image/crop-math'
 import { prepareFileForProcessing } from '@/lib/image/heic'
 import type { ProcessableFile } from '@/lib/image/types'
 
@@ -162,13 +163,7 @@ export const useStudioStore = create<StudioState>()(
               ...state.pipeline,
               resize: { ...state.pipeline.resize, ...resizePatch },
               crop: state.pipeline.crop.enabled
-                ? {
-                    ...state.pipeline.crop,
-                    width: file.originalWidth,
-                    height: file.originalHeight,
-                    x: 0,
-                    y: 0,
-                  }
+                ? createFullImageCrop(file.originalWidth, file.originalHeight)
                 : state.pipeline.crop,
             },
           }
@@ -199,13 +194,7 @@ export const useStudioStore = create<StudioState>()(
         set((state) => ({
           pipeline: {
             ...state.pipeline,
-            crop: {
-              enabled: true,
-              x: 0,
-              y: 0,
-              width: file.originalWidth!,
-              height: file.originalHeight!,
-            },
+            crop: createFullImageCrop(file.originalWidth!, file.originalHeight!),
           },
           isPipelineModified: true,
         }))
@@ -407,6 +396,15 @@ export const useStudioStore = create<StudioState>()(
               allowResize: true,
             },
             ...state.pipeline.sizeBudget,
+          },
+          crop: {
+            aspectRatio: 'free' as const,
+            enabled: false,
+            x: 0,
+            y: 0,
+            width: 100,
+            height: 100,
+            ...state.pipeline.crop,
           },
         }
         if (

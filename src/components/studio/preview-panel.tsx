@@ -1,8 +1,9 @@
-import { useState } from 'react'
-import { Target as TargetIcon } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { Crop as CropIcon, Target as TargetIcon } from 'lucide-react'
 import { filesize } from 'filesize'
 import { useStudioStore } from '@/stores/studio-store'
 import { formatSizeBudgetTarget } from '@/lib/image/size-budget-encode'
+import { CropOverlay } from '@/components/studio/crop-overlay'
 import { Badge } from '@/components/ui/badge'
 import { Slider } from '@/components/ui/slider'
 import { cn } from '@/lib/utils'
@@ -10,7 +11,10 @@ import { cn } from '@/lib/utils'
 export function PreviewPanel() {
   const files = useStudioStore((s) => s.files)
   const activeFileId = useStudioStore((s) => s.activeFileId)
+  const pipeline = useStudioStore((s) => s.pipeline)
+  const updatePipeline = useStudioStore((s) => s.updatePipeline)
   const [comparePos, setComparePos] = useState(50)
+  const previewContainerRef = useRef<HTMLDivElement>(null)
 
   const activeFile = files.find((f) => f.id === activeFileId)
 
@@ -24,6 +28,13 @@ export function PreviewPanel() {
 
   const previewUrl = activeFile.previewUrl ?? activeFile.resultUrl
   const showCompare = activeFile.status === 'done' && previewUrl && activeFile.originalUrl
+  const hasSource =
+    activeFile.originalWidth != null &&
+    activeFile.originalHeight != null &&
+    activeFile.originalWidth > 0 &&
+    activeFile.originalHeight > 0
+  const showCropOverlay =
+    pipeline.crop.enabled && hasSource && activeFile.originalUrl && !showCompare
 
   return (
     <div className="flex h-full flex-col gap-4">
@@ -52,7 +63,10 @@ export function PreviewPanel() {
           <Badge className="absolute right-3 top-3 font-mono text-xs">After</Badge>
         </div>
       ) : (
-        <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-border/50 bg-muted/20">
+        <div
+          ref={previewContainerRef}
+          className="relative aspect-video w-full overflow-hidden rounded-xl border border-border/50 bg-muted/20"
+        >
           {activeFile.originalUrl && (
             <img
               src={activeFile.originalUrl}
@@ -60,7 +74,31 @@ export function PreviewPanel() {
               className="size-full object-contain"
             />
           )}
+          {showCropOverlay && (
+            <CropOverlay
+              crop={pipeline.crop}
+              sourceWidth={activeFile.originalWidth!}
+              sourceHeight={activeFile.originalHeight!}
+              onCropChange={(crop) => updatePipeline({ crop })}
+              containerRef={previewContainerRef}
+            />
+          )}
+          {showCropOverlay && (
+            <Badge className="absolute left-3 top-3 z-20 gap-1 font-mono text-xs">
+              <CropIcon className="size-3" />
+              Crop mode
+            </Badge>
+          )}
         </div>
+      )}
+
+      {showCropOverlay && (
+        <p className="text-center font-mono text-xs text-muted-foreground">
+          Drag inside the box to move · Corner handles keep ratio · Side handles resize freely
+          {pipeline.crop.aspectRatio !== 'free' && (
+            <> · Active: {pipeline.crop.aspectRatio}</>
+          )}
+        </p>
       )}
 
       {showCompare && (

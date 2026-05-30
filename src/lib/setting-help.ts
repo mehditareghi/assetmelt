@@ -25,6 +25,8 @@ export const SETTING_HELP = {
     'Resizes in linear light space for more accurate downscaling. Recommended for photos.',
 
   cropEnabled: 'Cut a rectangular region before other transforms.',
+  cropAspectRatio:
+    'Quick presets to reshape the crop. Manual edits update the active ratio automatically.',
   cropX: 'Left edge of the crop region, in pixels from the image origin.',
   cropY: 'Top edge of the crop region, in pixels from the image origin.',
   cropWidth: 'Width of the crop region in pixels.',

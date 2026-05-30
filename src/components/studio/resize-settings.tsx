@@ -1,6 +1,13 @@
 import { Link2, RotateCcw } from 'lucide-react'
 import { useStudioStore } from '@/stores/studio-store'
-import type { PipelineConfig, ResizeConfig } from '@/lib/schemas/pipeline-schema'
+import type { CropAspectRatio, PipelineConfig, ResizeConfig } from '@/lib/schemas/pipeline-schema'
+import {
+  applyAspectRatioToCrop,
+  CROP_ASPECT_PRESETS,
+  createDefaultCrop,
+  cropConfigToRect,
+  normalizeCropInput,
+} from '@/lib/image/crop-math'
 import { computeTargetSize } from '@/lib/image/resize-compute'
 import { RESIZE_MODE_LABELS, SETTING_HELP } from '@/lib/setting-help'
 import { SettingLabel, SettingRow } from '@/components/studio/setting-label'
@@ -359,11 +366,51 @@ export function CropSettings({
   const syncCropFromActiveFile = useStudioStore((s) => s.syncCropFromActiveFile)
 
   const crop = pipeline.crop
-  const hasSource =
-    activeFile?.originalWidth != null && activeFile?.originalHeight != null
+  const sourceWidth = activeFile?.originalWidth
+  const sourceHeight = activeFile?.originalHeight
+  const hasSource = sourceWidth != null && sourceHeight != null && sourceWidth > 0 && sourceHeight > 0
 
   const updateCrop = (partial: Partial<typeof crop>) => {
-    onUpdate({ crop: { ...crop, ...partial } })
+    const next = { ...crop, ...partial }
+    if (hasSource) {
+      onUpdate({ crop: normalizeCropInput(next, sourceWidth, sourceHeight) })
+      return
+    }
+    onUpdate({ crop: next })
+  }
+
+  const selectAspectRatio = (aspectRatio: CropAspectRatio) => {
+    if (!hasSource) return
+
+    if (aspectRatio === 'free') {
+      onUpdate({ crop: { ...crop, aspectRatio: 'free' } })
+      return
+    }
+
+    if (!crop.enabled) {
+      onUpdate({
+        crop: {
+          enabled: true,
+          aspectRatio,
+          ...createDefaultCrop(sourceWidth, sourceHeight, aspectRatio),
+        },
+      })
+      return
+    }
+
+    const rect = applyAspectRatioToCrop(
+      cropConfigToRect(crop),
+      aspectRatio,
+      sourceWidth,
+      sourceHeight,
+    )
+    onUpdate({ crop: { ...crop, aspectRatio, ...rect } })
+  }
+
+  const updateCropField = (field: 'x' | 'y' | 'width' | 'height', rawValue: string) => {
+    const value = Number.parseInt(rawValue, 10)
+    if (!Number.isFinite(value)) return
+    updateCrop({ [field]: value })
   }
 
   return (
@@ -384,6 +431,24 @@ export function CropSettings({
 
       {crop.enabled && (
         <>
+          <div className="space-y-2">
+            <SettingLabel label="Aspect ratio" help={SETTING_HELP.cropAspectRatio} />
+            <div className="flex flex-wrap gap-1.5">
+              {CROP_ASPECT_PRESETS.map((preset) => (
+                <Button
+                  key={preset.value}
+                  type="button"
+                  size="sm"
+                  variant={crop.aspectRatio === preset.value ? 'default' : 'outline'}
+                  className="h-7 px-2.5 font-mono text-xs"
+                  onClick={() => selectAspectRatio(preset.value)}
+                >
+                  {preset.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
           {hasSource && (
             <Button
               type="button"
@@ -395,14 +460,16 @@ export function CropSettings({
               Reset crop to full image
             </Button>
           )}
+
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <SettingLabel label="X" help={SETTING_HELP.cropX} />
               <Input
                 type="number"
                 min={0}
+                max={hasSource ? sourceWidth - 1 : undefined}
                 value={crop.x}
-                onChange={(e) => updateCrop({ x: Number(e.target.value) })}
+                onChange={(e) => updateCropField('x', e.target.value)}
                 className="font-mono"
               />
             </div>
@@ -411,8 +478,9 @@ export function CropSettings({
               <Input
                 type="number"
                 min={0}
+                max={hasSource ? sourceHeight - 1 : undefined}
                 value={crop.y}
-                onChange={(e) => updateCrop({ y: Number(e.target.value) })}
+                onChange={(e) => updateCropField('y', e.target.value)}
                 className="font-mono"
               />
             </div>
@@ -421,8 +489,9 @@ export function CropSettings({
               <Input
                 type="number"
                 min={1}
+                max={hasSource ? sourceWidth : undefined}
                 value={crop.width}
-                onChange={(e) => updateCrop({ width: Number(e.target.value) })}
+                onChange={(e) => updateCropField('width', e.target.value)}
                 className="font-mono"
               />
             </div>
@@ -431,12 +500,19 @@ export function CropSettings({
               <Input
                 type="number"
                 min={1}
+                max={hasSource ? sourceHeight : undefined}
                 value={crop.height}
-                onChange={(e) => updateCrop({ height: Number(e.target.value) })}
+                onChange={(e) => updateCropField('height', e.target.value)}
                 className="font-mono"
               />
             </div>
           </div>
+
+          {hasSource && (
+            <p className="font-mono text-xs text-muted-foreground">
+              Output region: {crop.width}×{crop.height} from {sourceWidth}×{sourceHeight} source
+            </p>
+          )}
         </>
       )}
     </div>
