@@ -4,6 +4,13 @@ All notable changes to Asset Melt are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/) and [Conventional Commits](https://www.conventionalcommits.org/).
 
 
+## [0.1.3](https://github.com/mehditareghi/assetmelt/compare/v0.1.2...v0.1.3) (2026-05-30)
+
+
+### Features
+
+* upgrade crop feature ([95c9c2f](https://github.com/mehditareghi/assetmelt/commit/95c9c2f8c27ac98ee51109e2955a173af4ee9faf))
+
 ## [0.1.2](https://github.com/mehditareghi/assetmelt/compare/v0.1.1...v0.1.2) (2026-05-30)
 
 
