@@ -398,12 +398,14 @@ export const useStudioStore = create<StudioState>()(
             ...state.pipeline.sizeBudget,
           },
           crop: {
-            aspectRatio: 'free' as const,
-            enabled: false,
-            x: 0,
-            y: 0,
-            width: 100,
-            height: 100,
+            ...{
+              aspectRatio: 'free' as const,
+              enabled: false,
+              x: 0,
+              y: 0,
+              width: 100,
+              height: 100,
+            },
             ...state.pipeline.crop,
           },
         }
