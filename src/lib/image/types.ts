@@ -32,6 +32,8 @@ export interface ProcessableFile {
   originalUrl?: string
   originalWidth?: number
   originalHeight?: number
+  /** Browser-displayable preview (PNG for JXL/QOI; same as resultUrl otherwise). */
+  previewUrl?: string
   resultUrl?: string
   resultBlob?: Blob
   resultName?: string
@@ -47,6 +49,23 @@ export interface WorkerProcessRequest {
   pipeline: PipelineConfig
 }
 
+export interface WorkerPreviewRequest {
+  type: 'preview'
+  id: string
+  buffer: ArrayBuffer
+  format: InputFormat
+}
+
+export interface WorkerPreviewResponse {
+  type: 'preview-result'
+  id: string
+  previewBuffer: ArrayBuffer
+  width: number
+  height: number
+}
+
+export type WorkerInboundMessage = WorkerProcessRequest | WorkerPreviewRequest
+
 export interface WorkerProcessResponse {
   type: 'result'
   id: string
@@ -54,6 +73,9 @@ export interface WorkerProcessResponse {
   mimeType: string
   outputName: string
   stats: ProcessStats
+  /** PNG preview for formats browsers cannot render in <img> (JXL, QOI). */
+  previewBuffer?: ArrayBuffer
+  previewMimeType?: string
 }
 
 export interface WorkerErrorResponse {
@@ -71,5 +93,6 @@ export interface WorkerProgressResponse {
 
 export type WorkerResponse =
   | WorkerProcessResponse
+  | WorkerPreviewResponse
   | WorkerErrorResponse
   | WorkerProgressResponse

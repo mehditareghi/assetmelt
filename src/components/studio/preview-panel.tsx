@@ -22,14 +22,15 @@ export function PreviewPanel() {
     )
   }
 
-  const showCompare = activeFile.status === 'done' && activeFile.resultUrl && activeFile.originalUrl
+  const previewUrl = activeFile.previewUrl ?? activeFile.resultUrl
+  const showCompare = activeFile.status === 'done' && previewUrl && activeFile.originalUrl
 
   return (
     <div className="flex h-full flex-col gap-4">
       {showCompare ? (
         <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-border/50 bg-muted/20">
           <img
-            src={activeFile.resultUrl}
+            src={previewUrl}
             alt="Output"
             className="absolute inset-0 size-full object-contain"
           />

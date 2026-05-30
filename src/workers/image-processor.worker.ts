@@ -1,10 +1,13 @@
 import type { PipelineConfig } from '@/lib/schemas/pipeline-schema'
 import type { InputFormat } from '@/lib/image/format-detection'
 import type {
+  WorkerInboundMessage,
+  WorkerPreviewRequest,
   WorkerProcessRequest,
   WorkerProcessResponse,
   WorkerResponse,
 } from '@/lib/image/types'
+import { needsWasmPreview, PREVIEW_MIME_TYPE } from '@/lib/image/browser-display'
 import { computeTargetSize, normalizeResizeConfig } from '@/lib/image/resize-compute'
 import {
   encodeToSizeBudget,
@@ -202,6 +205,24 @@ async function applyResize(
   })
 }
 
+async function bufferToDisplayPreview(
+  buffer: ArrayBuffer,
+  format: InputFormat,
+): Promise<{ previewBuffer: ArrayBuffer; width: number; height: number }> {
+  const imageData = await decodeToImageData(buffer, format)
+  const { encode: encodePng } = await import('@jsquash/png')
+  const previewBuffer = await encodePng(imageData)
+  return { previewBuffer, width: imageData.width, height: imageData.height }
+}
+
+async function createInputPreview(
+  request: WorkerPreviewRequest,
+): Promise<WorkerResponse & { type: 'preview-result' }> {
+  const { id, buffer, format } = request
+  const { previewBuffer, width, height } = await bufferToDisplayPreview(buffer, format)
+  return { type: 'preview-result', id, previewBuffer, width, height }
+}
+
 async function encodeImage(
   imageData: ImageData,
   pipeline: PipelineConfig,
@@ -321,12 +342,21 @@ async function processImage(
     pipeline.outputFormat,
   )
 
+  let previewBuffer: ArrayBuffer | undefined
+  if (needsWasmPreview(pipeline.outputFormat)) {
+    postProgress(id, 98, 'Preview')
+    const preview = await bufferToDisplayPreview(outputBuffer, pipeline.outputFormat)
+    previewBuffer = preview.previewBuffer
+  }
+
   return {
     type: 'result',
     id,
     buffer: outputBuffer,
     mimeType,
     outputName,
+    previewBuffer,
+    previewMimeType: previewBuffer ? PREVIEW_MIME_TYPE : undefined,
     stats: {
       originalSize,
       outputSize,
@@ -340,13 +370,22 @@ async function processImage(
   }
 }
 
-self.addEventListener('message', async (event: MessageEvent<WorkerProcessRequest>) => {
+self.addEventListener('message', async (event: MessageEvent<WorkerInboundMessage>) => {
   const request = event.data
-  if (request.type !== 'process') return
 
   try {
+    if (request.type === 'preview') {
+      const result = await createInputPreview(request)
+      self.postMessage(result, { transfer: [result.previewBuffer] })
+      return
+    }
+
+    if (request.type !== 'process') return
+
     const result = await processImage(request)
-    self.postMessage(result, { transfer: [result.buffer] })
+    const transferables = [result.buffer]
+    if (result.previewBuffer) transferables.push(result.previewBuffer)
+    self.postMessage(result, { transfer: transferables })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Processing failed'
     self.postMessage({ type: 'error', id: request.id, message } satisfies WorkerResponse)

@@ -1,7 +1,10 @@
 import type {
+  WorkerInboundMessage,
+  WorkerPreviewRequest,
   WorkerProcessRequest,
   WorkerResponse,
 } from '@/lib/image/types'
+import type { InputFormat } from '@/lib/image/format-detection'
 
 type ProgressCallback = (progress: number, stage: string) => void
 
@@ -18,29 +21,28 @@ function getWorker(): Worker {
   return worker
 }
 
-export function processImageInWorker(
-  request: Omit<WorkerProcessRequest, 'type'>,
-  onProgress?: ProgressCallback,
-): Promise<WorkerResponse & { type: 'result' }> {
+function waitForWorkerResponse<T extends WorkerResponse['type']>(
+  requestId: string,
+  expectedType: T,
+): Promise<Extract<WorkerResponse, { type: T }>> {
   return new Promise((resolve, reject) => {
     const w = getWorker()
 
     const handler = (event: MessageEvent<WorkerResponse>) => {
       const data = event.data
-      if (data.id !== request.id) return
+      if (data.id !== requestId) return
 
-      if (data.type === 'progress') {
-        onProgress?.(data.progress, data.stage)
-        return
-      }
+      if (data.type === 'progress') return
 
       w.removeEventListener('message', handler)
       w.removeEventListener('error', errorHandler)
 
       if (data.type === 'error') {
         reject(new Error(data.message))
+      } else if (data.type === expectedType) {
+        resolve(data as Extract<WorkerResponse, { type: T }>)
       } else {
-        resolve(data)
+        reject(new Error(`Unexpected worker response: ${data.type}`))
       }
     }
 
@@ -52,10 +54,46 @@ export function processImageInWorker(
 
     w.addEventListener('message', handler)
     w.addEventListener('error', errorHandler)
-
-    const message: WorkerProcessRequest = { type: 'process', ...request }
-    w.postMessage(message, [request.buffer])
   })
+}
+
+export function processImageInWorker(
+  request: Omit<WorkerProcessRequest, 'type'>,
+  onProgress?: ProgressCallback,
+): Promise<WorkerResponse & { type: 'result' }> {
+  const w = getWorker()
+  const responsePromise = waitForWorkerResponse(request.id, 'result')
+
+  if (onProgress) {
+    const progressHandler = (event: MessageEvent<WorkerResponse>) => {
+      const data = event.data
+      if (data.id !== request.id || data.type !== 'progress') return
+      onProgress(data.progress, data.stage)
+    }
+    w.addEventListener('message', progressHandler)
+    responsePromise.finally(() => w.removeEventListener('message', progressHandler))
+  }
+
+  const message: WorkerProcessRequest = { type: 'process', ...request }
+  w.postMessage(message, [request.buffer])
+  return responsePromise
+}
+
+export interface WasmPreviewResult {
+  previewBuffer: ArrayBuffer
+  width: number
+  height: number
+}
+
+export function createWasmPreviewInWorker(
+  buffer: ArrayBuffer,
+  format: InputFormat,
+): Promise<WasmPreviewResult> {
+  const id = crypto.randomUUID()
+  const responsePromise = waitForWorkerResponse(id, 'preview-result')
+  const message: WorkerPreviewRequest = { type: 'preview', id, buffer, format }
+  getWorker().postMessage(message satisfies WorkerInboundMessage, [buffer])
+  return responsePromise
 }
 
 export async function warmUpWorker(): Promise<void> {

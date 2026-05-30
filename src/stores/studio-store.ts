@@ -4,9 +4,10 @@ import type { PipelineConfig, ResizeConfig } from '@/lib/schemas/pipeline-schema
 import { createDefaultPipeline } from '@/lib/schemas/pipeline-schema'
 import { applyPreset, BUILT_IN_PRESETS, type CustomPreset } from '@/lib/presets'
 import { detectFormatFromBuffer, isImageFile } from '@/lib/image/format-detection'
+import { createPreviewObjectUrl, needsWasmPreview } from '@/lib/image/browser-display'
 import { getImageDimensions } from '@/lib/image/dimensions'
 import { normalizeResizeConfig } from '@/lib/image/resize-compute'
-import { processImageInWorker } from '@/lib/image/worker-bridge'
+import { createWasmPreviewInWorker, processImageInWorker } from '@/lib/image/worker-bridge'
 import { normalizeMozJpegOptions } from '@/lib/image/jpeg-encode'
 import { prepareFileForProcessing } from '@/lib/image/heic'
 import type { ProcessableFile } from '@/lib/image/types'
@@ -51,6 +52,10 @@ function revokeUrl(url?: string) {
   if (url) URL.revokeObjectURL(url)
 }
 
+function revokePreviewUrl(previewUrl?: string, resultUrl?: string) {
+  if (previewUrl && previewUrl !== resultUrl) revokeUrl(previewUrl)
+}
+
 export const useStudioStore = create<StudioState>()(
   persist(
     (set, get) => ({
@@ -70,15 +75,29 @@ export const useStudioStore = create<StudioState>()(
         for (const file of incoming) {
           const buffer = await file.arrayBuffer()
           const inputFormat = detectFormatFromBuffer(buffer, file.name)
-          const originalUrl = URL.createObjectURL(file)
+          let originalUrl: string
           let originalWidth: number | undefined
           let originalHeight: number | undefined
-          try {
-            const dims = await getImageDimensions(file)
-            originalWidth = dims.width
-            originalHeight = dims.height
-          } catch {
-            // dimensions optional — worker decodes at process time
+
+          if (needsWasmPreview(inputFormat)) {
+            try {
+              const preview = await createWasmPreviewInWorker(buffer, inputFormat)
+              originalUrl = createPreviewObjectUrl(preview.previewBuffer)
+              originalWidth = preview.width
+              originalHeight = preview.height
+            } catch {
+              // Fallback: file still processable; preview may be blank until output is ready
+              originalUrl = URL.createObjectURL(file)
+            }
+          } else {
+            originalUrl = URL.createObjectURL(file)
+            try {
+              const dims = await getImageDimensions(file)
+              originalWidth = dims.width
+              originalHeight = dims.height
+            } catch {
+              // dimensions optional — worker decodes at process time
+            }
           }
 
           newFiles.push({
@@ -104,6 +123,7 @@ export const useStudioStore = create<StudioState>()(
         set((state) => {
           const file = state.files.find((f) => f.id === id)
           revokeUrl(file?.originalUrl)
+          revokePreviewUrl(file?.previewUrl, file?.resultUrl)
           revokeUrl(file?.resultUrl)
           const files = state.files.filter((f) => f.id !== id)
           return {
@@ -117,6 +137,7 @@ export const useStudioStore = create<StudioState>()(
       clearFiles: () => {
         get().files.forEach((f) => {
           revokeUrl(f.originalUrl)
+          revokePreviewUrl(f.previewUrl, f.resultUrl)
           revokeUrl(f.resultUrl)
         })
         set({ files: [], activeFileId: null })
@@ -274,16 +295,21 @@ export const useStudioStore = create<StudioState>()(
 
           const blob = new Blob([result.buffer], { type: result.mimeType })
           const resultUrl = URL.createObjectURL(blob)
+          const previewUrl = result.previewBuffer
+            ? createPreviewObjectUrl(result.previewBuffer)
+            : resultUrl
 
           set((s) => ({
             files: s.files.map((f) => {
               if (f.id !== id) return f
+              revokePreviewUrl(f.previewUrl, f.resultUrl)
               revokeUrl(f.resultUrl)
               return {
                 ...f,
                 status: 'done' as const,
                 progress: 100,
                 resultBlob: blob,
+                previewUrl,
                 resultUrl,
                 resultName: result.outputName,
                 stats: result.stats,
