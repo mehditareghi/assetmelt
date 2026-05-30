@@ -4,6 +4,13 @@ All notable changes to Asset Melt are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/) and [Conventional Commits](https://www.conventionalcommits.org/).
 
 
+## [0.1.1](https://github.com/mehditareghi/assetmelt/compare/v0.1.0...v0.1.1) (2026-05-30)
+
+
+### Features
+
+* add versioning system ([64c1e1a](https://github.com/mehditareghi/assetmelt/commit/64c1e1a01a8694a1b1f2a2e043f460fbd6fffbf8))
+
 ## 0.1.0 (2026-05-30)
 
 
