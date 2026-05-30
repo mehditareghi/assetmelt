@@ -34,6 +34,36 @@ pnpm build
 pnpm preview
 ```
 
+## Versioning
+
+This project uses [Conventional Commits](https://www.conventionalcommits.org/) and [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) (semantic versioning from git history).
+
+**Commit format:**
+
+```
+type(scope): subject
+
+feat: add AVIF size budget presets
+fix: correct MozJPEG color_space encoding
+feat!: remove legacy preset format   # breaking change → major bump
+```
+
+| Commit type | Version bump |
+|-------------|--------------|
+| `fix:` | patch (0.1.0 → 0.1.1) |
+| `feat:` | minor (0.1.0 → 0.2.0) |
+| `BREAKING CHANGE` / `feat!:` | major (0.1.0 → 1.0.0) |
+
+Commit messages are validated on commit via commitlint + husky.
+
+**Cut a release** (bumps `package.json`, updates `CHANGELOG.md`, tags):
+
+```bash
+pnpm release
+```
+
+The footer reads its version from `package.json` at build time.
+
 ## Tech stack
 
 - **Vite** + React 19 + TypeScript

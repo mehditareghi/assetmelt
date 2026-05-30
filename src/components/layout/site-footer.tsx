@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { Badge } from '@/components/ui/badge'
+import { APP_VERSION } from '@/lib/version'
 import { Shield } from 'lucide-react'
 
 const YEAR = new Date().getFullYear()
@@ -22,7 +23,7 @@ export function SiteFooter() {
             <Shield className="size-3" />
             100% client-side
           </Badge>
-          <span className="font-mono text-xs text-muted-foreground">v0.1.0</span>
+          <span className="font-mono text-xs text-muted-foreground">v{APP_VERSION}</span>
         </div>
       </div>
 
