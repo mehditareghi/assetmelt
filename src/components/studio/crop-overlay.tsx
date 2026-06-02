@@ -27,6 +27,8 @@ interface CropOverlayProps {
   sourceHeight: number
   onCropChange: (crop: CropConfig) => void
   containerRef: React.RefObject<HTMLElement | null>
+  /** Bumped when the preview image loads or the active file changes. */
+  layoutKey?: string | number
 }
 
 export function CropOverlay({
@@ -35,6 +37,7 @@ export function CropOverlay({
   sourceHeight,
   onCropChange,
   containerRef,
+  layoutKey,
 }: CropOverlayProps) {
   const cropRef = useRef(crop)
   const dragRef = useRef<{
@@ -64,14 +67,37 @@ export function CropOverlay({
   }, [containerRef, sourceWidth, sourceHeight])
 
   useLayoutEffect(() => {
-    updateImageRect()
     const container = containerRef.current
     if (!container) return
 
-    const observer = new ResizeObserver(updateImageRect)
+    let cancelled = false
+    let frameId = 0
+
+    const measure = () => {
+      if (!cancelled) updateImageRect()
+    }
+
+    measure()
+
+    const observer = new ResizeObserver(measure)
     observer.observe(container)
-    return () => observer.disconnect()
-  }, [containerRef, updateImageRect])
+
+    // Container can report 0×0 on first paint (grid mount, aspect-ratio) before ResizeObserver fires.
+    const retryUntilSized = () => {
+      if (cancelled) return
+      measure()
+      if (container.clientWidth <= 0 || container.clientHeight <= 0) {
+        frameId = requestAnimationFrame(retryUntilSized)
+      }
+    }
+    frameId = requestAnimationFrame(retryUntilSized)
+
+    return () => {
+      cancelled = true
+      observer.disconnect()
+      cancelAnimationFrame(frameId)
+    }
+  }, [containerRef, updateImageRect, sourceWidth, sourceHeight, layoutKey])
 
   const endDrag = useCallback(() => {
     dragRef.current = null

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Crop as CropIcon, Target as TargetIcon } from 'lucide-react'
 import { filesize } from 'filesize'
 import { useStudioStore } from '@/stores/studio-store'
@@ -14,9 +14,19 @@ export function PreviewPanel() {
   const pipeline = useStudioStore((s) => s.pipeline)
   const updatePipeline = useStudioStore((s) => s.updatePipeline)
   const [comparePos, setComparePos] = useState(50)
+  const [previewLayoutKey, setPreviewLayoutKey] = useState(0)
   const previewContainerRef = useRef<HTMLDivElement>(null)
+  const previewImageRef = useRef<HTMLImageElement>(null)
 
   const activeFile = files.find((f) => f.id === activeFileId)
+
+  useEffect(() => {
+    setPreviewLayoutKey(0)
+    const img = previewImageRef.current
+    if (img?.complete && img.naturalWidth > 0) {
+      setPreviewLayoutKey(1)
+    }
+  }, [activeFile?.id, activeFile?.originalUrl])
 
   if (!activeFile) {
     return (
@@ -69,18 +79,22 @@ export function PreviewPanel() {
         >
           {activeFile.originalUrl && (
             <img
+              ref={previewImageRef}
               src={activeFile.originalUrl}
               alt={activeFile.name}
               className="size-full object-contain"
+              onLoad={() => setPreviewLayoutKey((key) => key + 1)}
             />
           )}
           {showCropOverlay && (
             <CropOverlay
+              key={activeFile.id}
               crop={pipeline.crop}
               sourceWidth={activeFile.originalWidth!}
               sourceHeight={activeFile.originalHeight!}
               onCropChange={(crop) => updatePipeline({ crop })}
               containerRef={previewContainerRef}
+              layoutKey={previewLayoutKey}
             />
           )}
           {showCropOverlay && (

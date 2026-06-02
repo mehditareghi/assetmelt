@@ -142,10 +142,31 @@ export const useStudioStore = create<StudioState>()(
           })
         }
 
-        set((prev) => ({
-          files: [...prev.files, ...newFiles],
-          activeFileId: prev.activeFileId ?? newFiles[0]?.id ?? null,
-        }))
+        set((prev) => {
+          const activeFileId = prev.activeFileId ?? newFiles[0]?.id ?? null
+          const activeFile = [...prev.files, ...newFiles].find((f) => f.id === activeFileId)
+          const shouldSyncCrop =
+            prev.pipeline.crop.enabled &&
+            !prev.activeFileId &&
+            activeFile?.originalWidth != null &&
+            activeFile.originalHeight != null
+
+          return {
+            files: [...prev.files, ...newFiles],
+            activeFileId,
+            ...(shouldSyncCrop
+              ? {
+                  pipeline: {
+                    ...prev.pipeline,
+                    crop: createFullImageCrop(
+                      activeFile.originalWidth!,
+                      activeFile.originalHeight!,
+                    ),
+                  },
+                }
+              : {}),
+          }
+        })
       },
 
       removeFile: (id) => {
