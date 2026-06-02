@@ -297,33 +297,7 @@ export function applyAspectRatioToCrop(
 
   const centerX = crop.x + crop.width / 2
   const centerY = crop.y + crop.height / 2
-
-  let width = crop.width
-  let height = crop.height
-  const currentRatio = width / height
-
-  if (currentRatio > ratio) {
-    width = height * ratio
-  } else {
-    height = width / ratio
-  }
-
-  if (width > sourceWidth) {
-    width = sourceWidth
-    height = width / ratio
-  }
-  if (height > sourceHeight) {
-    height = sourceHeight
-    width = height * ratio
-  }
-
-  const size = maxCropSizeForRatio(
-    Math.min(width, sourceWidth),
-    Math.min(height, sourceHeight),
-    ratio,
-  )
-  width = size.width
-  height = size.height
+  const { width, height } = maxCropSizeForRatio(sourceWidth, sourceHeight, ratio)
 
   return {
     x: Math.round(Math.max(0, Math.min(centerX - width / 2, sourceWidth - width))),
