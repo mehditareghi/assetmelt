@@ -12,6 +12,7 @@ export default defineConfig({
   },
   optimizeDeps: {
     exclude: [
+      'heic-to',
       '@jsquash/jpeg',
       '@jsquash/webp',
       '@jsquash/avif',

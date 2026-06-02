@@ -26,6 +26,8 @@ export interface ProcessableFile {
   file: File
   name: string
   inputFormat: InputFormat
+  /** Original on-disk size before HEIC→JPEG normalization (for savings stats). */
+  sourceByteSize?: number
   status: ProcessableFileStatus
   progress: number
   error?: string

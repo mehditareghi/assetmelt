@@ -10,7 +10,7 @@ import { normalizeResizeConfig } from '@/lib/image/resize-compute'
 import { createWasmPreviewInWorker, processImageInWorker } from '@/lib/image/worker-bridge'
 import { normalizeMozJpegOptions } from '@/lib/image/jpeg-encode'
 import { createFullImageCrop } from '@/lib/image/crop-math'
-import { prepareFileForProcessing } from '@/lib/image/heic'
+import { prepareFileForProcessing, resolveHeicInputFormat } from '@/lib/image/heic'
 import type { ProcessableFile } from '@/lib/image/types'
 
 function generateId(): string {
@@ -74,8 +74,35 @@ export const useStudioStore = create<StudioState>()(
         const newFiles: ProcessableFile[] = []
 
         for (const file of incoming) {
-          const buffer = await file.arrayBuffer()
-          const inputFormat = detectFormatFromBuffer(buffer, file.name)
+          let workingFile = file
+          let buffer = await file.arrayBuffer()
+          let inputFormat = detectFormatFromBuffer(buffer, file.name)
+          inputFormat = await resolveHeicInputFormat(file, inputFormat)
+          let sourceByteSize: number | undefined
+
+          if (inputFormat === 'heic') {
+            try {
+              const prepared = await prepareFileForProcessing(file, inputFormat)
+              workingFile = prepared.file
+              inputFormat = prepared.inputFormat
+              sourceByteSize = prepared.sourceByteSize
+              buffer = await workingFile.arrayBuffer()
+            } catch (error) {
+              const message =
+                error instanceof Error ? error.message : 'Could not decode HEIC image'
+              newFiles.push({
+                id: generateId(),
+                file,
+                name: file.name,
+                inputFormat: 'heic',
+                status: 'error',
+                progress: 0,
+                error: message,
+              })
+              continue
+            }
+          }
+
           let originalUrl: string
           let originalWidth: number | undefined
           let originalHeight: number | undefined
@@ -88,12 +115,12 @@ export const useStudioStore = create<StudioState>()(
               originalHeight = preview.height
             } catch {
               // Fallback: file still processable; preview may be blank until output is ready
-              originalUrl = URL.createObjectURL(file)
+              originalUrl = URL.createObjectURL(workingFile)
             }
           } else {
-            originalUrl = URL.createObjectURL(file)
+            originalUrl = URL.createObjectURL(workingFile)
             try {
-              const dims = await getImageDimensions(file)
+              const dims = await getImageDimensions(workingFile)
               originalWidth = dims.width
               originalHeight = dims.height
             } catch {
@@ -103,9 +130,10 @@ export const useStudioStore = create<StudioState>()(
 
           newFiles.push({
             id: generateId(),
-            file,
-            name: file.name,
+            file: workingFile,
+            name: workingFile.name,
             inputFormat,
+            sourceByteSize,
             status: 'pending',
             progress: 0,
             originalUrl,
@@ -264,9 +292,11 @@ export const useStudioStore = create<StudioState>()(
         })
 
         try {
-          const { file: processFile, inputFormat: processFormat } =
+          const { file: processFile, inputFormat: processFormat, sourceByteSize } =
             await prepareFileForProcessing(fileEntry.file, fileEntry.inputFormat)
           const buffer = await processFile.arrayBuffer()
+          const originalByteSize =
+            fileEntry.sourceByteSize ?? sourceByteSize ?? buffer.byteLength
           const result = await processImageInWorker(
             {
               id,
@@ -287,6 +317,14 @@ export const useStudioStore = create<StudioState>()(
           const previewUrl = result.previewBuffer
             ? createPreviewObjectUrl(result.previewBuffer)
             : resultUrl
+          const stats = {
+            ...result.stats,
+            originalSize: originalByteSize,
+            savingsPercent:
+              originalByteSize > 0
+                ? ((originalByteSize - result.stats.outputSize) / originalByteSize) * 100
+                : result.stats.savingsPercent,
+          }
 
           set((s) => ({
             files: s.files.map((f) => {
@@ -301,7 +339,8 @@ export const useStudioStore = create<StudioState>()(
                 previewUrl,
                 resultUrl,
                 resultName: result.outputName,
-                stats: result.stats,
+                stats,
+                sourceByteSize: f.sourceByteSize ?? sourceByteSize,
               }
             }),
             isProcessing: false,

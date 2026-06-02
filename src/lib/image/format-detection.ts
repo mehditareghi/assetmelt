@@ -11,6 +11,31 @@ export type InputFormat =
   | 'qoi'
   | 'unknown'
 
+/** ISO BMFF major brands used by HEIC/HEIF still images (not AVIF). */
+const HEIF_MAJOR_BRANDS = new Set([
+  'heic',
+  'heif',
+  'heix',
+  'hevc',
+  'hevx',
+  'heim',
+  'heis',
+  'hevm',
+  'hevs',
+  'mif1',
+  'msf1',
+  'hif1',
+])
+
+function detectHeifFromIsoBmff(view: Uint8Array): boolean {
+  if (view.length < 12) return false
+  if (view[4] !== 0x66 || view[5] !== 0x74 || view[6] !== 0x79 || view[7] !== 0x70) {
+    return false
+  }
+  const brand = String.fromCharCode(view[8], view[9], view[10], view[11])
+  return HEIF_MAJOR_BRANDS.has(brand)
+}
+
 const SIGNATURES: Array<{ format: InputFormat; bytes: number[]; offset?: number }> = [
   { format: 'jpeg', bytes: [0xff, 0xd8, 0xff] },
   { format: 'png', bytes: [0x89, 0x50, 0x4e, 0x47] },
@@ -41,6 +66,8 @@ export function detectFormatFromBuffer(buffer: ArrayBuffer, fileName?: string): 
     }
   }
 
+  if (detectHeifFromIsoBmff(view)) return 'heic'
+
   if (fileName) {
     const ext = fileName.split('.').pop()?.toLowerCase()
     const extMap: Record<string, InputFormat> = {
@@ -67,7 +94,9 @@ export function detectFormatFromBuffer(buffer: ArrayBuffer, fileName?: string): 
 }
 
 export function isImageFile(file: File): boolean {
-  if (file.type.startsWith('image/')) return true
+  const mime = file.type.toLowerCase()
+  if (mime.startsWith('image/')) return true
+  if (mime.startsWith('image/heic') || mime.startsWith('image/heif')) return true
   const ext = file.name.split('.').pop()?.toLowerCase()
   return ['jpg', 'jpeg', 'png', 'webp', 'avif', 'gif', 'bmp', 'svg', 'heic', 'heif', 'jxl', 'qoi', 'tiff', 'tif'].includes(ext ?? '')
 }
