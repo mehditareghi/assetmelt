@@ -4,6 +4,15 @@ All notable changes to Asset Melt are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/) and [Conventional Commits](https://www.conventionalcommits.org/).
 
 
+## [0.1.5](https://github.com/mehditareghi/assetmelt/compare/v0.1.4...v0.1.5) (2026-06-02)
+
+
+### Bug Fixes
+
+* crop mode appearance when add new photo ([eb3d09d](https://github.com/mehditareghi/assetmelt/commit/eb3d09ddaa3a0f56eeb260779ed84ae0b332d2d0))
+* heic input support ([058a3b2](https://github.com/mehditareghi/assetmelt/commit/058a3b291379ccec29eb5861a34a9c8c5d584d07))
+* switch crop presets shrink issue ([f212280](https://github.com/mehditareghi/assetmelt/commit/f2122809c83691b1d7eb8e71a5a52e6a98144870))
+
 ## [0.1.4](https://github.com/mehditareghi/assetmelt/compare/v0.1.3...v0.1.4) (2026-05-30)
 
 
