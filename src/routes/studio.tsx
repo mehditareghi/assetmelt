@@ -3,43 +3,54 @@ import { FileQueue } from '@/components/studio/file-queue'
 import { PreviewPanel } from '@/components/studio/preview-panel'
 import { SettingsPanel } from '@/components/studio/settings-panel'
 import { StudioToolbar } from '@/components/studio/studio-toolbar'
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
-import { SlidersHorizontal } from 'lucide-react'
-import { useStudioStore } from '@/stores/studio-store'
-import { useEffect } from 'react'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
 import { warmUpWorker } from '@/lib/image/worker-bridge'
+import { useStudioStore } from '@/stores/studio-store'
+import { createFileRoute } from '@tanstack/react-router'
+import { SlidersHorizontal } from 'lucide-react'
+import { useEffect } from 'react'
 
-export function StudioPage() {
-  const files = useStudioStore((s) => s.files)
-  const undo = useStudioStore((s) => s.undo)
-  const redo = useStudioStore((s) => s.redo)
+export const Route = createFileRoute("/studio")({
+  component: Studio,
+});
+
+function Studio() {
+  const files = useStudioStore((s) => s.files);
+  const undo = useStudioStore((s) => s.undo);
+  const redo = useStudioStore((s) => s.redo);
 
   useEffect(() => {
-    warmUpWorker()
-  }, [])
+    warmUpWorker();
+  }, []);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== 'z') return
-      const target = event.target
+      if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== "z")
+        return;
+      const target = event.target;
       if (
         target instanceof HTMLElement &&
         (target.isContentEditable ||
-          target.tagName === 'INPUT' ||
-          target.tagName === 'TEXTAREA' ||
-          target.tagName === 'SELECT')
+          target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT")
       ) {
-        return
+        return;
       }
-      event.preventDefault()
-      if (event.shiftKey) redo()
-      else undo()
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [undo, redo])
-
+      event.preventDefault();
+      if (event.shiftKey) redo();
+      else undo();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [undo, redo]);
   return (
     <>
       <div className="mesh-gradient studio-page-bg pointer-events-none fixed inset-0 -z-10" />
@@ -82,7 +93,10 @@ export function StudioPage() {
             <div className="fixed bottom-6 right-6 lg:hidden">
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button size="lg" className="size-14 rounded-full shadow-lg shadow-primary/20">
+                  <Button
+                    size="lg"
+                    className="size-14 rounded-full shadow-lg shadow-primary/20"
+                  >
                     <SlidersHorizontal className="size-5" />
                   </Button>
                 </SheetTrigger>
@@ -104,10 +118,11 @@ export function StudioPage() {
 
         {files.length === 0 && (
           <p className="text-center text-sm text-muted-foreground">
-            Or pick a preset and start — defaults to Web Optimized (WebP, max 1920px)
+            Or pick a preset and start — defaults to Web Optimized (WebP, max
+            1920px)
           </p>
         )}
       </main>
     </>
-  )
+  );
 }

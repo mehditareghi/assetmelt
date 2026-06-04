@@ -1,4 +1,4 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from '@tanstack/react-router'
 import { Badge } from '@/components/ui/badge'
 import { APP_VERSION } from '@/lib/version'
 import { Shield } from 'lucide-react'
@@ -30,7 +30,7 @@ function FooterSectionLink({ id, label }: { id: string; label: string }) {
           scrollToSection(id)
           return
         }
-        navigate({ pathname: '/', hash: id })
+        navigate({ to: '/', hash: id })
       }}
     >
       {label}
