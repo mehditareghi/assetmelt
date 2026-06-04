@@ -8,8 +8,12 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+.nitro
 .tanstack
 dist
+.output
+.vercel
+*.tsbuildinfo
 dist-ssr
 *.local
 
