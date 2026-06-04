@@ -4,6 +4,13 @@ All notable changes to Asset Melt are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/) and [Conventional Commits](https://www.conventionalcommits.org/).
 
 
+## [0.2.0](https://github.com/mehditareghi/assetmelt/compare/v0.1.5...v0.2.0) (2026-06-04)
+
+
+### Features
+
+* added live preview and undo/redo ([4478e8a](https://github.com/mehditareghi/assetmelt/commit/4478e8a229a711755dea94cc01f45321787345c8))
+
 ## [0.1.5](https://github.com/mehditareghi/assetmelt/compare/v0.1.4...v0.1.5) (2026-06-02)
 
 
