@@ -4,6 +4,13 @@ All notable changes to Asset Melt are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/) and [Conventional Commits](https://www.conventionalcommits.org/).
 
 
+## [0.3.1](https://github.com/mehditareghi/assetmelt/compare/v0.3.0...v0.3.1) (2026-06-04)
+
+
+### Bug Fixes
+
+* backdrop blur issue ([d5b3c7e](https://github.com/mehditareghi/assetmelt/commit/d5b3c7e350f6c6817bce3d9113baeedc961f1a32))
+
 ## [0.3.0](https://github.com/mehditareghi/assetmelt/compare/v0.2.0...v0.3.0) (2026-06-04)
 
 
