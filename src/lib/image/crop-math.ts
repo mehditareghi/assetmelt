@@ -20,8 +20,10 @@ export const CROP_ASPECT_PRESETS: Array<{ value: CropAspectRatio; label: string 
   { value: 'free', label: 'Free' },
   { value: '1:1', label: '1:1' },
   { value: '4:3', label: '4:3' },
+  { value: '4:5', label: '4:5' },
   { value: '3:2', label: '3:2' },
   { value: '16:9', label: '16:9' },
+  { value: '40:21', label: 'OG (1.91:1)' },
   { value: '3:4', label: '3:4' },
   { value: '2:3', label: '2:3' },
   { value: '9:16', label: '9:16' },
@@ -35,10 +37,14 @@ export function parseAspectRatio(aspectRatio: CropAspectRatio): number | null {
       return 1
     case '4:3':
       return 4 / 3
+    case '4:5':
+      return 4 / 5
     case '3:2':
       return 3 / 2
     case '16:9':
       return 16 / 9
+    case '40:21':
+      return 40 / 21
     case '3:4':
       return 3 / 4
     case '2:3':

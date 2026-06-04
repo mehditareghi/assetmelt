@@ -21,6 +21,17 @@ export interface ProcessStats {
   sizeBudget?: SizeBudgetStats
 }
 
+/** One output from a multi-variant platform workflow (e.g. favicon kit). */
+export interface WorkflowVariantResult {
+  variantId: string
+  label: string
+  outputName: string
+  blob: Blob
+  previewUrl: string
+  resultUrl: string
+  stats: ProcessStats
+}
+
 export interface ProcessableFile {
   id: string
   file: File
@@ -40,6 +51,8 @@ export interface ProcessableFile {
   resultBlob?: Blob
   resultName?: string
   stats?: ProcessStats
+  /** Populated when processing under a platform workflow preset (e.g. favicon kit). */
+  workflowResults?: WorkflowVariantResult[]
 }
 
 export interface WorkerProcessRequest {

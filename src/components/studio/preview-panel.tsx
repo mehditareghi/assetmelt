@@ -1,5 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Check, Crop as CropIcon, Loader2, Target as TargetIcon, X } from 'lucide-react'
+import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Crop as CropIcon,
+  Loader2,
+  Target as TargetIcon,
+  X,
+} from 'lucide-react'
 import { filesize } from 'filesize'
 import { useStudioStore } from '@/stores/studio-store'
 import { formatSizeBudgetTarget } from '@/lib/image/size-budget-encode'
@@ -7,11 +15,12 @@ import { needsPipelinePreview, needsPreCropPreview } from '@/lib/image/pipeline-
 import { getCropSpaceDimensions } from '@/lib/image/transform-space'
 import { usePreCropPreview } from '@/hooks/use-pre-crop-preview'
 import { useVisualPreview } from '@/hooks/use-visual-preview'
+import { CompareScrubber } from '@/components/studio/compare-scrubber'
 import { CropOverlay } from '@/components/studio/crop-overlay'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Slider } from '@/components/ui/slider'
 import { cn } from '@/lib/utils'
+
 export function PreviewPanel() {
   const files = useStudioStore((s) => s.files)
   const activeFileId = useStudioStore((s) => s.activeFileId)
@@ -22,13 +31,34 @@ export function PreviewPanel() {
   const cancelCropEdit = useStudioStore((s) => s.cancelCropEdit)
   const beginCropEdit = useStudioStore((s) => s.beginCropEdit)
   const [comparePos, setComparePos] = useState(50)
+  const [variantCompareIndex, setVariantCompareIndex] = useState(0)
   const [previewLayoutKey, setPreviewLayoutKey] = useState(0)
   const previewContainerRef = useRef<HTMLDivElement>(null)
   const previewImageRef = useRef<HTMLImageElement>(null)
   const activeFile = files.find((f) => f.id === activeFileId)
-  const resultPreviewUrl = activeFile?.previewUrl ?? activeFile?.resultUrl
+  const workflowVariants = activeFile?.workflowResults
+  const hasVariantCompare = Boolean(
+    workflowVariants &&
+      workflowVariants.length > 0 &&
+      activeFile?.status === 'done' &&
+      activeFile.originalUrl,
+  )
+
+  const safeVariantIndex = hasVariantCompare
+    ? Math.min(variantCompareIndex, workflowVariants!.length - 1)
+    : 0
+
+  const activeVariant = hasVariantCompare ? workflowVariants![safeVariantIndex] : undefined
+
+  const resultPreviewUrl = hasVariantCompare
+    ? activeVariant?.previewUrl
+    : (activeFile?.previewUrl ?? activeFile?.resultUrl)
+
   const showCompare =
-    activeFile?.status === 'done' && Boolean(resultPreviewUrl && activeFile.originalUrl)
+    activeFile?.status === 'done' &&
+    Boolean(resultPreviewUrl && activeFile.originalUrl)
+
+  const compareStats = hasVariantCompare ? activeVariant?.stats : activeFile?.stats
 
   const fileWidth = activeFile?.originalWidth
   const fileHeight = activeFile?.originalHeight
@@ -43,7 +73,6 @@ export function PreviewPanel() {
   const showCropEditing =
     isCropEditing && hasSource && Boolean(activeFile?.originalUrl) && !showCompare
 
-  /** Full pipeline preview (incl. crop) — paused during crop edit so the image stays fixed while dragging handles. */
   const runPipelinePreview =
     Boolean(activeFile?.originalUrl) && !showCompare && !showCropEditing
 
@@ -65,6 +94,18 @@ export function PreviewPanel() {
   )
 
   useEffect(() => {
+    setVariantCompareIndex(0)
+    setComparePos(50)
+  }, [activeFile?.id, activeFile?.status])
+
+  useEffect(() => {
+    if (!workflowVariants?.length) return
+    if (variantCompareIndex >= workflowVariants.length) {
+      setVariantCompareIndex(0)
+    }
+  }, [workflowVariants, variantCompareIndex])
+
+  useEffect(() => {
     setPreviewLayoutKey(0)
     const img = previewImageRef.current
     if (img?.complete && img.naturalWidth > 0) {
@@ -76,6 +117,8 @@ export function PreviewPanel() {
     transformPreviewUrl,
     preCropPreviewUrl,
     isCropEditing,
+    safeVariantIndex,
+    resultPreviewUrl,
   ])
 
   if (!activeFile) {
@@ -108,32 +151,54 @@ export function PreviewPanel() {
   const showLivePreviewBadge =
     !showCropOverlay && !showCompare && needsPipelinePreview(pipeline, fileWidth, fileHeight)
 
+  const variantCount = workflowVariants?.length ?? 0
+
+  const variantNavOverlay =
+    hasVariantCompare && variantCount > 1 ? (
+      <div className="absolute bottom-11 left-1/2 z-30 flex -translate-x-1/2 items-center gap-1 rounded-lg border border-border/60 bg-background/90 p-1 shadow-sm backdrop-blur-sm">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-xs"
+          aria-label="Previous size"
+          disabled={safeVariantIndex <= 0}
+          onClick={() => setVariantCompareIndex((i) => Math.max(0, i - 1))}
+        >
+          <ChevronLeft className="size-3.5" />
+        </Button>
+        <span className="min-w-[4.5rem] text-center font-mono text-xs tabular-nums">
+          {safeVariantIndex + 1} / {variantCount}
+        </span>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-xs"
+          aria-label="Next size"
+          disabled={safeVariantIndex >= variantCount - 1}
+          onClick={() => setVariantCompareIndex((i) => Math.min(variantCount - 1, i + 1))}
+        >
+          <ChevronRight className="size-3.5" />
+        </Button>
+      </div>
+    ) : null
+
   return (
     <div className="flex h-full flex-col gap-4">
-      {showCompare ? (
-        <div className="glass-surface relative aspect-video w-full overflow-hidden rounded-2xl">
-          <img
-            src={resultPreviewUrl}
-            alt="Output"
-            className="absolute inset-0 size-full object-contain"
+      {showCompare && resultPreviewUrl && activeFile.originalUrl ? (
+        <>
+          <CompareScrubber
+            className="glass-surface rounded-2xl"
+            position={comparePos}
+            onPositionChange={setComparePos}
+            beforeUrl={activeFile.originalUrl}
+            afterUrl={resultPreviewUrl}
+            afterLabel={hasVariantCompare ? (activeVariant?.label ?? 'After') : 'After'}
+            overlay={variantNavOverlay}
           />
-          <div
-            className="absolute inset-0 overflow-hidden"
-            style={{ clipPath: `inset(0 ${100 - comparePos}% 0 0)` }}
-          >
-            <img
-              src={activeFile.originalUrl}
-              alt="Original"
-              className="size-full object-contain"
-            />
-          </div>
-          <div
-            className="absolute inset-y-0 w-0.5 bg-primary shadow-[0_0_8px_var(--primary)]"
-            style={{ left: `${comparePos}%` }}
-          />
-          <Badge className="absolute left-3 top-3 font-mono text-xs">Before</Badge>
-          <Badge className="absolute right-3 top-3 font-mono text-xs">After</Badge>
-        </div>
+          <p className="text-center font-mono text-xs text-muted-foreground">
+            Drag anywhere on the image to compare
+          </p>
+        </>
       ) : (
         <div
           ref={previewContainerRef}
@@ -226,56 +291,41 @@ export function PreviewPanel() {
         </p>
       )}
 
-      {showCompare && (
-        <div className="px-2">
-          <Slider
-            value={[comparePos]}
-            onValueChange={([v]) => setComparePos(v)}
-            max={100}
-            step={1}
-            className="w-full"
-          />
-          <p className="mt-1 text-center font-mono text-xs text-muted-foreground">
-            Drag to compare
-          </p>
-        </div>
-      )}
-
-      {activeFile.stats && (
+      {compareStats && (
         <div className="space-y-3">
-          {activeFile.stats.sizeBudget && (
+          {compareStats.sizeBudget && (
             <div
               className={cn(
                 'flex flex-wrap items-center gap-2 rounded-lg border px-3 py-2 text-xs',
-                activeFile.stats.sizeBudget.met
+                compareStats.sizeBudget.met
                   ? 'border-primary/30 bg-primary/5 text-foreground'
                   : 'callout-warning',
               )}
             >
               <TargetIcon className="size-3.5 shrink-0 text-primary" />
               <span>
-                Size budget: {formatSizeBudgetTarget(activeFile.stats.sizeBudget.targetBytes)} target
+                Size budget: {formatSizeBudgetTarget(compareStats.sizeBudget.targetBytes)} target
                 {' · '}
-                {activeFile.stats.sizeBudget.met ? 'met' : 'closest match'}
+                {compareStats.sizeBudget.met ? 'met' : 'closest match'}
                 {' · '}
-                Q{Math.round(activeFile.stats.sizeBudget.appliedQuality)}
-                {activeFile.stats.sizeBudget.appliedScale < 0.999 && (
-                  <> · {Math.round(activeFile.stats.sizeBudget.appliedScale * 100)}% scale</>
+                Q{Math.round(compareStats.sizeBudget.appliedQuality)}
+                {compareStats.sizeBudget.appliedScale < 0.999 && (
+                  <> · {Math.round(compareStats.sizeBudget.appliedScale * 100)}% scale</>
                 )}
               </span>
             </div>
           )}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Stat label="Original" value={filesize(activeFile.stats.originalSize)} />
-            <Stat label="Output" value={filesize(activeFile.stats.outputSize)} />
+            <Stat label="Original" value={filesize(compareStats.originalSize)} />
+            <Stat label="Output" value={filesize(compareStats.outputSize)} />
             <Stat
               label="Saved"
-              value={`${activeFile.stats.savingsPercent.toFixed(1)}%`}
-              highlight={activeFile.stats.savingsPercent > 0}
+              value={`${compareStats.savingsPercent.toFixed(1)}%`}
+              highlight={compareStats.savingsPercent > 0}
             />
             <Stat
               label="Dimensions"
-              value={`${activeFile.stats.outputWidth}×${activeFile.stats.outputHeight}`}
+              value={`${compareStats.outputWidth}×${compareStats.outputHeight}`}
             />
           </div>
         </div>

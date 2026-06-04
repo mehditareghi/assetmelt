@@ -2,7 +2,18 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { PipelineConfig, ResizeConfig } from '@/lib/schemas/pipeline-schema'
 import { createDefaultPipeline } from '@/lib/schemas/pipeline-schema'
-import { applyPreset, BUILT_IN_PRESETS, type CustomPreset } from '@/lib/presets'
+import {
+  applyPreset,
+  applyPlatformCropForPreset,
+  BUILT_IN_PRESETS,
+  type CustomPreset,
+} from '@/lib/presets'
+import { getActivePlatformWorkflow, type PlatformPreset } from '@/lib/platform-presets'
+import {
+  pickPrimaryWorkflowVariant,
+  processPlatformWorkflowVariants,
+} from '@/lib/platform-workflow-process'
+import type { WorkflowVariantResult } from '@/lib/image/types'
 import { detectFormatFromBuffer, isImageFile } from '@/lib/image/format-detection'
 import { createPreviewObjectUrl, needsWasmPreview } from '@/lib/image/browser-display'
 import { getImageDimensions } from '@/lib/image/dimensions'
@@ -171,6 +182,20 @@ function revokePreviewUrl(previewUrl?: string, resultUrl?: string) {
   if (previewUrl && previewUrl !== resultUrl) revokeUrl(previewUrl)
 }
 
+function revokeWorkflowResults(results?: WorkflowVariantResult[]) {
+  if (!results) return
+  for (const variant of results) {
+    revokePreviewUrl(variant.previewUrl, variant.resultUrl)
+    revokeUrl(variant.resultUrl)
+  }
+}
+
+function revokeFileResults(file: ProcessableFile) {
+  revokePreviewUrl(file.previewUrl, file.resultUrl)
+  revokeUrl(file.resultUrl)
+  revokeWorkflowResults(file.workflowResults)
+}
+
 export const useStudioStore = create<StudioState>()(
   persist(
     (set, get) => ({
@@ -295,8 +320,7 @@ export const useStudioStore = create<StudioState>()(
         set((state) => {
           const file = state.files.find((f) => f.id === id)
           revokeUrl(file?.originalUrl)
-          revokePreviewUrl(file?.previewUrl, file?.resultUrl)
-          revokeUrl(file?.resultUrl)
+          if (file) revokeFileResults(file)
           const files = state.files.filter((f) => f.id !== id)
           return {
             files,
@@ -311,8 +335,7 @@ export const useStudioStore = create<StudioState>()(
         discardDebouncedHistory()
         get().files.forEach((f) => {
           revokeUrl(f.originalUrl)
-          revokePreviewUrl(f.previewUrl, f.resultUrl)
-          revokeUrl(f.resultUrl)
+          revokeFileResults(f)
         })
         set({ files: [], activeFileId: null, isCropEditing: false })
       },
@@ -325,7 +348,10 @@ export const useStudioStore = create<StudioState>()(
         if (!file?.originalWidth || !file.originalHeight) return
 
         const resizePatch: Partial<ResizeConfig> = {}
-        if (get().pipeline.resize.mode === 'exact') {
+        if (
+          get().pipeline.resize.mode === 'exact' &&
+          !get().pipeline.resize.lockTargetDimensions
+        ) {
           resizePatch.width = file.originalWidth
           resizePatch.height = file.originalHeight
         }
@@ -521,7 +547,23 @@ export const useStudioStore = create<StudioState>()(
         const builtIn = BUILT_IN_PRESETS.find((p) => p.id === presetId)
         if (builtIn) {
           const prev = get().pipeline
-          const next = applyPreset(builtIn)
+          let next = applyPreset(builtIn)
+          const platformPreset = builtIn as PlatformPreset
+          const activeFile = get().files.find((f) => f.id === get().activeFileId)
+          if (
+            platformPreset.category === 'platform' &&
+            platformPreset.platform?.autoCrop &&
+            activeFile?.originalWidth != null &&
+            activeFile.originalHeight != null
+          ) {
+            next = applyPlatformCropForPreset(
+              next,
+              platformPreset,
+              activeFile.originalWidth,
+              activeFile.originalHeight,
+              next.rotate,
+            )
+          }
           const history = get().pipelineHistory
           set({
             pipeline: next,
@@ -582,54 +624,98 @@ export const useStudioStore = create<StudioState>()(
           const buffer = await processFile.arrayBuffer()
           const originalByteSize =
             fileEntry.sourceByteSize ?? sourceByteSize ?? buffer.byteLength
-          const result = await processImageInWorker(
-            {
-              id,
+          const pipeline = get().pipeline
+          const workflow = getActivePlatformWorkflow(get().activePresetId)
+
+          if (workflow) {
+            const workflowResults = await processPlatformWorkflowVariants({
+              fileId: id,
               buffer,
               fileName: processFile.name,
               inputFormat: processFormat as ProcessableFile['inputFormat'],
-              pipeline: get().pipeline,
-            },
-            (progress) => {
-              set((s) => ({
-                files: s.files.map((f) => (f.id === id ? { ...f, progress } : f)),
-              }))
-            },
-          )
+              originalByteSize,
+              sourceWidth: fileEntry.originalWidth,
+              sourceHeight: fileEntry.originalHeight,
+              basePipeline: pipeline,
+              workflow,
+              onProgress: (progress) => {
+                set((s) => ({
+                  files: s.files.map((f) => (f.id === id ? { ...f, progress } : f)),
+                }))
+              },
+            })
 
-          const blob = new Blob([result.buffer], { type: result.mimeType })
-          const resultUrl = URL.createObjectURL(blob)
-          const previewUrl = result.previewBuffer
-            ? createPreviewObjectUrl(result.previewBuffer)
-            : resultUrl
-          const stats = {
-            ...result.stats,
-            originalSize: originalByteSize,
-            savingsPercent:
-              originalByteSize > 0
-                ? ((originalByteSize - result.stats.outputSize) / originalByteSize) * 100
-                : result.stats.savingsPercent,
+            const primary = pickPrimaryWorkflowVariant(workflowResults)
+
+            set((s) => ({
+              files: s.files.map((f) => {
+                if (f.id !== id) return f
+                revokeFileResults(f)
+                return {
+                  ...f,
+                  status: 'done' as const,
+                  progress: 100,
+                  workflowResults,
+                  resultBlob: primary.blob,
+                  previewUrl: primary.previewUrl,
+                  resultUrl: primary.resultUrl,
+                  resultName: primary.outputName,
+                  stats: primary.stats,
+                  sourceByteSize: f.sourceByteSize ?? sourceByteSize,
+                }
+              }),
+              isProcessing: false,
+            }))
+          } else {
+            const result = await processImageInWorker(
+              {
+                id,
+                buffer,
+                fileName: processFile.name,
+                inputFormat: processFormat as ProcessableFile['inputFormat'],
+                pipeline,
+              },
+              (progress) => {
+                set((s) => ({
+                  files: s.files.map((f) => (f.id === id ? { ...f, progress } : f)),
+                }))
+              },
+            )
+
+            const blob = new Blob([result.buffer], { type: result.mimeType })
+            const resultUrl = URL.createObjectURL(blob)
+            const previewUrl = result.previewBuffer
+              ? createPreviewObjectUrl(result.previewBuffer)
+              : resultUrl
+            const stats = {
+              ...result.stats,
+              originalSize: originalByteSize,
+              savingsPercent:
+                originalByteSize > 0
+                  ? ((originalByteSize - result.stats.outputSize) / originalByteSize) * 100
+                  : result.stats.savingsPercent,
+            }
+
+            set((s) => ({
+              files: s.files.map((f) => {
+                if (f.id !== id) return f
+                revokeFileResults(f)
+                return {
+                  ...f,
+                  status: 'done' as const,
+                  progress: 100,
+                  workflowResults: undefined,
+                  resultBlob: blob,
+                  previewUrl,
+                  resultUrl,
+                  resultName: result.outputName,
+                  stats,
+                  sourceByteSize: f.sourceByteSize ?? sourceByteSize,
+                }
+              }),
+              isProcessing: false,
+            }))
           }
-
-          set((s) => ({
-            files: s.files.map((f) => {
-              if (f.id !== id) return f
-              revokePreviewUrl(f.previewUrl, f.resultUrl)
-              revokeUrl(f.resultUrl)
-              return {
-                ...f,
-                status: 'done' as const,
-                progress: 100,
-                resultBlob: blob,
-                previewUrl,
-                resultUrl,
-                resultName: result.outputName,
-                stats,
-                sourceByteSize: f.sourceByteSize ?? sourceByteSize,
-              }
-            }),
-            isProcessing: false,
-          }))
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Processing failed'
           set((s) => ({

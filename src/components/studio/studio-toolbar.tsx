@@ -1,7 +1,7 @@
 import { Download, Play, Redo2, Settings, Trash2, Undo2, Upload, FileJson } from 'lucide-react'
-import JSZip from 'jszip'
 import { toast } from 'sonner'
 import { useStudioStore } from '@/stores/studio-store'
+import { downloadProcessedFiles, fileHasDownloadableResult } from '@/lib/download-results'
 import { PresetPicker } from '@/components/studio/preset-picker'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
@@ -10,6 +10,7 @@ import { pipelineSchema } from '@/lib/schemas/pipeline-schema'
 
 export function StudioToolbar() {
   const files = useStudioStore((s) => s.files)
+  const activePresetId = useStudioStore((s) => s.activePresetId)
   const isAdvancedMode = useStudioStore((s) => s.isAdvancedMode)
   const isProcessing = useStudioStore((s) => s.isProcessing)
   const pipeline = useStudioStore((s) => s.pipeline)
@@ -23,34 +24,41 @@ export function StudioToolbar() {
   const canUndo = useStudioStore((s) => s.canUndo)
   const canRedo = useStudioStore((s) => s.canRedo)
 
-  const doneCount = files.filter((f) => f.status === 'done').length
+  const doneCount = files.filter(fileHasDownloadableResult).length
 
   const handleExportAll = async () => {
-    const done = files.filter((f) => f.status === 'done' && f.resultBlob)
+    const done = files.filter(fileHasDownloadableResult)
     if (done.length === 0) {
       toast.error('No processed files to export')
       return
     }
 
-    if (done.length === 1) {
-      downloadBlob(done[0].resultBlob!, done[0].resultName ?? done[0].name)
-      toast.success('Downloaded')
-      return
+    try {
+      const { kind, count } = await downloadProcessedFiles(done, activePresetId)
+      if (kind === 'zip') {
+        toast.success(
+          done.length === 1
+            ? `Downloaded kit (${count} files)`
+            : `Downloaded ${count} files as zip`,
+        )
+      } else {
+        toast.success('Downloaded')
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Download failed'
+      toast.error(message)
     }
-
-    const zip = new JSZip()
-    for (const file of done) {
-      zip.file(file.resultName ?? file.name, file.resultBlob!)
-    }
-    const blob = await zip.generateAsync({ type: 'blob' })
-    downloadBlob(blob, 'assetmelt-batch.zip')
-    toast.success(`Downloaded ${done.length} files as zip`)
   }
 
   const handleExportConfig = () => {
     const json = JSON.stringify(pipeline, null, 2)
     const blob = new Blob([json], { type: 'application/json' })
-    downloadBlob(blob, 'assetmelt-pipeline.json')
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'assetmelt-pipeline.json'
+    a.click()
+    URL.revokeObjectURL(url)
     toast.success('Pipeline config exported')
   }
 
@@ -156,7 +164,7 @@ export function StudioToolbar() {
         <Button
           variant="secondary"
           size="sm"
-          onClick={handleExportAll}
+          onClick={() => void handleExportAll()}
           disabled={isCropEditing || doneCount === 0}
           className="gap-1.5"
         >
@@ -166,13 +174,4 @@ export function StudioToolbar() {
       </div>
     </div>
   )
-}
-
-function downloadBlob(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = filename
-  a.click()
-  URL.revokeObjectURL(url)
 }

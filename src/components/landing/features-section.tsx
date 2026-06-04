@@ -31,9 +31,9 @@ const features = [
   },
   {
     icon: Bookmark,
-    title: 'Presets you can own',
+    title: 'Platform workflow presets',
     description:
-      'Start from built-in presets, save your own, revert unsaved tweaks, or export and import pipeline JSON.',
+      'OG, social sizes, and favicon kits (16–512) with exact dimensions — plus your own saved presets and JSON import/export.',
   },
   {
     icon: Layers,

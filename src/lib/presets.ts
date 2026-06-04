@@ -1,15 +1,19 @@
-import type { PipelineConfig } from '@/lib/schemas/pipeline-schema'
+import type { CropConfig, PipelineConfig } from '@/lib/schemas/pipeline-schema'
 import {
   createDefaultPipeline,
   getDefaultEncodeOptions,
   pipelineSchema,
 } from '@/lib/schemas/pipeline-schema'
 import { formatSizeBudgetTarget } from '@/lib/image/size-budget-encode'
+import { createDefaultCrop } from '@/lib/image/crop-math'
+import { getCropSpaceDimensions } from '@/lib/image/transform-space'
+import { PLATFORM_BUILT_IN_PRESETS, type PlatformPreset } from '@/lib/platform-presets'
 
 export interface Preset {
   id: string
   name: string
   description: string
+  category?: 'general' | 'platform'
   config: Partial<PipelineConfig>
 }
 
@@ -22,6 +26,103 @@ export interface CustomPreset {
 export function isCustomPresetId(id: string): boolean {
   return id.startsWith('custom-')
 }
+
+export const GENERAL_BUILT_IN_PRESETS: Preset[] = [
+  {
+    id: 'web-optimized',
+    name: 'Web Optimized',
+    description: 'WebP at 80% quality, max 1920px wide',
+    category: 'general',
+    config: {
+      outputFormat: 'webp',
+      resize: {
+        enabled: true,
+        mode: 'maxSide',
+        width: 1920,
+        height: 1920,
+        percentage: 100,
+        lockAspectRatio: true,
+        lockTargetDimensions: false,
+        method: 'lanczos3',
+        fitMethod: 'contain',
+        premultiply: true,
+        linearRGB: true,
+      },
+      stripMetadata: true,
+    },
+  },
+  {
+    id: 'dev-assets',
+    name: 'Dev Assets',
+    description: 'AVIF at 75% quality with metadata stripped',
+    category: 'general',
+    config: {
+      outputFormat: 'avif',
+      stripMetadata: true,
+    },
+  },
+  {
+    id: 'lossless-png',
+    name: 'Lossless PNG',
+    description: 'Oxipng level 4 optimization',
+    category: 'general',
+    config: {
+      outputFormat: 'png',
+      stripMetadata: false,
+    },
+  },
+  {
+    id: 'thumbnail',
+    name: 'Thumbnail',
+    description: '400px max, WebP 85%',
+    category: 'general',
+    config: {
+      outputFormat: 'webp',
+      resize: {
+        enabled: true,
+        mode: 'maxSide',
+        width: 400,
+        height: 400,
+        percentage: 100,
+        lockAspectRatio: true,
+        lockTargetDimensions: false,
+        method: 'lanczos3',
+        fitMethod: 'contain',
+        premultiply: true,
+        linearRGB: true,
+      },
+      stripMetadata: true,
+    },
+  },
+  {
+    id: 'max-compress',
+    name: 'Max Compress',
+    description: 'AVIF 50%, aggressive resize to 1280px',
+    category: 'general',
+    config: {
+      outputFormat: 'avif',
+      resize: {
+        enabled: true,
+        mode: 'maxSide',
+        width: 1280,
+        height: 1280,
+        percentage: 100,
+        lockAspectRatio: true,
+        lockTargetDimensions: false,
+        method: 'lanczos3',
+        fitMethod: 'contain',
+        premultiply: true,
+        linearRGB: true,
+      },
+      stripMetadata: true,
+    },
+  },
+]
+
+export const BUILT_IN_PRESETS: Preset[] = [
+  ...GENERAL_BUILT_IN_PRESETS,
+  ...PLATFORM_BUILT_IN_PRESETS,
+]
 
 export function getPresetDisplayName(
   activePresetId: string,
@@ -39,6 +140,9 @@ export function getCustomPresetSummary(config: Partial<PipelineConfig>): string 
   }
   if (config.resize?.enabled) {
     const mode = config.resize.mode
+    if (mode === 'exact') {
+      return `${format} · ${config.resize.width}×${config.resize.height}`
+    }
     if (mode === 'maxSide') return `${format} · max ${config.resize.width}px`
     if (mode === 'percentage') return `${format} · ${config.resize.percentage}% scale`
     return `${format} · resize on`
@@ -73,94 +177,82 @@ export function findMatchingCustomPreset(
   )
 }
 
-export const BUILT_IN_PRESETS: Preset[] = [
-  {
-    id: 'web-optimized',
-    name: 'Web Optimized',
-    description: 'WebP at 80% quality, max 1920px wide',
-    config: {
-      outputFormat: 'webp',
-      resize: {
-        enabled: true,
-        mode: 'maxSide',
-        width: 1920,
-        height: 1920,
-        percentage: 100,
-        lockAspectRatio: true,
-        method: 'lanczos3',
-        fitMethod: 'contain',
-        premultiply: true,
-        linearRGB: true,
-      },
-      stripMetadata: true,
+const PLATFORM_JPEG_QUALITY = 88
+
+function applyPlatformEncode(preset: Preset, encode: PipelineConfig['encode']): PipelineConfig['encode'] {
+  if (preset.config.outputFormat !== 'jpeg' || encode.format !== 'jpeg') return encode
+  return {
+    format: 'jpeg',
+    options: {
+      ...encode.options,
+      quality: PLATFORM_JPEG_QUALITY,
+      progressive: true,
     },
-  },
-  {
-    id: 'dev-assets',
-    name: 'Dev Assets',
-    description: 'AVIF at 75% quality with metadata stripped',
-    config: {
-      outputFormat: 'avif',
-      stripMetadata: true,
-    },
-  },
-  {
-    id: 'lossless-png',
-    name: 'Lossless PNG',
-    description: 'Oxipng level 4 optimization',
-    config: {
-      outputFormat: 'png',
-      stripMetadata: false,
-    },
-  },
-  {
-    id: 'thumbnail',
-    name: 'Thumbnail',
-    description: '400px max, WebP 85%',
-    config: {
-      outputFormat: 'webp',
-      resize: {
-        enabled: true,
-        mode: 'maxSide',
-        width: 400,
-        height: 400,
-        percentage: 100,
-        lockAspectRatio: true,
-        method: 'lanczos3',
-        fitMethod: 'contain',
-        premultiply: true,
-        linearRGB: true,
-      },
-      stripMetadata: true,
-    },
-  },
-  {
-    id: 'max-compress',
-    name: 'Max Compress',
-    description: 'AVIF 50%, aggressive resize to 1280px',
-    config: {
-      outputFormat: 'avif',
-      resize: {
-        enabled: true,
-        mode: 'maxSide',
-        width: 1280,
-        height: 1280,
-        percentage: 100,
-        lockAspectRatio: true,
-        method: 'lanczos3',
-        fitMethod: 'contain',
-        premultiply: true,
-        linearRGB: true,
-      },
-      stripMetadata: true,
-    },
-  },
-]
+  }
+}
+
+export function mergePipelineWithPartial(
+  partial: Partial<PipelineConfig>,
+  base?: PipelineConfig,
+): PipelineConfig {
+  const root = base ?? createDefaultPipeline()
+  const outputFormat = partial.outputFormat ?? root.outputFormat
+  const encode =
+    partial.encode ??
+    (partial.outputFormat && partial.outputFormat !== root.outputFormat
+      ? getDefaultEncodeOptions(outputFormat)
+      : root.encode)
+
+  return pipelineSchema.parse({
+    ...root,
+    ...partial,
+    resize: { ...root.resize, ...partial.resize },
+    crop: { ...root.crop, ...partial.crop },
+    flip: { ...root.flip, ...partial.flip },
+    filters: { ...root.filters, ...partial.filters },
+    sizeBudget: { ...root.sizeBudget, ...partial.sizeBudget },
+    encode,
+  })
+}
+
+export function applyCenteredAspectCrop(
+  pipeline: PipelineConfig,
+  sourceWidth: number,
+  sourceHeight: number,
+  rotate: PipelineConfig['rotate'],
+  aspect: CropConfig['aspectRatio'],
+): PipelineConfig {
+  if (aspect === 'free') return pipeline
+
+  const cropSpace = getCropSpaceDimensions(sourceWidth, sourceHeight, rotate)
+  const rect = createDefaultCrop(cropSpace.width, cropSpace.height, aspect)
+  const crop: CropConfig = {
+    enabled: true,
+    aspectRatio: aspect,
+    ...rect,
+  }
+
+  return { ...pipeline, crop }
+}
+
+export function applyPlatformCropForPreset(
+  pipeline: PipelineConfig,
+  preset: PlatformPreset,
+  sourceWidth: number,
+  sourceHeight: number,
+  rotate: PipelineConfig['rotate'],
+): PipelineConfig {
+  const aspect = preset.platform?.suggestedCropAspect
+  if (!preset.platform?.autoCrop || !aspect || aspect === 'free') {
+    return pipeline
+  }
+  return applyCenteredAspectCrop(pipeline, sourceWidth, sourceHeight, rotate, aspect)
+}
 
 export function applyPreset(preset: Preset): PipelineConfig {
   const base = createDefaultPipeline()
   const outputFormat = preset.config.outputFormat ?? base.outputFormat
-  const encode = getDefaultEncodeOptions(outputFormat)
+  let encode = getDefaultEncodeOptions(outputFormat)
 
   if (outputFormat === 'webp' && encode.format === 'webp') {
     encode.options.quality = preset.id === 'thumbnail' ? 85 : 80
@@ -172,6 +264,7 @@ export function applyPreset(preset: Preset): PipelineConfig {
   if (outputFormat === 'png' && encode.format === 'png') {
     encode.options.level = 4
   }
+  encode = applyPlatformEncode(preset, encode)
 
   return pipelineSchema.parse({
     ...base,

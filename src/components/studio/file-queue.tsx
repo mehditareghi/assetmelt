@@ -60,11 +60,18 @@ export function FileQueue() {
               {file.status === 'processing' && (
                 <Progress value={file.progress} className="mt-2 h-1" />
               )}
-              {file.status === 'done' && file.stats && (
+              {file.status === 'done' && file.workflowResults && file.workflowResults.length > 0 && (
                 <p className="mt-1 font-mono text-xs text-primary">
-                  −{file.stats.savingsPercent.toFixed(1)}% · {filesize(file.stats.outputSize)}
+                  {file.workflowResults.length} sizes ready
                 </p>
               )}
+              {file.status === 'done' &&
+                file.stats &&
+                !file.workflowResults?.length && (
+                  <p className="mt-1 font-mono text-xs text-primary">
+                    −{file.stats.savingsPercent.toFixed(1)}% · {filesize(file.stats.outputSize)}
+                  </p>
+                )}
               {file.status === 'error' && (
                 <p className="mt-1 text-xs text-destructive">{file.error}</p>
               )}
