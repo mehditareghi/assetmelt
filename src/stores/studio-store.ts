@@ -10,17 +10,120 @@ import { normalizeResizeConfig } from '@/lib/image/resize-compute'
 import { createWasmPreviewInWorker, processImageInWorker } from '@/lib/image/worker-bridge'
 import { normalizeMozJpegOptions } from '@/lib/image/jpeg-encode'
 import { createFullImageCrop } from '@/lib/image/crop-math'
+import { getCropSpaceDimensions } from '@/lib/image/transform-space'
 import { prepareFileForProcessing, resolveHeicInputFormat } from '@/lib/image/heic'
 import type { ProcessableFile } from '@/lib/image/types'
+import type { PipelineHistoryState } from '@/lib/pipeline-history'
+import { pipelinesEqual } from '@/lib/pipeline-history'
+import {
+  applyRedo,
+  applyUndo,
+  clonePipeline,
+  commitPipelineChange,
+  initialPipelineHistory,
+  normalizePipeline,
+  type PipelineChangeOptions,
+} from '@/stores/pipeline-change'
+
+const HISTORY_DEBOUNCE_MS = 400
+const CROP_HISTORY_DEBOUNCE_MS = 300
+
+let historyDebounceTimer: ReturnType<typeof setTimeout> | null = null
+let historyDebounceSnapshot: PipelineConfig | null = null
+/** Pipeline at crop-session start; committed on Done, restored on Cancel. */
+let cropEditSessionSnapshot: PipelineConfig | null = null
 
 function generateId(): string {
   return crypto.randomUUID()
+}
+
+type SetState = (
+  partial:
+    | Partial<StudioState>
+    | ((state: StudioState) => Partial<StudioState>),
+) => void
+
+function flushDebouncedHistory(set: SetState) {
+  const snapshot = historyDebounceSnapshot
+  if (!snapshot) return
+  historyDebounceSnapshot = null
+  if (historyDebounceTimer) {
+    clearTimeout(historyDebounceTimer)
+    historyDebounceTimer = null
+  }
+  set((state) => ({
+    pipelineHistory: commitPipelineChange(state.pipelineHistory, snapshot, state.pipeline),
+  }))
+}
+
+function discardDebouncedHistory() {
+  historyDebounceSnapshot = null
+  if (historyDebounceTimer) {
+    clearTimeout(historyDebounceTimer)
+    historyDebounceTimer = null
+  }
+}
+
+function endCropEditSession() {
+  cropEditSessionSnapshot = null
+}
+
+function isCropOnlyPartial(partial: Partial<PipelineConfig>): boolean {
+  const keys = Object.keys(partial) as (keyof PipelineConfig)[]
+  return keys.length === 1 && keys[0] === 'crop'
+}
+
+function shouldExitCropEditing(partial: Partial<PipelineConfig>): boolean {
+  return partial.rotate !== undefined || partial.flip !== undefined
+}
+
+function replacePipeline(
+  set: SetState,
+  get: () => StudioState,
+  next: PipelineConfig,
+  options?: PipelineChangeOptions & { historyDebounceMs?: number },
+) {
+  const previous = get().pipeline
+  const normalized = normalizePipeline(next)
+
+  set({
+    pipeline: normalized,
+    isPipelineModified: true,
+    ...(options?.exitCropEditing ? { isCropEditing: false } : {}),
+  })
+
+  if (options?.recordHistory === false) return
+
+  const debounceMs = options?.historyDebounceMs
+  if (debounceMs != null && debounceMs > 0) {
+    if (!historyDebounceSnapshot) {
+      historyDebounceSnapshot = clonePipeline(previous)
+    }
+    if (historyDebounceTimer) clearTimeout(historyDebounceTimer)
+    historyDebounceTimer = setTimeout(() => {
+      historyDebounceTimer = null
+      const snapshot = historyDebounceSnapshot
+      historyDebounceSnapshot = null
+      if (!snapshot) return
+      set((state) => ({
+        pipelineHistory: commitPipelineChange(state.pipelineHistory, snapshot, state.pipeline),
+      }))
+    }, debounceMs)
+    return
+  }
+
+  flushDebouncedHistory(set)
+  set((state) => ({
+    pipelineHistory: commitPipelineChange(state.pipelineHistory, previous, normalized, options),
+  }))
 }
 
 interface StudioState {
   files: ProcessableFile[]
   activeFileId: string | null
   pipeline: PipelineConfig
+  pipelineHistory: PipelineHistoryState
+  isCropEditing: boolean
   activePresetId: string
   isPipelineModified: boolean
   isAdvancedMode: boolean
@@ -33,8 +136,19 @@ interface StudioState {
   setActiveFile: (id: string | null) => void
   syncResizeFromActiveFile: () => void
   syncCropFromActiveFile: () => void
-  setPipeline: (pipeline: PipelineConfig) => void
-  updatePipeline: (partial: Partial<PipelineConfig>) => void
+  beginCropEdit: () => void
+  cancelCropEdit: () => void
+  setPipeline: (pipeline: PipelineConfig, options?: PipelineChangeOptions) => void
+  updatePipeline: (
+    partial: Partial<PipelineConfig>,
+    options?: PipelineChangeOptions & { historyDebounceMs?: number },
+  ) => void
+  commitCropEdit: () => void
+  flushPipelineHistory: () => void
+  undo: () => void
+  redo: () => void
+  canUndo: () => boolean
+  canRedo: () => boolean
   applyPresetById: (presetId: string) => void
   resetActivePreset: () => void
   setAdvancedMode: (enabled: boolean) => void
@@ -63,6 +177,8 @@ export const useStudioStore = create<StudioState>()(
       files: [],
       activeFileId: null,
       pipeline: applyPreset(BUILT_IN_PRESETS[0]),
+      pipelineHistory: initialPipelineHistory(),
+      isCropEditing: false,
       activePresetId: 'web-optimized',
       isPipelineModified: false,
       isAdvancedMode: false,
@@ -150,18 +266,23 @@ export const useStudioStore = create<StudioState>()(
             !prev.activeFileId &&
             activeFile?.originalWidth != null &&
             activeFile.originalHeight != null
+          const cropSpace =
+            activeFile?.originalWidth != null && activeFile.originalHeight != null
+              ? getCropSpaceDimensions(
+                  activeFile.originalWidth,
+                  activeFile.originalHeight,
+                  prev.pipeline.rotate,
+                )
+              : null
 
           return {
             files: [...prev.files, ...newFiles],
             activeFileId,
-            ...(shouldSyncCrop
+            ...(shouldSyncCrop && cropSpace
               ? {
                   pipeline: {
                     ...prev.pipeline,
-                    crop: createFullImageCrop(
-                      activeFile.originalWidth!,
-                      activeFile.originalHeight!,
-                    ),
+                    crop: createFullImageCrop(cropSpace.width, cropSpace.height),
                   },
                 }
               : {}),
@@ -170,6 +291,7 @@ export const useStudioStore = create<StudioState>()(
       },
 
       removeFile: (id) => {
+        if (get().isCropEditing) return
         set((state) => {
           const file = state.files.find((f) => f.id === id)
           revokeUrl(file?.originalUrl)
@@ -185,38 +307,46 @@ export const useStudioStore = create<StudioState>()(
       },
 
       clearFiles: () => {
+        endCropEditSession()
+        discardDebouncedHistory()
         get().files.forEach((f) => {
           revokeUrl(f.originalUrl)
           revokePreviewUrl(f.previewUrl, f.resultUrl)
           revokeUrl(f.resultUrl)
         })
-        set({ files: [], activeFileId: null })
+        set({ files: [], activeFileId: null, isCropEditing: false })
       },
 
       setActiveFile: (id) => {
+        if (get().isCropEditing && id !== get().activeFileId) return
         const file = get().files.find((f) => f.id === id)
-        set((state) => {
-          if (!file?.originalWidth || !file.originalHeight) {
-            return { activeFileId: id }
-          }
+        set({ activeFileId: id })
 
-          const resizePatch: Partial<ResizeConfig> = {}
-          if (state.pipeline.resize.mode === 'exact') {
-            resizePatch.width = file.originalWidth
-            resizePatch.height = file.originalHeight
-          }
+        if (!file?.originalWidth || !file.originalHeight) return
 
-          return {
-            activeFileId: id,
-            pipeline: {
-              ...state.pipeline,
-              resize: { ...state.pipeline.resize, ...resizePatch },
-              crop: state.pipeline.crop.enabled
-                ? createFullImageCrop(file.originalWidth, file.originalHeight)
-                : state.pipeline.crop,
-            },
-          }
-        })
+        const resizePatch: Partial<ResizeConfig> = {}
+        if (get().pipeline.resize.mode === 'exact') {
+          resizePatch.width = file.originalWidth
+          resizePatch.height = file.originalHeight
+        }
+
+        const cropSpace = getCropSpaceDimensions(
+          file.originalWidth,
+          file.originalHeight,
+          get().pipeline.rotate,
+        )
+        replacePipeline(
+          set,
+          get,
+          {
+            ...get().pipeline,
+            resize: { ...get().pipeline.resize, ...resizePatch },
+            crop: get().pipeline.crop.enabled
+              ? createFullImageCrop(cropSpace.width, cropSpace.height)
+              : get().pipeline.crop,
+          },
+          { recordHistory: false },
+        )
       },
 
       syncResizeFromActiveFile: () => {
@@ -240,56 +370,189 @@ export const useStudioStore = create<StudioState>()(
       syncCropFromActiveFile: () => {
         const file = get().files.find((f) => f.id === get().activeFileId)
         if (!file?.originalWidth || !file.originalHeight) return
-        set((state) => ({
-          pipeline: {
-            ...state.pipeline,
-            crop: createFullImageCrop(file.originalWidth!, file.originalHeight!),
-          },
-          isPipelineModified: true,
-        }))
+        const cropSpace = getCropSpaceDimensions(
+          file.originalWidth,
+          file.originalHeight,
+          get().pipeline.rotate,
+        )
+        replacePipeline(set, get, {
+          ...get().pipeline,
+          crop: createFullImageCrop(cropSpace.width, cropSpace.height),
+        })
       },
 
-      setPipeline: (pipeline) =>
-        set({
-          pipeline: {
-            ...pipeline,
-            resize: normalizeResizeConfig(pipeline.resize as ResizeConfig & Record<string, unknown>),
-          },
-          isPipelineModified: true,
-        }),
+      beginCropEdit: () => {
+        if (get().isCropEditing) return
+        flushDebouncedHistory(set)
+        cropEditSessionSnapshot = clonePipeline(get().pipeline)
+        set({ isCropEditing: true })
+      },
 
-      updatePipeline: (partial) =>
-        set((state) => ({
-          pipeline: { ...state.pipeline, ...partial },
+      cancelCropEdit: () => {
+        if (!get().isCropEditing) return
+        discardDebouncedHistory()
+        const snapshot = cropEditSessionSnapshot
+        endCropEditSession()
+        if (snapshot) {
+          set({
+            pipeline: normalizePipeline(snapshot),
+            isCropEditing: false,
+            isPipelineModified: true,
+          })
+          return
+        }
+        set({ isCropEditing: false })
+      },
+
+      setPipeline: (pipeline, options) => {
+        if (get().isCropEditing) return
+        replacePipeline(set, get, pipeline, options)
+      },
+
+      updatePipeline: (partial, options) => {
+        const state = get()
+        if (state.isCropEditing) {
+          if (!isCropOnlyPartial(partial)) return
+          options = { ...options, recordHistory: false, historyDebounceMs: undefined }
+        }
+        let next: PipelineConfig = { ...state.pipeline, ...partial }
+
+        if (
+          partial.rotate !== undefined &&
+          partial.rotate !== state.pipeline.rotate &&
+          next.crop.enabled
+        ) {
+          const file = state.files.find((f) => f.id === state.activeFileId)
+          if (file?.originalWidth != null && file.originalHeight != null) {
+            const cropSpace = getCropSpaceDimensions(
+              file.originalWidth,
+              file.originalHeight,
+              partial.rotate,
+            )
+            next = {
+              ...next,
+              crop: createFullImageCrop(cropSpace.width, cropSpace.height),
+            }
+          }
+        }
+
+        const exitCrop =
+          options?.exitCropEditing ?? shouldExitCropEditing(partial)
+        replacePipeline(set, get, next, {
+          ...options,
+          exitCropEditing: exitCrop,
+          historyDebounceMs: state.isCropEditing
+            ? undefined
+            : (options?.historyDebounceMs ??
+              (partial.crop !== undefined ? CROP_HISTORY_DEBOUNCE_MS : undefined) ??
+              (partial.filters !== undefined ? HISTORY_DEBOUNCE_MS : undefined)),
+        })
+      },
+
+      flushPipelineHistory: () => {
+        if (get().isCropEditing) return
+        flushDebouncedHistory(set)
+      },
+
+      commitCropEdit: () => {
+        if (!get().isCropEditing) return
+        discardDebouncedHistory()
+        const sessionStart = cropEditSessionSnapshot
+        const current = get().pipeline
+        endCropEditSession()
+        if (sessionStart && !pipelinesEqual(sessionStart, current)) {
+          set((state) => ({
+            pipelineHistory: commitPipelineChange(
+              state.pipelineHistory,
+              sessionStart,
+              current,
+            ),
+            isCropEditing: false,
+            isPipelineModified: true,
+          }))
+          return
+        }
+        set({ isCropEditing: false })
+      },
+
+      undo: () => {
+        if (get().isCropEditing) return
+        flushDebouncedHistory(set)
+        const { pipelineHistory, pipeline } = get()
+        const result = applyUndo(pipelineHistory, pipeline)
+        if (!result.pipeline) return
+        set({
+          pipelineHistory: result.history,
+          pipeline: normalizePipeline(result.pipeline),
           isPipelineModified: true,
-        })),
+          isCropEditing: false,
+        })
+      },
+
+      redo: () => {
+        if (get().isCropEditing) return
+        flushDebouncedHistory(set)
+        const { pipelineHistory, pipeline } = get()
+        const result = applyRedo(pipelineHistory, pipeline)
+        if (!result.pipeline) return
+        set({
+          pipelineHistory: result.history,
+          pipeline: normalizePipeline(result.pipeline),
+          isPipelineModified: true,
+          isCropEditing: false,
+        })
+      },
+
+      canUndo: () => {
+        if (get().isCropEditing) return false
+        return (
+          get().pipelineHistory.past.length > 0 || historyDebounceSnapshot != null
+        )
+      },
+
+      canRedo: () => {
+        if (get().isCropEditing) return false
+        return get().pipelineHistory.future.length > 0
+      },
 
       applyPresetById: (presetId) => {
+        if (get().isCropEditing) return
+        flushDebouncedHistory(set)
         const builtIn = BUILT_IN_PRESETS.find((p) => p.id === presetId)
         if (builtIn) {
+          const prev = get().pipeline
+          const next = applyPreset(builtIn)
+          const history = get().pipelineHistory
           set({
-            pipeline: applyPreset(builtIn),
+            pipeline: next,
+            pipelineHistory: commitPipelineChange(history, prev, next),
             activePresetId: presetId,
             isPipelineModified: false,
+            isCropEditing: false,
           })
           return
         }
         const custom = get().customPresets.find((p) => p.id === presetId)
         if (custom) {
           const base = createDefaultPipeline()
+          const prev = get().pipeline
+          const history = get().pipelineHistory
+          const next = {
+            ...base,
+            ...custom.config,
+            resize: { ...base.resize, ...custom.config.resize },
+            crop: { ...base.crop, ...custom.config.crop },
+            flip: { ...base.flip, ...custom.config.flip },
+            filters: { ...base.filters, ...custom.config.filters },
+            sizeBudget: { ...base.sizeBudget, ...custom.config.sizeBudget },
+            encode: custom.config.encode ?? base.encode,
+          } as PipelineConfig
           set({
-            pipeline: {
-              ...base,
-              ...custom.config,
-              resize: { ...base.resize, ...custom.config.resize },
-              crop: { ...base.crop, ...custom.config.crop },
-              flip: { ...base.flip, ...custom.config.flip },
-              filters: { ...base.filters, ...custom.config.filters },
-              sizeBudget: { ...base.sizeBudget, ...custom.config.sizeBudget },
-              encode: custom.config.encode ?? base.encode,
-            } as PipelineConfig,
+            pipeline: next,
+            pipelineHistory: commitPipelineChange(history, prev, next),
             activePresetId: presetId,
             isPipelineModified: false,
+            isCropEditing: false,
           })
         }
       },
@@ -301,6 +564,7 @@ export const useStudioStore = create<StudioState>()(
       setAdvancedMode: (enabled) => set({ isAdvancedMode: enabled }),
 
       processFile: async (id) => {
+        if (get().isCropEditing) return
         const state = get()
         const fileEntry = state.files.find((f) => f.id === id)
         if (!fileEntry) return
@@ -378,6 +642,7 @@ export const useStudioStore = create<StudioState>()(
       },
 
       processAll: async () => {
+        if (get().isCropEditing) return
         const { files, processFile } = get()
         const pending = files.filter((f) => f.status !== 'processing')
         for (const file of pending) {
@@ -426,10 +691,16 @@ export const useStudioStore = create<StudioState>()(
       },
 
       importPipelineConfig: (config) => {
+        if (get().isCropEditing) return
+        flushDebouncedHistory(set)
+        const prev = get().pipeline
+        const next = normalizePipeline(config)
         set({
-          pipeline: config,
+          pipeline: next,
+          pipelineHistory: commitPipelineChange(get().pipelineHistory, prev, next),
           activePresetId: 'web-optimized',
           isPipelineModified: true,
+          isCropEditing: false,
         })
       },
     }),

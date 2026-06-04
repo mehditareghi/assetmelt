@@ -24,7 +24,8 @@ export const SETTING_HELP = {
   linearRGB:
     'Resizes in linear light space for more accurate downscaling. Recommended for photos.',
 
-  cropEnabled: 'Cut a rectangular region before other transforms.',
+  cropEnabled:
+    'Apply a rectangular crop after rotate, flip, and filters — on the image as you see it. Use Edit crop to adjust on the preview.',
   cropAspectRatio:
     'Quick presets to reshape the crop. Manual edits update the active ratio automatically.',
   cropX: 'Left edge of the crop region, in pixels from the image origin.',
@@ -32,7 +33,7 @@ export const SETTING_HELP = {
   cropWidth: 'Width of the crop region in pixels.',
   cropHeight: 'Height of the crop region in pixels.',
 
-  rotate: 'Rotate clockwise in 90° steps before resize and encode.',
+  rotate: 'Rotate clockwise in 90° steps before crop, resize, and encode.',
   flipHorizontal: 'Mirror the image left-to-right.',
   flipVertical: 'Mirror the image top-to-bottom.',
 

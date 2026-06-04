@@ -1,4 +1,4 @@
-import { Download, Play, Settings, Trash2, Upload, FileJson } from 'lucide-react'
+import { Download, Play, Redo2, Settings, Trash2, Undo2, Upload, FileJson } from 'lucide-react'
 import JSZip from 'jszip'
 import { toast } from 'sonner'
 import { useStudioStore } from '@/stores/studio-store'
@@ -17,6 +17,11 @@ export function StudioToolbar() {
   const processAll = useStudioStore((s) => s.processAll)
   const clearFiles = useStudioStore((s) => s.clearFiles)
   const importPipelineConfig = useStudioStore((s) => s.importPipelineConfig)
+  const undo = useStudioStore((s) => s.undo)
+  const redo = useStudioStore((s) => s.redo)
+  const isCropEditing = useStudioStore((s) => s.isCropEditing)
+  const canUndo = useStudioStore((s) => s.canUndo)
+  const canRedo = useStudioStore((s) => s.canRedo)
 
   const doneCount = files.filter((f) => f.status === 'done').length
 
@@ -71,13 +76,14 @@ export function StudioToolbar() {
   return (
     <div className="flex flex-col gap-4 border-b border-border/50 pb-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex flex-wrap items-center gap-3">
-        <PresetPicker />
+        <PresetPicker disabled={isCropEditing} />
 
         <div className="flex items-center gap-2">
           <Switch
             id="advanced"
             checked={isAdvancedMode}
             onCheckedChange={setAdvancedMode}
+            disabled={isCropEditing}
           />
           <Label htmlFor="advanced" className="flex items-center gap-1.5 text-sm">
             <Settings className="size-3.5" />
@@ -89,8 +95,29 @@ export function StudioToolbar() {
       <div className="flex flex-wrap items-center gap-2">
         <Button
           variant="outline"
+          size="icon-sm"
+          onClick={() => undo()}
+          disabled={!canUndo()}
+          title="Undo (⌘Z)"
+          aria-label="Undo"
+        >
+          <Undo2 className="size-3.5" />
+        </Button>
+        <Button
+          variant="outline"
+          size="icon-sm"
+          onClick={() => redo()}
+          disabled={!canRedo()}
+          title="Redo (⌘⇧Z)"
+          aria-label="Redo"
+        >
+          <Redo2 className="size-3.5" />
+        </Button>
+        <Button
+          variant="outline"
           size="sm"
           onClick={handleImportConfig}
+          disabled={isCropEditing}
           className="gap-1.5"
         >
           <Upload className="size-3.5" />
@@ -100,20 +127,27 @@ export function StudioToolbar() {
           variant="outline"
           size="sm"
           onClick={handleExportConfig}
+          disabled={isCropEditing}
           className="gap-1.5"
         >
           <FileJson className="size-3.5" />
           <span className="hidden sm:inline">Export JSON</span>
         </Button>
         {files.length > 0 && (
-          <Button variant="ghost" size="sm" onClick={clearFiles} className="gap-1.5">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={clearFiles}
+            disabled={isCropEditing}
+            className="gap-1.5"
+          >
             <Trash2 className="size-3.5" />
           </Button>
         )}
         <Button
           size="sm"
           onClick={() => processAll()}
-          disabled={isProcessing || files.length === 0}
+          disabled={isCropEditing || isProcessing || files.length === 0}
           className="gap-1.5"
         >
           <Play className="size-3.5" />
@@ -123,7 +157,7 @@ export function StudioToolbar() {
           variant="secondary"
           size="sm"
           onClick={handleExportAll}
-          disabled={doneCount === 0}
+          disabled={isCropEditing || doneCount === 0}
           className="gap-1.5"
         >
           <Download className="size-3.5" />

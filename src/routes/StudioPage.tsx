@@ -13,10 +13,33 @@ import { warmUpWorker } from '@/lib/image/worker-bridge'
 
 export function StudioPage() {
   const files = useStudioStore((s) => s.files)
+  const undo = useStudioStore((s) => s.undo)
+  const redo = useStudioStore((s) => s.redo)
 
   useEffect(() => {
     warmUpWorker()
   }, [])
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== 'z') return
+      const target = event.target
+      if (
+        target instanceof HTMLElement &&
+        (target.isContentEditable ||
+          target.tagName === 'INPUT' ||
+          target.tagName === 'TEXTAREA' ||
+          target.tagName === 'SELECT')
+      ) {
+        return
+      }
+      event.preventDefault()
+      if (event.shiftKey) redo()
+      else undo()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [undo, redo])
 
   return (
     <div className="flex min-h-screen flex-col">

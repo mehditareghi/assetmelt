@@ -29,6 +29,7 @@ interface CropOverlayProps {
   containerRef: React.RefObject<HTMLElement | null>
   /** Bumped when the preview image loads or the active file changes. */
   layoutKey?: string | number
+  onGestureEnd?: () => void
 }
 
 export function CropOverlay({
@@ -38,6 +39,7 @@ export function CropOverlay({
   onCropChange,
   containerRef,
   layoutKey,
+  onGestureEnd,
 }: CropOverlayProps) {
   const cropRef = useRef(crop)
   const dragRef = useRef<{
@@ -99,16 +101,21 @@ export function CropOverlay({
     }
   }, [containerRef, updateImageRect, sourceWidth, sourceHeight, layoutKey])
 
-  const endDrag = useCallback(() => {
-    dragRef.current = null
-  }, [])
+  const endDrag = useCallback(
+    (notify = true) => {
+      const wasDragging = dragRef.current != null
+      dragRef.current = null
+      if (notify && wasDragging) onGestureEnd?.()
+    },
+    [onGestureEnd],
+  )
 
   const onPointerMove = useCallback(
     (event: PointerEvent) => {
       const drag = dragRef.current
       if (!drag || event.pointerId !== drag.pointerId) return
       if (event.buttons !== 1) {
-        endDrag()
+        endDrag(true)
         return
       }
 
@@ -141,7 +148,7 @@ export function CropOverlay({
   const onPointerUp = useCallback(
     (event: PointerEvent) => {
       if (!dragRef.current || event.pointerId !== dragRef.current.pointerId) return
-      endDrag()
+      endDrag(true)
     },
     [endDrag],
   )

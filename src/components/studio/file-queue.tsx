@@ -8,6 +8,7 @@ import { filesize } from 'filesize'
 export function FileQueue() {
   const files = useStudioStore((s) => s.files)
   const activeFileId = useStudioStore((s) => s.activeFileId)
+  const isCropEditing = useStudioStore((s) => s.isCropEditing)
   const setActiveFile = useStudioStore((s) => s.setActiveFile)
   const removeFile = useStudioStore((s) => s.removeFile)
 
@@ -27,8 +28,10 @@ export function FileQueue() {
             key={file.id}
             type="button"
             onClick={() => setActiveFile(file.id)}
+            disabled={isCropEditing && activeFileId !== file.id}
             className={cn(
               'group flex items-start gap-3 rounded-lg border p-3 text-left transition-colors',
+              isCropEditing && activeFileId !== file.id && 'cursor-not-allowed opacity-50',
               activeFileId === file.id
                 ? 'border-primary/50 bg-primary/5'
                 : 'border-border/50 hover:border-border hover:bg-muted/30',
@@ -80,6 +83,7 @@ export function FileQueue() {
               <Button
                 variant="ghost"
                 size="icon-xs"
+                disabled={isCropEditing}
                 className="opacity-0 group-hover:opacity-100"
                 onClick={(e) => {
                   e.stopPropagation()

@@ -1,6 +1,8 @@
 import { useStudioStore } from '@/stores/studio-store'
+import { cn } from '@/lib/utils'
 import { usePipelineForm } from '@/hooks/use-pipeline-form'
 import type { PipelineConfig } from '@/lib/schemas/pipeline-schema'
+import type { PipelineChangeOptions } from '@/stores/pipeline-change'
 import { getDefaultEncodeOptions } from '@/lib/schemas/pipeline-schema'
 import { isSizeBudgetSupported } from '@/lib/image/size-budget-encode'
 import { SETTING_HELP } from '@/lib/setting-help'
@@ -8,6 +10,7 @@ import { SettingLabel, SettingRow } from '@/components/studio/setting-label'
 import { CropSettings, ResizeSettings } from '@/components/studio/resize-settings'
 import { SizeBudgetSettings } from '@/components/studio/size-budget-settings'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Slider } from '@/components/ui/slider'
@@ -28,29 +31,65 @@ import {
 export function SettingsPanel() {
   const pipeline = useStudioStore((s) => s.pipeline)
   const isAdvancedMode = useStudioStore((s) => s.isAdvancedMode)
-  const setPipeline = useStudioStore((s) => s.setPipeline)
+  const isCropEditing = useStudioStore((s) => s.isCropEditing)
+  const cancelCropEdit = useStudioStore((s) => s.cancelCropEdit)
+  const commitCropEdit = useStudioStore((s) => s.commitCropEdit)
+  const updatePipeline = useStudioStore((s) => s.updatePipeline)
   usePipelineForm()
 
-  const update = (partial: Partial<PipelineConfig>) => {
-    const next = { ...pipeline, ...partial }
+  const update = (
+    partial: Partial<PipelineConfig>,
+    options?: PipelineChangeOptions & { historyDebounceMs?: number },
+  ) => {
+    const patch = { ...partial }
     if (partial.outputFormat) {
-      next.encode = getDefaultEncodeOptions(partial.outputFormat)
+      patch.encode = getDefaultEncodeOptions(partial.outputFormat)
     }
-    setPipeline(next)
+    updatePipeline(patch, options)
   }
 
   const { outputFormat } = pipeline
 
   return (
     <div className="flex flex-col gap-4">
+      {isCropEditing && (
+        <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-2">
+          <p className="text-xs text-foreground">
+            Crop editing is active. Adjust the crop, then use Done to apply (one undo step) or
+            Cancel to discard. Other settings are locked until you finish.
+          </p>
+          <div className="flex gap-2">
+            <Button type="button" size="sm" className="h-7 flex-1 font-mono text-xs" onClick={() => commitCropEdit()}>
+              Done
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-7 flex-1 font-mono text-xs"
+              onClick={() => cancelCropEdit()}
+            >
+              Cancel
+            </Button>
+          </div>
+        </div>
+      )}
+
       <Tabs defaultValue="format" className="w-full">
         <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="format">Format</TabsTrigger>
+          <TabsTrigger value="format" disabled={isCropEditing}>
+            Format
+          </TabsTrigger>
           <TabsTrigger value="transform">Transform</TabsTrigger>
-          <TabsTrigger value="filters">Filters</TabsTrigger>
+          <TabsTrigger value="filters" disabled={isCropEditing}>
+            Filters
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="format" className="mt-4 space-y-4">
+        <TabsContent
+          value="format"
+          className={cn('mt-4 space-y-4', isCropEditing && 'pointer-events-none opacity-40')}
+        >
           <SizeBudgetSettings pipeline={pipeline} onUpdate={update} />
 
           <div className="space-y-2">
@@ -106,35 +145,38 @@ export function SettingsPanel() {
         </TabsContent>
 
         <TabsContent value="transform" className="mt-4 space-y-4">
-          <ResizeSettings
-            pipeline={pipeline}
-            isAdvanced={isAdvancedMode}
-            onUpdate={update}
-          />
+          <div className={cn(isCropEditing && 'pointer-events-none opacity-40')}>
+            <ResizeSettings
+              pipeline={pipeline}
+              isAdvanced={isAdvancedMode}
+              onUpdate={update}
+            />
+          </div>
 
           <CropSettings pipeline={pipeline} onUpdate={update} />
 
-          <div className="space-y-2">
-            <SettingLabel label="Rotate" help={SETTING_HELP.rotate} />
-            <Select
-              value={String(pipeline.rotate)}
-              onValueChange={(v) =>
-                update({ rotate: Number(v) as PipelineConfig['rotate'] })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="0">0°</SelectItem>
-                <SelectItem value="90">90°</SelectItem>
-                <SelectItem value="180">180°</SelectItem>
-                <SelectItem value="270">270°</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <div className={cn(isCropEditing && 'pointer-events-none opacity-40')}>
+            <div className="space-y-2">
+              <SettingLabel label="Rotate" help={SETTING_HELP.rotate} />
+              <Select
+                value={String(pipeline.rotate)}
+                onValueChange={(v) =>
+                  update({ rotate: Number(v) as PipelineConfig['rotate'] })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">0°</SelectItem>
+                  <SelectItem value="90">90°</SelectItem>
+                  <SelectItem value="180">180°</SelectItem>
+                  <SelectItem value="270">270°</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          <div className="flex gap-6 rounded-lg border border-border/50 bg-muted/10 p-4">
+            <div className="mt-4 flex gap-6 rounded-lg border border-border/50 bg-muted/10 p-4">
             <div className="flex items-center gap-2">
               <Switch
                 id="flip-h"
@@ -155,10 +197,14 @@ export function SettingsPanel() {
               />
               <SettingLabel htmlFor="flip-v" label="Flip V" help={SETTING_HELP.flipVertical} />
             </div>
+            </div>
           </div>
         </TabsContent>
 
-        <TabsContent value="filters" className="mt-4 space-y-4">
+        <TabsContent
+          value="filters"
+          className={cn('mt-4 space-y-4', isCropEditing && 'pointer-events-none opacity-40')}
+        >
           <SettingRow
             label="Enable filters"
             help={SETTING_HELP.filtersEnabled}

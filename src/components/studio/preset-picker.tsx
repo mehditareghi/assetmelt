@@ -71,7 +71,7 @@ function PresetRow({ name, description, active, onSelect, menu }: PresetRowProps
   )
 }
 
-export function PresetPicker() {
+export function PresetPicker({ disabled = false }: { disabled?: boolean }) {
   const activePresetId = useStudioStore((s) => s.activePresetId)
   const isPipelineModified = useStudioStore((s) => s.isPipelineModified)
   const customPresets = useStudioStore((s) => s.customPresets)
@@ -175,6 +175,7 @@ export function PresetPicker() {
         <PopoverTrigger asChild>
           <Button
             variant="outline"
+            disabled={disabled}
             className="h-9 min-w-[11rem] justify-between gap-2 px-3 font-normal"
           >
             <span className="flex min-w-0 items-center gap-2">

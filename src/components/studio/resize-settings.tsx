@@ -1,6 +1,7 @@
 import { Link2, RotateCcw } from 'lucide-react'
 import { useStudioStore } from '@/stores/studio-store'
 import type { CropAspectRatio, PipelineConfig, ResizeConfig } from '@/lib/schemas/pipeline-schema'
+import type { PipelineChangeOptions } from '@/stores/pipeline-change'
 import {
   applyAspectRatioToCrop,
   CROP_ASPECT_PRESETS,
@@ -8,6 +9,7 @@ import {
   cropConfigToRect,
   normalizeCropInput,
 } from '@/lib/image/crop-math'
+import { getCropSpaceDimensions } from '@/lib/image/transform-space'
 import { computeTargetSize } from '@/lib/image/resize-compute'
 import { RESIZE_MODE_LABELS, SETTING_HELP } from '@/lib/setting-help'
 import { SettingLabel, SettingRow } from '@/components/studio/setting-label'
@@ -352,59 +354,75 @@ export function ResizeSettings({ pipeline, isAdvanced, onUpdate }: ResizeSetting
   )
 }
 
+const IMMEDIATE_HISTORY = { historyDebounceMs: 0 } as const
+
 export function CropSettings({
   pipeline,
   onUpdate,
 }: {
   pipeline: PipelineConfig
-  onUpdate: (partial: Partial<PipelineConfig>) => void
+  onUpdate: (
+    partial: Partial<PipelineConfig>,
+    options?: PipelineChangeOptions & { historyDebounceMs?: number },
+  ) => void
 }) {
   const activeFile = useStudioStore((s) => {
     const id = s.activeFileId
     return id ? s.files.find((f) => f.id === id) : undefined
   })
   const syncCropFromActiveFile = useStudioStore((s) => s.syncCropFromActiveFile)
+  const beginCropEdit = useStudioStore((s) => s.beginCropEdit)
+  const cancelCropEdit = useStudioStore((s) => s.cancelCropEdit)
+  const commitCropEdit = useStudioStore((s) => s.commitCropEdit)
+  const isCropEditing = useStudioStore((s) => s.isCropEditing)
 
   const crop = pipeline.crop
-  const sourceWidth = activeFile?.originalWidth
-  const sourceHeight = activeFile?.originalHeight
-  const hasSource = sourceWidth != null && sourceHeight != null && sourceWidth > 0 && sourceHeight > 0
-
+  const fileWidth = activeFile?.originalWidth
+  const fileHeight = activeFile?.originalHeight
+  const hasSource = fileWidth != null && fileHeight != null && fileWidth > 0 && fileHeight > 0
+  const cropSpace = hasSource
+    ? getCropSpaceDimensions(fileWidth, fileHeight, pipeline.rotate)
+    : null
   const updateCrop = (partial: Partial<typeof crop>) => {
     const next = { ...crop, ...partial }
-    if (hasSource) {
-      onUpdate({ crop: normalizeCropInput(next, sourceWidth, sourceHeight) })
+    if (cropSpace) {
+      onUpdate({
+        crop: normalizeCropInput(next, cropSpace.width, cropSpace.height),
+      })
       return
     }
     onUpdate({ crop: next })
   }
 
   const selectAspectRatio = (aspectRatio: CropAspectRatio) => {
-    if (!hasSource) return
+    if (!cropSpace) return
 
     if (aspectRatio === 'free') {
-      onUpdate({ crop: { ...crop, aspectRatio: 'free' } })
+      onUpdate({ crop: { ...crop, aspectRatio: 'free' } }, IMMEDIATE_HISTORY)
       return
     }
 
     if (!crop.enabled) {
-      onUpdate({
-        crop: {
-          enabled: true,
-          aspectRatio,
-          ...createDefaultCrop(sourceWidth, sourceHeight, aspectRatio),
+      onUpdate(
+        {
+          crop: {
+            enabled: true,
+            aspectRatio,
+            ...createDefaultCrop(cropSpace.width, cropSpace.height, aspectRatio),
+          },
         },
-      })
+        IMMEDIATE_HISTORY,
+      )
       return
     }
 
     const rect = applyAspectRatioToCrop(
       cropConfigToRect(crop),
       aspectRatio,
-      sourceWidth,
-      sourceHeight,
+      cropSpace.width,
+      cropSpace.height,
     )
-    onUpdate({ crop: { ...crop, aspectRatio, ...rect } })
+    onUpdate({ crop: { ...crop, aspectRatio, ...rect } }, IMMEDIATE_HISTORY)
   }
 
   const updateCropField = (field: 'x' | 'y' | 'width' | 'height', rawValue: string) => {
@@ -415,19 +433,35 @@ export function CropSettings({
 
   return (
     <div className="space-y-4 rounded-lg border border-border/50 bg-muted/10 p-4">
-      <SettingRow label="Crop" help={SETTING_HELP.cropEnabled} htmlFor="crop-toggle">
+      <SettingRow label="Apply crop" help={SETTING_HELP.cropEnabled} htmlFor="crop-toggle">
         <Switch
           id="crop-toggle"
           checked={crop.enabled}
           onCheckedChange={(enabled) => {
-            if (enabled && hasSource) {
+            if (!enabled) {
+              if (isCropEditing) cancelCropEdit()
+              onUpdate({ crop: { ...crop, enabled: false } }, IMMEDIATE_HISTORY)
+              return
+            }
+            if (hasSource) {
               syncCropFromActiveFile()
-            } else {
-              updateCrop({ enabled })
+              beginCropEdit()
             }
           }}
         />
       </SettingRow>
+
+      {crop.enabled && hasSource && (
+        <Button
+          type="button"
+          variant={isCropEditing ? 'default' : 'outline'}
+          size="sm"
+          className="w-full font-mono text-xs"
+          onClick={() => (isCropEditing ? commitCropEdit() : beginCropEdit())}
+        >
+          {isCropEditing ? 'Done editing crop' : 'Edit crop on image'}
+        </Button>
+      )}
 
       {crop.enabled && (
         <>
@@ -467,7 +501,7 @@ export function CropSettings({
               <Input
                 type="number"
                 min={0}
-                max={hasSource ? sourceWidth - 1 : undefined}
+                max={cropSpace ? cropSpace.width - 1 : undefined}
                 value={crop.x}
                 onChange={(e) => updateCropField('x', e.target.value)}
                 className="font-mono"
@@ -478,7 +512,7 @@ export function CropSettings({
               <Input
                 type="number"
                 min={0}
-                max={hasSource ? sourceHeight - 1 : undefined}
+                max={cropSpace ? cropSpace.height - 1 : undefined}
                 value={crop.y}
                 onChange={(e) => updateCropField('y', e.target.value)}
                 className="font-mono"
@@ -489,7 +523,7 @@ export function CropSettings({
               <Input
                 type="number"
                 min={1}
-                max={hasSource ? sourceWidth : undefined}
+                max={cropSpace ? cropSpace.width : undefined}
                 value={crop.width}
                 onChange={(e) => updateCropField('width', e.target.value)}
                 className="font-mono"
@@ -500,7 +534,7 @@ export function CropSettings({
               <Input
                 type="number"
                 min={1}
-                max={hasSource ? sourceHeight : undefined}
+                max={cropSpace ? cropSpace.height : undefined}
                 value={crop.height}
                 onChange={(e) => updateCropField('height', e.target.value)}
                 className="font-mono"
@@ -508,9 +542,10 @@ export function CropSettings({
             </div>
           </div>
 
-          {hasSource && (
+          {cropSpace && (
             <p className="font-mono text-xs text-muted-foreground">
-              Output region: {crop.width}×{crop.height} from {sourceWidth}×{sourceHeight} source
+              Output region: {crop.width}×{crop.height} from {cropSpace.width}×{cropSpace.height}{' '}
+              (after rotate/flip)
             </p>
           )}
         </>

@@ -15,6 +15,7 @@ import {
 } from '@/lib/image/size-budget-encode'
 import { toMozJpegWasmOptions } from '@/lib/image/jpeg-encode'
 import { formatOutputFilename } from '@/lib/presets'
+import { applyCrop, applyFilters, applyRotateFlip } from '@/lib/image/image-transforms'
 
 function postProgress(id: string, progress: number, stage: string) {
   self.postMessage({ type: 'progress', id, progress, stage } satisfies WorkerResponse)
@@ -64,119 +65,6 @@ async function decodeViaCanvas(buffer: ArrayBuffer): Promise<ImageData> {
   ctx.drawImage(bitmap, 0, 0)
   bitmap.close()
   return ctx.getImageData(0, 0, canvas.width, canvas.height)
-}
-
-function imageDataToCanvas(imageData: ImageData): OffscreenCanvas {
-  const canvas = new OffscreenCanvas(imageData.width, imageData.height)
-  const ctx = canvas.getContext('2d')!
-  ctx.putImageData(imageData, 0, 0)
-  return canvas
-}
-
-function canvasToImageData(canvas: OffscreenCanvas): ImageData {
-  const ctx = canvas.getContext('2d')!
-  return ctx.getImageData(0, 0, canvas.width, canvas.height)
-}
-
-function applyCrop(imageData: ImageData, crop: PipelineConfig['crop']): ImageData {
-  const canvas = imageDataToCanvas(imageData)
-  const ctx = canvas.getContext('2d')!
-  const cropped = ctx.getImageData(crop.x, crop.y, crop.width, crop.height)
-  const out = new OffscreenCanvas(crop.width, crop.height)
-  out.getContext('2d')!.putImageData(cropped, 0, 0)
-  return canvasToImageData(out)
-}
-
-function applyRotateFlip(
-  imageData: ImageData,
-  rotate: PipelineConfig['rotate'],
-  flip: PipelineConfig['flip'],
-): ImageData {
-  const src = imageDataToCanvas(imageData)
-  const swap = rotate === 90 || rotate === 270
-  const w = swap ? src.height : src.width
-  const h = swap ? src.width : src.height
-  const canvas = new OffscreenCanvas(w, h)
-  const ctx = canvas.getContext('2d')!
-
-  ctx.translate(w / 2, h / 2)
-  ctx.rotate((rotate * Math.PI) / 180)
-  ctx.scale(flip.horizontal ? -1 : 1, flip.vertical ? -1 : 1)
-  ctx.drawImage(src, -src.width / 2, -src.height / 2)
-
-  return canvasToImageData(canvas)
-}
-
-function applyFilters(imageData: ImageData, filters: PipelineConfig['filters']): ImageData {
-  const data = new Uint8ClampedArray(imageData.data)
-  const { brightness, contrast, saturation, grayscale, sharpen } = filters
-
-  const brightnessFactor = (brightness / 100) * 255
-  const contrastFactor = (259 * (contrast + 255)) / (255 * (259 - contrast))
-
-  for (let i = 0; i < data.length; i += 4) {
-    let r = data[i]
-    let g = data[i + 1]
-    let b = data[i + 2]
-
-    if (filters.enabled) {
-      if (grayscale) {
-        const gray = 0.299 * r + 0.587 * g + 0.114 * b
-        r = g = b = gray
-      }
-
-      if (saturation !== 0) {
-        const gray = 0.299 * r + 0.587 * g + 0.114 * b
-        const sat = 1 + saturation / 100
-        r = gray + sat * (r - gray)
-        g = gray + sat * (g - gray)
-        b = gray + sat * (b - gray)
-      }
-
-      r = contrastFactor * (r - 128) + 128 + brightnessFactor
-      g = contrastFactor * (g - 128) + 128 + brightnessFactor
-      b = contrastFactor * (b - 128) + 128 + brightnessFactor
-
-      data[i] = Math.max(0, Math.min(255, r))
-      data[i + 1] = Math.max(0, Math.min(255, g))
-      data[i + 2] = Math.max(0, Math.min(255, b))
-    }
-  }
-
-  let result = new ImageData(data, imageData.width, imageData.height)
-
-  if (filters.enabled && sharpen > 0) {
-    result = applySharpen(result, sharpen / 100)
-  }
-
-  return result
-}
-
-function applySharpen(imageData: ImageData, amount: number): ImageData {
-  const w = imageData.width
-  const h = imageData.height
-  const src = imageData.data
-  const out = new Uint8ClampedArray(src.length)
-  const kernel = [0, -amount, 0, -amount, 1 + 4 * amount, -amount, 0, -amount, 0]
-
-  for (let y = 1; y < h - 1; y++) {
-    for (let x = 1; x < w - 1; x++) {
-      for (let c = 0; c < 3; c++) {
-        let sum = 0
-        let ki = 0
-        for (let ky = -1; ky <= 1; ky++) {
-          for (let kx = -1; kx <= 1; kx++) {
-            const idx = ((y + ky) * w + (x + kx)) * 4 + c
-            sum += src[idx] * kernel[ki++]
-          }
-        }
-        out[(y * w + x) * 4 + c] = Math.max(0, Math.min(255, sum))
-      }
-      out[(y * w + x) * 4 + 3] = src[(y * w + x) * 4 + 3]
-    }
-  }
-
-  return new ImageData(out, w, h)
 }
 
 async function applyResize(
@@ -281,24 +169,24 @@ async function processImage(
   const originalWidth = imageData.width
   const originalHeight = imageData.height
 
-  if (pipeline.crop.enabled) {
-    postProgress(id, 25, 'Cropping')
-    imageData = applyCrop(imageData, pipeline.crop)
-  }
-
   if (pipeline.rotate !== 0 || pipeline.flip.horizontal || pipeline.flip.vertical) {
-    postProgress(id, 35, 'Rotating')
+    postProgress(id, 25, 'Rotating')
     imageData = applyRotateFlip(imageData, pipeline.rotate, pipeline.flip)
   }
 
-  if (pipeline.resize.enabled) {
-    postProgress(id, 50, 'Resizing')
-    imageData = await applyResize(imageData, pipeline.resize)
+  if (pipeline.filters.enabled) {
+    postProgress(id, 40, 'Applying filters')
+    imageData = applyFilters(imageData, pipeline.filters)
   }
 
-  if (pipeline.filters.enabled) {
-    postProgress(id, 65, 'Applying filters')
-    imageData = applyFilters(imageData, pipeline.filters)
+  if (pipeline.crop.enabled) {
+    postProgress(id, 55, 'Cropping')
+    imageData = applyCrop(imageData, pipeline.crop)
+  }
+
+  if (pipeline.resize.enabled) {
+    postProgress(id, 65, 'Resizing')
+    imageData = await applyResize(imageData, pipeline.resize)
   }
 
   postProgress(id, 80, 'Encoding')
