@@ -30,11 +30,11 @@ export function FileQueue() {
             onClick={() => setActiveFile(file.id)}
             disabled={isCropEditing && activeFileId !== file.id}
             className={cn(
-              'group flex items-start gap-3 rounded-lg border p-3 text-left transition-colors',
+              'group flex items-start gap-3 rounded-xl p-3 text-left transition-colors',
               isCropEditing && activeFileId !== file.id && 'cursor-not-allowed opacity-50',
               activeFileId === file.id
-                ? 'border-primary/50 bg-primary/5'
-                : 'border-border/50 hover:border-border hover:bg-muted/30',
+                ? 'bg-primary/10 ring-1 ring-primary/40'
+                : 'hover:bg-background/50',
             )}
           >
             <div className="relative size-10 shrink-0 overflow-hidden rounded-md bg-muted">

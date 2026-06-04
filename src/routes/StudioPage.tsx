@@ -1,4 +1,3 @@
-import { SiteHeader } from '@/components/layout/site-header'
 import { DropZone } from '@/components/studio/drop-zone'
 import { FileQueue } from '@/components/studio/file-queue'
 import { PreviewPanel } from '@/components/studio/preview-panel'
@@ -42,24 +41,26 @@ export function StudioPage() {
   }, [undo, redo])
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <SiteHeader variant="studio" />
-      <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-4 py-6 sm:px-6 lg:px-8">
-        <StudioToolbar />
+    <>
+      <div className="mesh-gradient studio-page-bg pointer-events-none fixed inset-0 -z-10" />
+      <div className="landing-hero-grid pointer-events-none fixed inset-0 -z-10 opacity-25" />
+
+      <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
+        <div className="glass-surface rounded-2xl p-3 sm:p-4">
+          <StudioToolbar />
+        </div>
 
         {files.length === 0 ? (
           <DropZone />
         ) : (
           <>
-            {/* Mobile: horizontal file queue */}
             <div className="lg:hidden">
               <div className="flex gap-2 overflow-x-auto pb-2">
                 <FileQueue />
               </div>
             </div>
 
-            <div className="grid flex-1 gap-6 lg:grid-cols-[240px_1fr_320px]">
-              {/* Desktop file queue */}
+            <div className="grid flex-1 gap-5 lg:grid-cols-[240px_1fr_320px]">
               <aside className="hidden lg:block">
                 <FileQueue />
               </aside>
@@ -68,9 +69,8 @@ export function StudioPage() {
                 <PreviewPanel />
               </section>
 
-              {/* Desktop settings */}
               <aside className="hidden lg:block">
-                <div className="sticky top-20 rounded-xl border border-border/50 bg-card/50 p-4 backdrop-blur-sm">
+                <div className="glass-surface sticky top-[4.5rem] rounded-2xl p-4">
                   <h3 className="mb-4 font-mono text-xs uppercase tracking-wider text-muted-foreground">
                     Settings
                   </h3>
@@ -79,15 +79,17 @@ export function StudioPage() {
               </aside>
             </div>
 
-            {/* Mobile settings sheet */}
             <div className="fixed bottom-6 right-6 lg:hidden">
               <Sheet>
                 <SheetTrigger asChild>
-                  <Button size="lg" className="size-14 rounded-full shadow-lg">
+                  <Button size="lg" className="size-14 rounded-full shadow-lg shadow-primary/20">
                     <SlidersHorizontal className="size-5" />
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto">
+                <SheetContent
+                  side="bottom"
+                  className="max-h-[85vh] overflow-y-auto border-border/50 bg-background/95 backdrop-blur-xl"
+                >
                   <SheetHeader>
                     <SheetTitle>Pipeline Settings</SheetTitle>
                   </SheetHeader>
@@ -106,6 +108,6 @@ export function StudioPage() {
           </p>
         )}
       </main>
-    </div>
+    </>
   )
 }

@@ -4,10 +4,11 @@ import {
   Layers,
   Lock,
   SlidersHorizontal,
+  Sparkles,
   Target,
   Zap,
 } from 'lucide-react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { LandingSectionHeader } from '@/components/landing/landing-section-header'
 
 const features = [
   {
@@ -50,40 +51,42 @@ const features = [
 
 export function FeaturesSection() {
   return (
-    <section id="features" className="px-4 py-24 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-16 text-center">
-          <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
-            Everything in the studio, nothing on a server
-          </h2>
-          <p className="mt-4 text-muted-foreground">
-            From byte-budget exports to batch zips — a complete image pipeline in the browser.
-          </p>
-        </div>
+    <section id="features" className="relative scroll-mt-20 px-4 py-24 sm:px-6 lg:px-8">
+      <div className="landing-section-glow pointer-events-none absolute inset-x-0 top-1/2 -z-10 h-[min(60vh,480px)] -translate-y-1/2 opacity-70" />
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="relative mx-auto max-w-7xl">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.45 }}
+        >
+          <LandingSectionHeader
+            icon={Sparkles}
+            eyebrow="Studio toolkit"
+            title="Everything in the studio,"
+            titleAccent="nothing on a server"
+            description="From byte-budget exports to batch zips — a complete image pipeline in the browser."
+          />
+        </motion.div>
+
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3 lg:gap-x-12 lg:gap-y-12">
           {features.map((feature, i) => (
-            <motion.div
+            <motion.article
               key={feature.title}
-              initial={{ opacity: 0, y: 24 }}
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-50px' }}
-              transition={{ duration: 0.4, delay: i * 0.08 }}
+              viewport={{ once: true, margin: '-40px' }}
+              transition={{ duration: 0.4, delay: i * 0.05 }}
             >
-              <Card className="h-full border-border/50 bg-card/50 backdrop-blur-sm transition-colors hover:border-primary/30">
-                <CardHeader>
-                  <div className="mb-2 flex size-10 items-center justify-center rounded-lg bg-primary/10">
-                    <feature.icon className="size-5 text-primary" />
-                  </div>
-                  <CardTitle className="font-display text-lg">{feature.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-sm leading-relaxed">
-                    {feature.description}
-                  </CardDescription>
-                </CardContent>
-              </Card>
-            </motion.div>
+              <div className="mb-4 flex size-10 items-center justify-center text-primary">
+                <feature.icon className="size-5" strokeWidth={1.75} />
+              </div>
+              <h3 className="font-display text-lg font-semibold">{feature.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                {feature.description}
+              </p>
+            </motion.article>
           ))}
         </div>
       </div>

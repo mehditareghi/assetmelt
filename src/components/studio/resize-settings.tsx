@@ -77,7 +77,7 @@ export function ResizeSettings({ pipeline, isAdvanced, onUpdate }: ResizeSetting
   }
 
   return (
-    <div className="space-y-4 rounded-lg border border-border/50 bg-muted/10 p-4">
+    <div className="space-y-4 border-t border-border/30 pt-6 first:border-t-0 first:pt-0">
       <SettingRow label="Resize" help={SETTING_HELP.resizeEnabled} htmlFor="resize-toggle">
         <Switch
           id="resize-toggle"
@@ -432,7 +432,7 @@ export function CropSettings({
   }
 
   return (
-    <div className="space-y-4 rounded-lg border border-border/50 bg-muted/10 p-4">
+    <div className="space-y-4 border-t border-border/30 pt-6 first:border-t-0 first:pt-0">
       <SettingRow label="Apply crop" help={SETTING_HELP.cropEnabled} htmlFor="crop-toggle">
         <Switch
           id="crop-toggle"

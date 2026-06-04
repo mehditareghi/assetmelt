@@ -1,5 +1,6 @@
 import { motion } from 'motion/react'
-import { Download, Settings, Upload } from 'lucide-react'
+import { Download, Route, Settings, Upload } from 'lucide-react'
+import { LandingSectionHeader } from '@/components/landing/landing-section-header'
 
 const steps = [
   {
@@ -27,32 +28,48 @@ const steps = [
 
 export function HowItWorksSection() {
   return (
-    <section id="how-it-works" className="border-y border-border/50 bg-muted/20 px-4 py-24 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        <div className="mb-16 text-center">
-          <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
-            Three steps. Zero uploads.
-          </h2>
-          <p className="mt-4 text-muted-foreground">
-            Open the studio, configure once, and run the same pipeline across your whole queue.
-          </p>
-        </div>
+    <section
+      id="how-it-works"
+      className="relative scroll-mt-20 border-y border-border/30 px-4 py-24 sm:px-6 lg:px-8"
+    >
+      <div className="mx-auto max-w-5xl">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.45 }}
+        >
+          <LandingSectionHeader
+            icon={Route}
+            eyebrow="Workflow"
+            title="Three steps."
+            titleAccent="Zero uploads."
+            description="Open the studio, configure once, and run the same pipeline across your whole queue."
+          />
+        </motion.div>
 
-        <div className="grid gap-8 md:grid-cols-3">
+        <div className="grid gap-12 md:grid-cols-3 md:gap-8">
           {steps.map((item, i) => (
             <motion.div
               key={item.step}
-              className="relative text-center"
-              initial={{ opacity: 0, y: 24 }}
+              className="relative text-center md:text-left"
+              initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 0.4, delay: i * 0.15 }}
+              transition={{ duration: 0.4, delay: 0.08 + i * 0.1 }}
             >
-              <div className="mx-auto mb-6 flex size-16 items-center justify-center rounded-2xl border border-border/50 bg-card">
-                <item.icon className="size-7 text-primary" />
+              <span
+                className="pointer-events-none absolute -top-1 left-1/2 -translate-x-1/2 font-mono text-5xl font-bold text-primary/10 md:left-0 md:translate-x-0"
+                aria-hidden
+              >
+                {item.step}
+              </span>
+
+              <div className="relative mx-auto mb-4 flex size-12 items-center justify-center text-primary md:mx-0">
+                <item.icon className="size-6" strokeWidth={1.75} />
               </div>
-              <span className="font-mono text-xs text-primary">{item.step}</span>
-              <h3 className="mt-2 font-display text-xl font-semibold">{item.title}</h3>
+
+              <h3 className="font-display text-xl font-semibold">{item.title}</h3>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                 {item.description}
               </p>

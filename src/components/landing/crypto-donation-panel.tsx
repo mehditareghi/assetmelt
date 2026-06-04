@@ -120,9 +120,12 @@ export function CryptoDonationPanel() {
     [assetId],
   )
 
+  const [copiedAll, setCopiedAll] = useState(false)
+
   useEffect(() => {
     const exists = asset.networks.some((n) => n.id === networkId)
     if (!exists) setNetworkId(asset.defaultNetworkId)
+    setCopiedAll(false)
   }, [asset, networkId])
 
   const network = getDonationNetwork(asset, networkId) ?? asset.networks[0]
@@ -136,6 +139,8 @@ export function CryptoDonationPanel() {
     const lines = [`${asset.symbol} · ${network.name}`, `Address: ${network.address}`]
     if (network.memo) lines.push(`Memo: ${network.memo}`)
     await copyText('Donation details', lines.join('\n'))
+    setCopiedAll(true)
+    window.setTimeout(() => setCopiedAll(false), 2000)
   }
 
   return (
@@ -193,7 +198,7 @@ export function CryptoDonationPanel() {
             </div>
 
             {network.sendHint && (
-              <p className="rounded-md border border-amber-500/25 bg-amber-500/10 px-2.5 py-2 font-mono text-[11px] leading-relaxed text-amber-100 dark:text-amber-50/90">
+              <p className="callout-warning rounded-md px-2.5 py-2 font-mono text-[11px] leading-relaxed">
                 {network.sendHint}
               </p>
             )}
@@ -211,7 +216,11 @@ export function CryptoDonationPanel() {
               className="w-full gap-1.5 font-mono text-xs"
               onClick={copyAll}
             >
-              <Copy className="size-3.5" />
+              {copiedAll ? (
+                <Check className="size-3.5 text-primary" />
+              ) : (
+                <Copy className="size-3.5" />
+              )}
               Copy address{network.memo ? ' + memo' : ''}
             </Button>
           </div>

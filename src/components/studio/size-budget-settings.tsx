@@ -31,10 +31,8 @@ export function SizeBudgetSettings({ pipeline, onUpdate }: SizeBudgetSettingsPro
   return (
     <div
       className={cn(
-        'space-y-4 rounded-lg border p-4 transition-colors',
-        budget.enabled
-          ? 'border-primary/30 bg-primary/5'
-          : 'border-border/50 bg-muted/10',
+        'space-y-4 rounded-xl p-1 transition-colors',
+        budget.enabled && 'ring-1 ring-primary/25',
       )}
     >
       <div className="flex items-start gap-3">
@@ -62,7 +60,7 @@ export function SizeBudgetSettings({ pipeline, onUpdate }: SizeBudgetSettingsPro
       {budget.enabled && (
         <>
           {!supported && (
-            <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200/90">
+            <div className="callout-warning rounded-md px-3 py-2 text-xs">
               Size budget works with lossy {SIZE_BUDGET_FORMATS.join(', ').toUpperCase()}.
               Switch format or disable lossless mode to use this feature.
             </div>

@@ -53,7 +53,7 @@ export function SettingsPanel() {
   return (
     <div className="flex flex-col gap-4">
       {isCropEditing && (
-        <div className="rounded-lg border border-primary/30 bg-primary/5 p-3 space-y-2">
+        <div className="glass-surface space-y-2 rounded-xl border-primary/20 p-3 ring-1 ring-primary/20">
           <p className="text-xs text-foreground">
             Crop editing is active. Adjust the crop, then use Done to apply (one undo step) or
             Cancel to discard. Other settings are locked until you finish.
@@ -176,7 +176,7 @@ export function SettingsPanel() {
               </Select>
             </div>
 
-            <div className="mt-4 flex gap-6 rounded-lg border border-border/50 bg-muted/10 p-4">
+            <div className="mt-4 flex gap-6">
             <div className="flex items-center gap-2">
               <Switch
                 id="flip-h"

@@ -74,7 +74,7 @@ export function StudioToolbar() {
   }
 
   return (
-    <div className="flex flex-col gap-4 border-b border-border/50 pb-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex flex-wrap items-center gap-3">
         <PresetPicker disabled={isCropEditing} />
 

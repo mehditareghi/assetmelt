@@ -80,7 +80,7 @@ export function PreviewPanel() {
 
   if (!activeFile) {
     return (
-      <div className="flex h-full min-h-[300px] items-center justify-center rounded-xl border border-dashed border-border/50 bg-muted/10">
+      <div className="glass-surface flex h-full min-h-[300px] items-center justify-center rounded-2xl border border-dashed border-border/40">
         <p className="text-sm text-muted-foreground">Add images to preview</p>
       </div>
     )
@@ -111,7 +111,7 @@ export function PreviewPanel() {
   return (
     <div className="flex h-full flex-col gap-4">
       {showCompare ? (
-        <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-border/50 bg-muted/20">
+        <div className="glass-surface relative aspect-video w-full overflow-hidden rounded-2xl">
           <img
             src={resultPreviewUrl}
             alt="Output"
@@ -249,7 +249,7 @@ export function PreviewPanel() {
                 'flex flex-wrap items-center gap-2 rounded-lg border px-3 py-2 text-xs',
                 activeFile.stats.sizeBudget.met
                   ? 'border-primary/30 bg-primary/5 text-foreground'
-                  : 'border-amber-500/30 bg-amber-500/10 text-amber-100',
+                  : 'callout-warning',
               )}
             >
               <TargetIcon className="size-3.5 shrink-0 text-primary" />
@@ -294,7 +294,7 @@ function Stat({
   highlight?: boolean
 }) {
   return (
-    <div className="rounded-lg border border-border/50 bg-card/50 p-3">
+    <div className="glass-surface rounded-xl p-3">
       <p className="font-mono text-xs text-muted-foreground">{label}</p>
       <p className={cn('mt-1 font-mono text-sm font-medium', highlight && 'text-primary')}>
         {value}

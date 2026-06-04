@@ -31,10 +31,10 @@ export function DropZone() {
   return (
     <label
       className={cn(
-        'flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 transition-colors',
+        'glass-surface flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-10 transition-colors',
         isDragging
-          ? 'border-primary bg-primary/5'
-          : 'border-border/60 hover:border-primary/40 hover:bg-muted/30',
+          ? 'border-primary/50 bg-primary/10'
+          : 'border-primary/15 hover:border-primary/30 hover:bg-background/30 dark:border-primary/20 dark:hover:border-primary/35',
       )}
       onDragOver={(e) => {
         e.preventDefault()
