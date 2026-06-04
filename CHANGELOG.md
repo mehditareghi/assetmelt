@@ -4,6 +4,13 @@ All notable changes to Asset Melt are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/) and [Conventional Commits](https://www.conventionalcommits.org/).
 
 
+## [0.4.0](https://github.com/mehditareghi/assetmelt/compare/v0.3.1...v0.4.0) (2026-06-04)
+
+
+### Features
+
+* add platform presets, preset sheet, and unified compare/export workflow ([8c25148](https://github.com/mehditareghi/assetmelt/commit/8c2514847f3da4cac5bd84d8b0671b1f76be8dac))
+
 ## [0.3.1](https://github.com/mehditareghi/assetmelt/compare/v0.3.0...v0.3.1) (2026-06-04)
 
 
