@@ -5,6 +5,7 @@ import {
   createRootRoute,
 } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
+import { Analytics } from '@vercel/analytics/react'
 import { ThemeProvider } from '@/components/layout/theme-provider'
 import { SiteLayout } from '@/components/layout/site-layout'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -64,6 +65,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
       <body>
         {children}
         <Scripts />
+        <Analytics />
       </body>
     </html>
   )
