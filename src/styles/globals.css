@@ -171,10 +171,9 @@
   }
 
   .glass-badge {
+    @apply backdrop-blur-md;
     border: 1px solid oklch(from var(--primary) l c h / 0.22);
     background: oklch(from var(--background) l c h / 0.55);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
     box-shadow: 0 1px 2px oklch(0 0 0 / 0.06);
   }
 
@@ -187,10 +186,9 @@
   }
 
   .glass-nav {
+    @apply backdrop-blur-lg;
     border: 1px solid oklch(from var(--primary) l c h / 0.12);
     background: oklch(from var(--background) l c h / 0.72);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
     box-shadow: 0 4px 20px oklch(0 0 0 / 0.06);
   }
 
@@ -203,10 +201,9 @@
   }
 
   .glass-surface {
+    @apply backdrop-blur-[10px];
     border: 1px solid oklch(from var(--primary) l c h / 0.08);
     background: oklch(from var(--card) l c h / 0.35);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
   }
 
   .dark .glass-surface {
