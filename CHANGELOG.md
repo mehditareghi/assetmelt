@@ -4,6 +4,14 @@ All notable changes to Asset Melt are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/) and [Conventional Commits](https://www.conventionalcommits.org/).
 
 
+## [0.3.0](https://github.com/mehditareghi/assetmelt/compare/v0.2.0...v0.3.0) (2026-06-04)
+
+
+### Features
+
+* add donate crypto section ([cffe824](https://github.com/mehditareghi/assetmelt/commit/cffe82459a88276ec7334b94d4c9a164898a5c8d))
+* revamp the UI ([e075216](https://github.com/mehditareghi/assetmelt/commit/e0752167867d5441ebbebe39f834f5bf01909f41))
+
 ## [0.2.0](https://github.com/mehditareghi/assetmelt/compare/v0.1.5...v0.2.0) (2026-06-04)
 
 
