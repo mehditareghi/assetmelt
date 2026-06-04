@@ -23,6 +23,9 @@ export function SiteHeader({ variant = 'landing' }: SiteHeaderProps) {
               <Button variant="ghost" size="sm" asChild className="hidden md:inline-flex">
                 <a href="#how-it-works">How it works</a>
               </Button>
+              <Button variant="ghost" size="sm" asChild className="hidden lg:inline-flex">
+                <a href="#support">Support</a>
+              </Button>
             </>
           )}
           <ThemeToggle />

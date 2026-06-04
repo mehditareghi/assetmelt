@@ -17,7 +17,7 @@ export function HeroSection() {
         >
           <Badge variant="secondary" className="mb-6 gap-1.5 font-mono text-xs">
             <Sparkles className="size-3 text-primary" />
-            Zero uploads · Runs in your browser
+            Zero uploads · Free forever
           </Badge>
         </motion.div>
 
