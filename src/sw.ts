@@ -3,6 +3,7 @@
 import { clientsClaim } from 'workbox-core'
 import {
   cleanupOutdatedCaches,
+  createHandlerBoundToURL,
   matchPrecache,
   precacheAndRoute,
 } from 'workbox-precaching'
@@ -26,14 +27,6 @@ const PRERENDERED_SHELLS: Record<string, string> = {
 precacheAndRoute(self.__WB_MANIFEST)
 cleanupOutdatedCaches()
 
-const pageCachePlugins = [
-  new CacheableResponsePlugin({ statuses: [0, 200] }),
-  new ExpirationPlugin({
-    maxEntries: 32,
-    maxAgeSeconds: 7 * 24 * 60 * 60,
-  }),
-]
-
 const OFFLINE_FALLBACK_HTML = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -56,22 +49,29 @@ const OFFLINE_FALLBACK_HTML = `<!DOCTYPE html>
 async function serveShellForPath(pathname: string): Promise<Response | undefined> {
   const shellKey = PRERENDERED_SHELLS[pathname]
   if (!shellKey) return undefined
+
+  const cached = await caches.match(new Request(pathname))
+  if (cached) return cached
+
   return (await matchPrecache(shellKey)) ?? undefined
 }
 
-async function prefetchOfflinePages() {
+/** Seed pages-cache from precache so offline navigations work without a network fetch. */
+async function seedPagesCacheFromPrecache() {
   const cache = await caches.open(PAGES_CACHE)
-  await Promise.allSettled(
-    ['/', '/studio'].map((path) =>
-      cache.add(new Request(path, { credentials: 'same-origin' })),
-    ),
+  await Promise.all(
+    Object.entries(PRERENDERED_SHELLS).map(async ([pathname, shellKey]) => {
+      const shell = await matchPrecache(shellKey)
+      if (!shell) return
+      await cache.put(new Request(pathname), shell.clone())
+    }),
   )
 }
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     (async () => {
-      await prefetchOfflinePages()
+      await seedPagesCacheFromPrecache()
       await self.skipWaiting()
     })(),
   )
@@ -85,9 +85,21 @@ self.addEventListener('activate', (event) => {
   )
 })
 
+const indexShellHandler = createHandlerBoundToURL('index.html')
+const studioShellHandler = createHandlerBoundToURL('studio/index.html')
+
 registerRoute(
   new NavigationRoute(async ({ request, url }) => {
     const pathname = new URL(url).pathname
+
+    const boundHandler =
+      pathname === '/'
+        ? indexShellHandler
+        : pathname === '/studio' ||
+            pathname === '/studio/' ||
+            pathname === '/studio/index.html'
+          ? studioShellHandler
+          : undefined
 
     try {
       const networkResponse = await fetch(request)
@@ -98,6 +110,14 @@ registerRoute(
       }
     } catch {
       // offline — serve precached shells below
+    }
+
+    if (boundHandler) {
+      try {
+        return await boundHandler({ request, url, event: undefined! })
+      } catch {
+        // fall through to manual shell lookup
+      }
     }
 
     const shell = await serveShellForPath(pathname)

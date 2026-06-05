@@ -70,5 +70,5 @@ export function registerServiceWorker(callbacks: ServiceWorkerCallbacks): () => 
   }
 }
 
-/** Inline-safe registration for the document shell (runs before React). */
-export const serviceWorkerBootstrapScript = `(function(){if(!('serviceWorker'in navigator))return;navigator.serviceWorker.register('${SW_URL}',{scope:'/'}).catch(function(){})})();`
+/** Inline-safe bootstrap for the document shell (runs before React). */
+export const serviceWorkerBootstrapScript = `(function(){var p=location.pathname;if(p==='/studio/index.html'){history.replaceState(null,'','/studio'+location.search+location.hash)}if(!('serviceWorker'in navigator))return;navigator.serviceWorker.register('${SW_URL}',{scope:'/'}).catch(function(){})})();`

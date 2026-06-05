@@ -3,6 +3,7 @@ import {
   HeadContent,
   Scripts,
   createRootRoute,
+  redirect,
 } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { Analytics } from '@vercel/analytics/react'
@@ -23,6 +24,11 @@ const googleFontsHref =
   'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap'
 
 export const Route = createRootRoute({
+  beforeLoad: ({ location }) => {
+    if (location.pathname === '/studio/index.html') {
+      throw redirect({ to: '/studio', replace: true })
+    }
+  },
   loader: async () => ({
     appVersion: await getAppVersion(),
   }),

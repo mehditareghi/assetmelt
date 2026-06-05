@@ -2,7 +2,7 @@
   "name": "Asset Melt",
   "short_name": "Asset Melt",
   "description": "Client-side image compression — zero uploads.",
-  "start_url": "/studio/index.html",
+  "start_url": "/studio",
   "scope": "/",
   "id": "/",
   "display": "standalone",
