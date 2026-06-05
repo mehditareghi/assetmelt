@@ -31,3 +31,5 @@ dist-ssr
 .pnpm-store
 
 .env
+
+public/version.json

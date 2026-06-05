@@ -4,7 +4,9 @@
   "version": "0.5.1",
   "type": "module",
   "scripts": {
+    "predev": "node scripts/generate-version.mjs",
     "dev": "vite dev",
+    "prebuild": "node scripts/generate-version.mjs",
     "dev:clean": "rm -rf node_modules/.vite && vite dev",
     "build": "vite build && tsc -b",
     "lint": "eslint .",

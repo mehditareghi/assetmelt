@@ -11,12 +11,17 @@ import { ThemeProvider } from '@/components/layout/theme-provider'
 import { SiteLayout } from '@/components/layout/site-layout'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/sonner'
+import { getAppVersion } from '@/lib/app-version-fn'
+import { AppVersionProvider } from '@/lib/version'
 import appCss from '@/styles/globals.css?url'
 
 const googleFontsHref =
   'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap'
 
 export const Route = createRootRoute({
+  loader: async () => ({
+    appVersion: await getAppVersion(),
+  }),
   head: () => ({
     meta: [
       { charSet: 'utf-8' },
@@ -39,15 +44,19 @@ export const Route = createRootRoute({
 })
 
 function RootComponent() {
+  const { appVersion } = Route.useLoaderData()
+
   return (
     <RootDocument>
-      <ThemeProvider>
-        <TooltipProvider>
-          <SiteLayout />
-          <Toaster richColors position="bottom-right" />
-          {import.meta.env.DEV && <TanStackRouterDevtools />}
-        </TooltipProvider>
-      </ThemeProvider>
+      <AppVersionProvider version={appVersion}>
+        <ThemeProvider>
+          <TooltipProvider>
+            <SiteLayout />
+            <Toaster richColors position="bottom-right" />
+            {import.meta.env.DEV && <TanStackRouterDevtools />}
+          </TooltipProvider>
+        </ThemeProvider>
+      </AppVersionProvider>
     </RootDocument>
   )
 }

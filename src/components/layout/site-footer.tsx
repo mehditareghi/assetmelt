@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
 import { Badge } from '@/components/ui/badge'
-import { APP_VERSION } from '@/lib/version'
+import { useAppVersion } from '@/lib/version'
 import { Shield } from 'lucide-react'
 
 const YEAR = new Date().getFullYear()
@@ -40,6 +40,8 @@ function FooterSectionLink({ id, label }: { id: string; label: string }) {
 }
 
 export function SiteFooter() {
+  const version = useAppVersion()
+
   return (
     <footer className="mt-auto border-t border-border/40">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -69,7 +71,9 @@ export function SiteFooter() {
               <Shield className="size-3" />
               100% client-side
             </Badge>
-            <span className="font-mono text-xs text-muted-foreground">v{APP_VERSION}</span>
+            {version ? (
+              <span className="font-mono text-xs text-muted-foreground">v{version}</span>
+            ) : null}
           </div>
         </div>
       </div>

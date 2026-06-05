@@ -58,13 +58,14 @@ feat!: remove legacy preset format   # breaking change → major bump
 
 Commit messages are validated on commit via commitlint + husky.
 
-**Cut a release** (bumps `package.json`, updates `CHANGELOG.md`, tags):
+**Cut a release** (bumps `package.json`, updates `CHANGELOG.md`, creates a git tag):
 
 ```bash
 pnpm release
+git push && git push --tags
 ```
 
-The footer reads its version from `package.json` at build time.
+`package.json` stays in sync with git tags for tooling, but the footer never imports it. At build time, `prebuild` writes `public/version.json` from the latest tag. The root route loader calls a TanStack Start server function to read that file on the server, so the version appears on first paint without embedding it in JS bundles.
 
 ## Tech stack
 

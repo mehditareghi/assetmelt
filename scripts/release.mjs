@@ -1,7 +1,5 @@
 import { execSync } from 'node:child_process'
-import { readFileSync } from 'node:fs'
-
-const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
+import { getVersionFromGitTag } from './lib/app-version.mjs'
 
 const RELEASABLE_TYPES = new Set(['feat', 'feature', 'fix', 'perf'])
 
@@ -83,7 +81,8 @@ if (!releaseType) {
   process.exit(1)
 }
 
-const nextVersion = incVersion(pkg.version, releaseType)
-console.log(`Releasing ${pkg.version} → ${nextVersion} (${releaseType})`)
+const currentVersion = getVersionFromGitTag() ?? '0.0.0'
+const nextVersion = incVersion(currentVersion, releaseType)
+console.log(`Releasing ${currentVersion} → ${nextVersion} (${releaseType})`)
 
 execSync(`commit-and-tag-version --release-as ${nextVersion}`, { stdio: 'inherit' })
