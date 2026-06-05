@@ -1,4 +1,5 @@
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
+import { InstallAppLink } from '@/components/pwa/install-app-link'
 import { Badge } from '@/components/ui/badge'
 import { useAppVersion } from '@/lib/version'
 import { Shield } from 'lucide-react'
@@ -63,6 +64,7 @@ export function SiteFooter() {
               >
                 Studio
               </Link>
+              <InstallAppLink />
             </nav>
           </div>
 

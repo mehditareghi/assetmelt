@@ -8,7 +8,7 @@
     "dev": "vite dev",
     "prebuild": "node scripts/generate-version.mjs",
     "dev:clean": "rm -rf node_modules/.vite && vite dev",
-    "build": "vite build && tsc -b",
+    "build": "vite build && node scripts/build-pwa.mjs && tsc -b",
     "lint": "eslint .",
     "preview": "vite preview",
     "start": "node .output/server/index.mjs",
@@ -65,12 +65,21 @@
     "eslint": "^10.3.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
+    "esbuild": "^0.25.12",
     "globals": "^17.6.0",
     "husky": "^9.1.7",
     "nitro": "3.0.260522-beta",
     "tailwindcss": "^4.3.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.59.2",
-    "vite": "^8.0.12"
+    "vite": "^8.0.12",
+    "workbox-build": "^7.4.0",
+    "workbox-expiration": "^7.4.0",
+    "workbox-precaching": "^7.4.0",
+    "workbox-routing": "^7.4.0",
+    "workbox-strategies": "^7.4.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild", "exifreader"]
   }
 }

@@ -13,6 +13,7 @@ import { ThemeProvider } from '@/components/layout/theme-provider'
 import { SiteLayout } from '@/components/layout/site-layout'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/sonner'
+import { PwaManager } from '@/components/pwa/pwa-manager'
 import { getAppVersion } from '@/lib/app-version-fn'
 import { AppVersionProvider } from '@/lib/version'
 import appCss from '@/styles/globals.css?url'
@@ -29,10 +30,15 @@ export const Route = createRootRoute({
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       { title: 'Asset Melt' },
+      { name: 'theme-color', content: '#1a1a1a' },
+      { name: 'apple-mobile-web-app-capable', content: 'yes' },
+      { name: 'apple-mobile-web-app-title', content: 'Asset Melt' },
     ],
     links: [
       { rel: 'stylesheet', href: appCss },
+      { rel: 'manifest', href: '/manifest.webmanifest' },
       { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+      { rel: 'apple-touch-icon', href: '/icons/icon-192.png' },
       { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
       {
         rel: 'preconnect',
@@ -54,6 +60,7 @@ function RootComponent() {
         <ThemeProvider>
           <TooltipProvider>
             <SiteLayout />
+            <PwaManager />
             <Toaster richColors position="bottom-right" />
             {import.meta.env.DEV && <TanStackRouterDevtools />}
           </TooltipProvider>

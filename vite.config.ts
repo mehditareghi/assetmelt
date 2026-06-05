@@ -6,6 +6,7 @@ import { nitro } from "nitro/vite";
 import viteReact from "@vitejs/plugin-react";
 
 export default defineConfig({
+  // Service worker is generated post-build via scripts/build-pwa.mjs (TanStack Start + Workbox).
   plugins: [tanstackStart(), nitro(), viteReact(), tailwindcss()],
   resolve: {
     alias: {

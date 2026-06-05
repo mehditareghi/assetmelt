@@ -2,8 +2,8 @@ import { motion } from 'motion/react'
 import {
   Bookmark,
   Layers,
-  Lock,
   SlidersHorizontal,
+  Smartphone,
   Sparkles,
   Target,
   Zap,
@@ -42,10 +42,10 @@ const features = [
       'Drop a folder, queue dozens of files, and compress images online in one pass. Compare before/after, then download individually or as a ZIP with per-file byte savings.',
   },
   {
-    icon: Lock,
-    title: 'Private client-side processing',
+    icon: Smartphone,
+    title: 'Installable & works offline',
     description:
-      'True client-side image compression — files never leave your machine. No cloud upload, no account, no API key. Your photos stay on your device from decode to export.',
+      'Add Asset Melt to your home screen and compress on a plane — after your first visit, the full studio stays on your device. No cloud upload, no account.',
   },
 ]
 
