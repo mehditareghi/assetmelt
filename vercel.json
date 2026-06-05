@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "pnpm install",
-  "buildCommand": "pnpm run build",
+  "buildCommand": "git fetch --tags --force 2>/dev/null || true && pnpm run build",
   "headers": [
     {
       "source": "/version.json",

@@ -1,4 +1,5 @@
 import { execSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
 
 /** Latest release version from git tag, with Vercel/env fallbacks. */
 export function getVersionFromGitTag() {
@@ -19,4 +20,19 @@ export function getVersionFromGitTag() {
   } catch {
     return null
   }
+}
+
+/** Fallback when git tags are unavailable (e.g. Vercel shallow clone). */
+export function getVersionFromPackageJson() {
+  try {
+    const pkg = JSON.parse(readFileSync('package.json', 'utf8'))
+    if (pkg.version && pkg.version !== '0.0.0') return pkg.version
+  } catch {
+    // ignore
+  }
+  return null
+}
+
+export function resolveAppVersion() {
+  return getVersionFromGitTag() ?? getVersionFromPackageJson() ?? 'dev'
 }
