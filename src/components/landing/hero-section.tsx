@@ -27,19 +27,27 @@ export function HeroSection() {
         </motion.div>
 
         <motion.h1
-          className="font-display text-5xl font-extrabold tracking-tight sm:text-7xl lg:text-8xl"
+          className="font-display font-extrabold tracking-tight"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
         >
-          Asset
-          <span className="relative mx-2 inline-block text-primary">
-            Melt
-            <motion.span
-              className="absolute -inset-x-2 -inset-y-1 -z-10 rounded-lg bg-primary/10 blur-xl"
-              animate={{ opacity: [0.4, 0.8, 0.4] }}
-              transition={{ duration: 3, repeat: Infinity }}
-            />
+          <span className="mx-auto block max-w-3xl text-2xl font-semibold leading-snug text-foreground sm:text-3xl lg:text-4xl">
+            <span className="block">Compress &amp; convert images online</span>
+            <span className="mt-1 block text-muted-foreground sm:mt-1.5">
+              <span className="whitespace-nowrap">Client-side,</span> in your browser
+            </span>
+          </span>
+          <span className="mt-5 block text-5xl sm:text-7xl lg:text-8xl">
+            Asset
+            <span className="relative mx-2 inline-block text-primary">
+              Melt
+              <motion.span
+                className="absolute -inset-x-2 -inset-y-1 -z-10 rounded-lg bg-primary/10 blur-xl"
+                animate={{ opacity: [0.4, 0.8, 0.4] }}
+                transition={{ duration: 3, repeat: Infinity }}
+              />
+            </span>
           </span>
         </motion.h1>
 
@@ -49,9 +57,9 @@ export function HeroSection() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.25 }}
         >
-          Compress, convert, and transform images entirely in your{' '}
-          <span className="landing-gradient-text">browser</span>. Set a file-size target, dial in
-          every codec option, or start from a preset — no uploads required.
+          Free online image compressor for JPEG, PNG, WebP, AVIF, and HEIC. Convert HEIC to JPG in
+          your browser, shrink file sizes with size-budget encoding, or batch-export a whole folder
+          — no uploads, no accounts, just WASM codecs running locally on your device.
         </motion.p>
 
         <motion.div

@@ -13,39 +13,39 @@ import { LandingSectionHeader } from '@/components/landing/landing-section-heade
 const features = [
   {
     icon: Target,
-    title: 'Size budget encoding',
+    title: 'Hit a target file size',
     description:
-      'Set a max file size — AssetMelt searches for the highest quality encode that fits, resizing only when it has to.',
+      'Need a 200 KB JPEG or a sub-100 KB WebP? Set a size budget and Asset Melt finds the highest-quality online compression that fits — resizing only when it has to.',
   },
   {
     icon: Zap,
-    title: 'Squoosh-grade codecs',
+    title: 'Modern format conversion',
     description:
-      'MozJPEG, AVIF, WebP, Oxipng, JXL, and QOI via WASM — the same engines that power Google Squoosh.',
+      'Compress to AVIF or WebP, export lossless PNG, or convert HEIC to JPG in the browser. MozJPEG, Oxipng, JXL, and QOI — the same WASM engines as Google Squoosh.',
   },
   {
     icon: SlidersHorizontal,
-    title: 'Full pipeline control',
+    title: 'Resize, crop & transform',
     description:
-      'Resize modes, crop, rotate, flip, filters, and advanced codec parameters — with tooltips on every setting.',
+      'Online image editing without uploads: Lanczos resize, aspect-ratio crop, rotate, flip, and brightness/contrast filters — plus advanced codec controls when you need them.',
   },
   {
     icon: Bookmark,
-    title: 'Platform workflow presets',
+    title: 'Platform & social presets',
     description:
-      'OG, social sizes, and favicon kits (16–512) with exact dimensions — plus your own saved presets and JSON import/export.',
+      'One-click OG images, Instagram sizes, and favicon kits at exact dimensions. Save your own presets or import a JSON pipeline for repeatable client-side compression.',
   },
   {
     icon: Layers,
-    title: 'Batch processing',
+    title: 'Batch compress online',
     description:
-      'Queue multiple files, run one pipeline, and download everything as a zip with per-file size stats.',
+      'Drop a folder, queue dozens of files, and compress images online in one pass. Compare before/after, then download individually or as a ZIP with per-file byte savings.',
   },
   {
     icon: Lock,
-    title: 'Privacy by design',
+    title: 'Private client-side processing',
     description:
-      'Images never leave your machine. No accounts, no API keys, no server — just WASM in a tab.',
+      'True client-side image compression — files never leave your machine. No cloud upload, no account, no API key. Your photos stay on your device from decode to export.',
   },
 ]
 
@@ -64,9 +64,9 @@ export function FeaturesSection() {
           <LandingSectionHeader
             icon={Sparkles}
             eyebrow="Studio toolkit"
-            title="Everything in the studio,"
-            titleAccent="nothing on a server"
-            description="From byte-budget exports to batch zips — a complete image pipeline in the browser."
+            title="Online image compression"
+            titleAccent="without uploading a single byte"
+            description="Compress images online, convert HEIC to JPG, resize for the web, and export batches — a full client-side image pipeline, free forever."
           />
         </motion.div>
 

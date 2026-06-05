@@ -27,9 +27,9 @@ export function TechStrip() {
         <LandingSectionHeader
           icon={Cpu}
           eyebrow="Under the hood"
-          title="Squoosh-grade engines,"
-          titleAccent="compiled to WASM"
-          description="Every codec and resize kernel runs locally — no server round-trip."
+          title="Client-side image compression"
+          titleAccent="powered by Squoosh-grade WASM"
+          description="Every encode and resize runs in your browser — AVIF, WebP, MozJPEG, Oxipng, JPEG XL, HEIC decode, and more. Faster than cloud tools because your files never travel."
           className="mb-10"
         />
 

@@ -6,23 +6,23 @@ const steps = [
   {
     icon: Upload,
     step: '01',
-    title: 'Drop your images',
+    title: 'Drop images to compress',
     description:
-      'Add files or folders. JPEG, PNG, WebP, AVIF, HEIC, GIF, SVG, and more — decoded locally in a Web Worker.',
+      'Add photos from your device — JPEG, PNG, WebP, AVIF, HEIC, GIF, SVG, and more. Everything decodes locally in a Web Worker; nothing is sent to a server.',
   },
   {
     icon: Settings,
     step: '02',
-    title: 'Build your pipeline',
+    title: 'Choose how to compress',
     description:
-      'Pick a preset, set a size budget, or tune format, resize, crop, and codec options across the Format and Transform tabs.',
+      'Pick Web Optimized or convert HEIC to JPG in the browser. Set a size budget, resize for the web, crop to a social preset, or tune AVIF/WebP quality by hand.',
   },
   {
     icon: Download,
     step: '03',
-    title: 'Process and export',
+    title: 'Download smaller files',
     description:
-      'Compare before and after, review byte savings and budget stats, then download files individually or as a zip.',
+      'Compare the original side-by-side with your compressed output, check byte savings, then export one file or batch-download a ZIP of every optimized image.',
   },
 ]
 
@@ -42,9 +42,9 @@ export function HowItWorksSection() {
           <LandingSectionHeader
             icon={Route}
             eyebrow="Workflow"
-            title="Three steps."
-            titleAccent="Zero uploads."
-            description="Open the studio, configure once, and run the same pipeline across your whole queue."
+            title="Compress images online"
+            titleAccent="in three steps"
+            description="Open the studio, run client-side image compression on your whole queue, and download — no signup, no upload step, no waiting on a server."
           />
         </motion.div>
 
