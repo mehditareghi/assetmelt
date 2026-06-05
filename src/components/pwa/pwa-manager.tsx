@@ -16,7 +16,7 @@ export function PwaManager() {
         if (hasShownOfflineToast()) return
         markOfflineToastShown()
         toast('Ready to work offline', {
-          description: 'Asset Melt is cached on this device. Visit /studio once while online to use it offline.',
+          description: 'Asset Melt is cached on this device. Open it once while online, then the studio works offline.',
           duration: 8000,
         })
       },

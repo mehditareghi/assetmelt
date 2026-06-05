@@ -64,7 +64,7 @@ try {
     swSrc: tempSwPath,
     swDest,
     globDirectory: publicDir,
-    globPatterns: ['**/*.{js,css,wasm,woff2,svg,png,webmanifest}'],
+    globPatterns: ['**/*.{js,css,html,wasm,woff2,svg,png,webmanifest}'],
     globIgnores: ['sw-src.js', 'sw.js', '**/node_modules/**'],
     maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
   })

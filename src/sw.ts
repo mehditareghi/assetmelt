@@ -1,14 +1,31 @@
 /// <reference lib="webworker" />
 
-import { cleanupOutdatedCaches, precacheAndRoute } from 'workbox-precaching'
+import { clientsClaim } from 'workbox-core'
+import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching'
 import { registerRoute, NavigationRoute } from 'workbox-routing'
 import { CacheFirst, NetworkFirst } from 'workbox-strategies'
+import { CacheableResponsePlugin } from 'workbox-cacheable-response'
 import { ExpirationPlugin } from 'workbox-expiration'
 
 declare const self: ServiceWorkerGlobalScope
 
+const PAGES_CACHE = 'pages-cache'
+const OFFLINE_PAGES = ['/', '/studio'] as const
+const PRERENDERED_SHELLS: Record<string, string> = {
+  '/': '/index.html',
+  '/studio': '/studio/index.html',
+}
+
 precacheAndRoute(self.__WB_MANIFEST)
 cleanupOutdatedCaches()
+
+const pageCachePlugins = [
+  new CacheableResponsePlugin({ statuses: [0, 200] }),
+  new ExpirationPlugin({
+    maxEntries: 32,
+    maxAgeSeconds: 7 * 24 * 60 * 60,
+  }),
+]
 
 const OFFLINE_FALLBACK_HTML = `<!DOCTYPE html>
 <html lang="en">
@@ -25,39 +42,73 @@ const OFFLINE_FALLBACK_HTML = `<!DOCTYPE html>
 <body>
   <div>
     <h1>You're offline</h1>
-    <p>This page hasn't been cached yet. Visit <a href="/studio">/studio</a> while online once, then it will work offline.</p>
+    <p>Open Asset Melt once while online so this device can cache the studio. Then it works on a plane.</p>
   </div>
 </body>
 </html>`
 
+async function prefetchOfflinePages() {
+  const cache = await caches.open(PAGES_CACHE)
+  await Promise.allSettled(
+    OFFLINE_PAGES.map((path) =>
+      cache.add(new Request(path, { credentials: 'same-origin' })),
+    ),
+  )
+}
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(prefetchOfflinePages())
+  self.skipWaiting()
+})
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    (async () => {
+      await clientsClaim()
+    })(),
+  )
+})
+
+const navigationHandler = new NetworkFirst({
+  cacheName: PAGES_CACHE,
+  networkTimeoutSeconds: 3,
+  plugins: pageCachePlugins,
+})
+
 registerRoute(
-  new NavigationRoute(
-    async ({ event, request }) => {
-      try {
-        const response = await new NetworkFirst({
-          cacheName: 'pages-cache',
-          networkTimeoutSeconds: 3,
-          plugins: [
-            new ExpirationPlugin({
-              maxEntries: 32,
-              maxAgeSeconds: 7 * 24 * 60 * 60,
-            }),
-          ],
-        }).handle({ event, request })
+  new NavigationRoute(async ({ event, request }) => {
+    try {
+      const response = await navigationHandler.handle({ event, request })
+      if (response) return response
+    } catch {
+      // network unavailable
+    }
 
-        if (response) return response
-      } catch {
-        // fall through to offline fallback
+    const cached = await caches.match(request, { ignoreSearch: true })
+    if (cached) return cached
+
+    for (const path of OFFLINE_PAGES) {
+      if (new URL(request.url).pathname === path) {
+        const fallback = await caches.match(path, { ignoreSearch: true })
+        if (fallback) return fallback
+
+        const shellPath = PRERENDERED_SHELLS[path]
+        if (shellPath) {
+          try {
+            const shellHandler = createHandlerBoundToURL(shellPath)
+            const shellResponse = await shellHandler({ event, request, url: new URL(request.url) })
+            if (shellResponse) return shellResponse
+          } catch {
+            // shell not in precache yet
+          }
+        }
       }
+    }
 
-      const cached = await caches.match(request)
-      if (cached) return cached
-
-      return new Response(OFFLINE_FALLBACK_HTML, {
-        headers: { 'Content-Type': 'text/html; charset=utf-8' },
-      })
-    },
-  ),
+    return new Response(OFFLINE_FALLBACK_HTML, {
+      headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    })
+  }),
 )
 
 registerRoute(
@@ -66,6 +117,7 @@ registerRoute(
     cacheName: 'version-cache',
     networkTimeoutSeconds: 3,
     plugins: [
+      new CacheableResponsePlugin({ statuses: [0, 200] }),
       new ExpirationPlugin({
         maxEntries: 4,
         maxAgeSeconds: 60 * 60,
@@ -81,6 +133,7 @@ registerRoute(
   new CacheFirst({
     cacheName: 'google-fonts',
     plugins: [
+      new CacheableResponsePlugin({ statuses: [0, 200] }),
       new ExpirationPlugin({
         maxEntries: 32,
         maxAgeSeconds: 365 * 24 * 60 * 60,
@@ -98,6 +151,7 @@ registerRoute(
   new CacheFirst({
     cacheName: 'static-assets',
     plugins: [
+      new CacheableResponsePlugin({ statuses: [0, 200] }),
       new ExpirationPlugin({
         maxEntries: 128,
         maxAgeSeconds: 7 * 24 * 60 * 60,
@@ -111,6 +165,7 @@ registerRoute(
   new CacheFirst({
     cacheName: 'images-cache',
     plugins: [
+      new CacheableResponsePlugin({ statuses: [0, 200] }),
       new ExpirationPlugin({
         maxEntries: 64,
         maxAgeSeconds: 30 * 24 * 60 * 60,

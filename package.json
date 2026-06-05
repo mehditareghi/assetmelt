@@ -74,6 +74,8 @@
     "typescript-eslint": "^8.59.2",
     "vite": "^8.0.12",
     "workbox-build": "^7.4.0",
+    "workbox-cacheable-response": "^7.4.0",
+    "workbox-core": "^7.4.0",
     "workbox-expiration": "^7.4.0",
     "workbox-precaching": "^7.4.0",
     "workbox-routing": "^7.4.0",
