@@ -7,6 +7,8 @@ import {
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
+import { GoogleAnalytics } from 'tanstack-router-ga4'
+import { GA_MEASUREMENT_ID, isGoogleAnalyticsEnabled } from '@/lib/analytics'
 import { ThemeProvider } from '@/components/layout/theme-provider'
 import { SiteLayout } from '@/components/layout/site-layout'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -68,6 +70,9 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
         <HeadContent />
       </head>
       <body>
+        {isGoogleAnalyticsEnabled && (
+          <GoogleAnalytics measurementId={GA_MEASUREMENT_ID!} />
+        )}
         {children}
         <Scripts />
         <Analytics />
