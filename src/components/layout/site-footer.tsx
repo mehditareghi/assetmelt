@@ -8,6 +8,7 @@ const YEAR = new Date().getFullYear()
 const SECTION_LINKS = [
   { id: 'features', label: 'Features' },
   { id: 'how-it-works', label: 'How it works' },
+  { id: 'faq', label: 'FAQ' },
   { id: 'support', label: 'Support' },
 ] as const
 

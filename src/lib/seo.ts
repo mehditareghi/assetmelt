@@ -1,3 +1,4 @@
+import type { FAQ_ITEMS } from '@/lib/llm-content'
 import { DEFAULT_OG_IMAGE, SITE_NAME, SITE_URL } from '@/lib/site'
 
 export interface SeoConfig {
@@ -7,7 +8,10 @@ export interface SeoConfig {
   ogImage?: string
   ogType?: 'website' | 'article'
   jsonLd?: Record<string, unknown> | Array<Record<string, unknown>>
+  llmDiscovery?: boolean
 }
+
+type FaqItem = (typeof FAQ_ITEMS)[number]
 
 export function buildSeoHead({
   title,
@@ -16,6 +20,7 @@ export function buildSeoHead({
   ogImage = DEFAULT_OG_IMAGE,
   ogType = 'website',
   jsonLd,
+  llmDiscovery = false,
 }: SeoConfig) {
   const url = path === '/' ? SITE_URL : `${SITE_URL}${path}`
 
@@ -44,7 +49,25 @@ export function buildSeoHead({
       { name: 'twitter:image', content: ogImage },
       { name: 'twitter:image:alt', content: title },
     ],
-    links: [{ rel: 'canonical', href: url }],
+    links: [
+      { rel: 'canonical', href: url },
+      ...(llmDiscovery
+        ? [
+            {
+              rel: 'alternate',
+              type: 'text/markdown',
+              title: 'LLM-readable summary',
+              href: '/llms.txt',
+            },
+            {
+              rel: 'alternate',
+              type: 'text/markdown',
+              title: 'LLM full product overview',
+              href: '/llms-full.txt',
+            },
+          ]
+        : []),
+    ],
   }
 
   if (jsonLd) {
@@ -59,7 +82,25 @@ export function buildSeoHead({
   return head
 }
 
-export function buildLandingJsonLd(description: string) {
+export function buildFaqJsonLd(faqItems: readonly FaqItem[]) {
+  return {
+    '@type': 'FAQPage',
+    '@id': `${SITE_URL}/#faq`,
+    mainEntity: faqItems.map((item) => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.answer,
+      },
+    })),
+  }
+}
+
+export function buildLandingJsonLd(
+  description: string,
+  faqItems: readonly FaqItem[],
+) {
   return {
     '@context': 'https://schema.org',
     '@graph': [
@@ -80,6 +121,9 @@ export function buildLandingJsonLd(description: string) {
         browserRequirements:
           'Requires JavaScript and a modern browser with WebAssembly support.',
         description,
+        isAccessibleForFree: true,
+        keywords:
+          'image compressor, image converter, client-side, browser, AVIF, WebP, HEIC, Squoosh alternative, free, privacy, batch compression',
         offers: {
           '@type': 'Offer',
           price: '0',
@@ -94,6 +138,7 @@ export function buildLandingJsonLd(description: string) {
           'Zero uploads — 100% private',
         ].join(', '),
       },
+      buildFaqJsonLd(faqItems),
     ],
   }
 }

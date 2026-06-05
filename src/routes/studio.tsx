@@ -28,6 +28,7 @@ export const Route = createFileRoute("/studio")({
       title: 'Studio — Compress & Convert Images in Your Browser | Asset Melt',
       description: STUDIO_DESCRIPTION,
       path: '/studio',
+      llmDiscovery: true,
       jsonLd: {
         '@context': 'https://schema.org',
         '@type': 'WebApplication',
@@ -36,6 +37,9 @@ export const Route = createFileRoute("/studio")({
         applicationCategory: 'MultimediaApplication',
         operatingSystem: 'Any',
         description: STUDIO_DESCRIPTION,
+        isAccessibleForFree: true,
+        keywords:
+          'image compressor, image converter, browser, client-side, AVIF, WebP, HEIC, batch, free',
         offers: {
           '@type': 'Offer',
           price: '0',

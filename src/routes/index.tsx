@@ -1,8 +1,10 @@
+import { FaqSection } from "@/components/landing/faq-section";
 import { FeaturesSection } from "@/components/landing/features-section";
 import { HeroSection } from "@/components/landing/hero-section";
 import { HowItWorksSection } from "@/components/landing/how-it-works-section";
 import { SupportSection } from "@/components/landing/support-section";
 import { TechStrip } from "@/components/landing/tech-strip";
+import { FAQ_ITEMS } from "@/lib/llm-content";
 import { buildLandingJsonLd, buildSeoHead } from "@/lib/seo";
 import { createFileRoute } from "@tanstack/react-router";
 
@@ -15,7 +17,8 @@ export const Route = createFileRoute("/")({
       title: "Asset Melt — Free Client-Side Image Compressor & Converter",
       description: LANDING_DESCRIPTION,
       path: "/",
-      jsonLd: buildLandingJsonLd(LANDING_DESCRIPTION),
+      llmDiscovery: true,
+      jsonLd: buildLandingJsonLd(LANDING_DESCRIPTION, FAQ_ITEMS),
     }),
   component: Index,
 });
@@ -27,6 +30,7 @@ function Index() {
       <FeaturesSection />
       <HowItWorksSection />
       <TechStrip />
+      <FaqSection />
       <SupportSection />
     </main>
   );
