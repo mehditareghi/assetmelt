@@ -4,6 +4,13 @@ All notable changes to Asset Melt are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/) and [Conventional Commits](https://www.conventionalcommits.org/).
 
 
+## [0.7.0](https://github.com/mehditareghi/assetmelt/compare/v0.6.1...v0.7.0) (2026-06-05)
+
+
+### Features
+
+* pwa and offline functionality ([bd3885d](https://github.com/mehditareghi/assetmelt/commit/bd3885ddd38f45bbd8a54ebfd166c417532a3899))
+
 ## [0.6.1](https://github.com/mehditareghi/assetmelt/compare/v0.6.0...v0.6.1) (2026-06-05)
 
 

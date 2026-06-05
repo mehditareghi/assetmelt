@@ -1,7 +1,7 @@
 {
   "name": "assetmelt",
   "private": true,
-  "version": "0.6.1",
+  "version": "0.7.0",
   "type": "module",
   "scripts": {
     "predev": "node scripts/generate-version.mjs",
@@ -80,6 +80,9 @@
     "workbox-strategies": "^7.4.0"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild", "exifreader"]
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "exifreader"
+    ]
   }
 }
