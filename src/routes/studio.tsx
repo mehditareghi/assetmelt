@@ -12,12 +12,37 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { warmUpWorker } from '@/lib/image/worker-bridge'
+import { buildSeoHead } from '@/lib/seo'
+import { SITE_URL } from '@/lib/site'
 import { useStudioStore } from '@/stores/studio-store'
 import { createFileRoute } from '@tanstack/react-router'
 import { SlidersHorizontal } from 'lucide-react'
 import { useEffect } from 'react'
 
+const STUDIO_DESCRIPTION =
+  'Compress, convert, resize, and crop images entirely in your browser. Batch processing, size budget encoding, platform presets, and Squoosh-grade codecs — no uploads, no accounts.'
+
 export const Route = createFileRoute("/studio")({
+  head: () =>
+    buildSeoHead({
+      title: 'Studio — Compress & Convert Images in Your Browser | Asset Melt',
+      description: STUDIO_DESCRIPTION,
+      path: '/studio',
+      jsonLd: {
+        '@context': 'https://schema.org',
+        '@type': 'WebApplication',
+        name: 'Asset Melt Studio',
+        url: `${SITE_URL}/studio`,
+        applicationCategory: 'MultimediaApplication',
+        operatingSystem: 'Any',
+        description: STUDIO_DESCRIPTION,
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'USD',
+        },
+      },
+    }),
   component: Studio,
 });
 

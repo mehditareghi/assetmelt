@@ -21,12 +21,7 @@ export const Route = createRootRoute({
     meta: [
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      {
-        name: 'description',
-        content:
-          'Asset Melt — client-side image studio. Compress, convert, and transform images in your browser with size budget encoding, presets, and Squoosh-grade WASM codecs. Zero uploads.',
-      },
-      { title: 'Asset Melt — Client-Side Image Studio' },
+      { title: 'Asset Melt' },
     ],
     links: [
       { rel: 'stylesheet', href: appCss },
