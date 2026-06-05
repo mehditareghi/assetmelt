@@ -4,6 +4,13 @@ All notable changes to Asset Melt are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/) and [Conventional Commits](https://www.conventionalcommits.org/).
 
 
+## [0.5.0](https://github.com/mehditareghi/assetmelt/compare/v0.4.0...v0.5.0) (2026-06-05)
+
+
+### Features
+
+* make website SEO ready ([a525a47](https://github.com/mehditareghi/assetmelt/commit/a525a474bcb9fe98153ccbc004a8d467940e7942))
+
 ## [0.4.0](https://github.com/mehditareghi/assetmelt/compare/v0.3.1...v0.4.0) (2026-06-04)
 
 
