@@ -4,6 +4,13 @@ All notable changes to Asset Melt are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/) and [Conventional Commits](https://www.conventionalcommits.org/).
 
 
+## [0.6.0](https://github.com/mehditareghi/assetmelt/compare/v0.5.2...v0.6.0) (2026-06-05)
+
+
+### Features
+
+* add GA4 to the project ([eb30991](https://github.com/mehditareghi/assetmelt/commit/eb309916eace277754cefe0fce6e7b5e019b93ff))
+
 ## [0.5.2](https://github.com/mehditareghi/assetmelt/compare/v0.5.1...v0.5.2) (2026-06-05)
 
 
