@@ -1,7 +1,11 @@
 /// <reference lib="webworker" />
 
 import { clientsClaim } from 'workbox-core'
-import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching'
+import {
+  cleanupOutdatedCaches,
+  matchPrecache,
+  precacheAndRoute,
+} from 'workbox-precaching'
 import { registerRoute, NavigationRoute } from 'workbox-routing'
 import { CacheFirst, NetworkFirst } from 'workbox-strategies'
 import { CacheableResponsePlugin } from 'workbox-cacheable-response'
@@ -10,10 +14,13 @@ import { ExpirationPlugin } from 'workbox-expiration'
 declare const self: ServiceWorkerGlobalScope
 
 const PAGES_CACHE = 'pages-cache'
-const OFFLINE_PAGES = ['/', '/studio'] as const
+
+/** Keys match Workbox precache manifest URLs (relative to /sw.js, no leading slash). */
 const PRERENDERED_SHELLS: Record<string, string> = {
-  '/': '/index.html',
-  '/studio': '/studio/index.html',
+  '/': 'index.html',
+  '/studio': 'studio/index.html',
+  '/studio/': 'studio/index.html',
+  '/studio/index.html': 'studio/index.html',
 }
 
 precacheAndRoute(self.__WB_MANIFEST)
@@ -36,7 +43,6 @@ const OFFLINE_FALLBACK_HTML = `<!DOCTYPE html>
   <style>
     body { font-family: system-ui, sans-serif; background: #1a1a1a; color: #fafafa; margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 1.5rem; text-align: center; }
     p { color: #a3a3a3; max-width: 28rem; line-height: 1.5; }
-    a { color: #f59e0b; }
   </style>
 </head>
 <body>
@@ -47,18 +53,28 @@ const OFFLINE_FALLBACK_HTML = `<!DOCTYPE html>
 </body>
 </html>`
 
+async function serveShellForPath(pathname: string): Promise<Response | undefined> {
+  const shellKey = PRERENDERED_SHELLS[pathname]
+  if (!shellKey) return undefined
+  return (await matchPrecache(shellKey)) ?? undefined
+}
+
 async function prefetchOfflinePages() {
   const cache = await caches.open(PAGES_CACHE)
   await Promise.allSettled(
-    OFFLINE_PAGES.map((path) =>
+    ['/', '/studio'].map((path) =>
       cache.add(new Request(path, { credentials: 'same-origin' })),
     ),
   )
 }
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(prefetchOfflinePages())
-  self.skipWaiting()
+  event.waitUntil(
+    (async () => {
+      await prefetchOfflinePages()
+      await self.skipWaiting()
+    })(),
+  )
 })
 
 self.addEventListener('activate', (event) => {
@@ -69,41 +85,29 @@ self.addEventListener('activate', (event) => {
   )
 })
 
-const navigationHandler = new NetworkFirst({
-  cacheName: PAGES_CACHE,
-  networkTimeoutSeconds: 3,
-  plugins: pageCachePlugins,
-})
-
 registerRoute(
-  new NavigationRoute(async ({ event, request }) => {
+  new NavigationRoute(async ({ request, url }) => {
+    const pathname = new URL(url).pathname
+
     try {
-      const response = await navigationHandler.handle({ event, request })
-      if (response) return response
+      const networkResponse = await fetch(request)
+      if (networkResponse?.ok) {
+        const cache = await caches.open(PAGES_CACHE)
+        await cache.put(request, networkResponse.clone())
+        return networkResponse
+      }
     } catch {
-      // network unavailable
+      // offline — serve precached shells below
     }
+
+    const shell = await serveShellForPath(pathname)
+    if (shell) return shell
 
     const cached = await caches.match(request, { ignoreSearch: true })
     if (cached) return cached
 
-    for (const path of OFFLINE_PAGES) {
-      if (new URL(request.url).pathname === path) {
-        const fallback = await caches.match(path, { ignoreSearch: true })
-        if (fallback) return fallback
-
-        const shellPath = PRERENDERED_SHELLS[path]
-        if (shellPath) {
-          try {
-            const shellHandler = createHandlerBoundToURL(shellPath)
-            const shellResponse = await shellHandler({ event, request, url: new URL(request.url) })
-            if (shellResponse) return shellResponse
-          } catch {
-            // shell not in precache yet
-          }
-        }
-      }
-    }
+    const studioShell = await serveShellForPath('/studio')
+    if (studioShell) return studioShell
 
     return new Response(OFFLINE_FALLBACK_HTML, {
       headers: { 'Content-Type': 'text/html; charset=utf-8' },

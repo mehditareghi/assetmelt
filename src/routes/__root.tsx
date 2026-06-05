@@ -76,9 +76,9 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: serviceWorkerBootstrapScript }} />
       </head>
       <body>
-        <script dangerouslySetInnerHTML={{ __html: serviceWorkerBootstrapScript }} />
         {isGoogleAnalyticsEnabled && (
           <GoogleAnalytics measurementId={GA_MEASUREMENT_ID!} />
         )}

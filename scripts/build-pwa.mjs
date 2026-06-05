@@ -44,7 +44,7 @@ console.log('Transpiling service worker...')
 const result = await build({
   entryPoints: [srcSw],
   bundle: true,
-  format: 'esm',
+  format: 'iife',
   platform: 'browser',
   target: 'es2020',
   outfile: tempSwPath,
