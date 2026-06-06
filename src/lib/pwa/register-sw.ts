@@ -1,3 +1,5 @@
+import { consumeOfflineServiceWorkerActivation } from '@/lib/pwa/offline-prep'
+
 const SW_URL = '/sw.js'
 
 export interface ServiceWorkerCallbacks {
@@ -12,6 +14,7 @@ export function watchServiceWorkerUpdates(callbacks: ServiceWorkerCallbacks): ()
   let refreshing = false
 
   const onControllerChange = () => {
+    if (consumeOfflineServiceWorkerActivation()) return
     if (refreshing) return
     refreshing = true
     window.location.reload()

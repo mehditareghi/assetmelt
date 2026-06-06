@@ -113,11 +113,9 @@ export function useOfflinePrep() {
         }))
       }, controller.signal)
 
-      const snapshot = await getOfflinePrepSnapshot()
       setState((current) => ({
         ...current,
-        status: snapshot.status,
-        manifest: snapshot.manifest,
+        status: 'ready',
         progress: null,
         error: null,
         readyDismissed: false,

@@ -103,7 +103,7 @@ export function StudioToolbar() {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-nowrap items-center gap-2 overflow-x-auto sm:flex-wrap sm:overflow-visible">
         <Button
           variant="outline"
           size="icon-sm"
@@ -149,7 +149,7 @@ export function StudioToolbar() {
             variant="ghost"
             size="sm"
             onClick={clearFiles}
-            disabled={isCropEditing}
+            disabled={isCropEditing || isProcessing}
             className="gap-1.5"
           >
             <Trash2 className="size-3.5" />
@@ -164,16 +164,18 @@ export function StudioToolbar() {
           <Play className="size-3.5" />
           Process{files.length > 0 ? ` (${files.length})` : ''}
         </Button>
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => void handleExportAll()}
-          disabled={isCropEditing || doneCount === 0}
-          className="gap-1.5"
-        >
-          <Download className="size-3.5" />
-          Download{doneCount > 0 ? ` (${doneCount})` : ''}
-        </Button>
+        {doneCount > 0 && (
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => void handleExportAll()}
+            disabled={isCropEditing || isProcessing}
+            className="gap-1.5"
+          >
+            <Download className="size-3.5" />
+            Download ({doneCount})
+          </Button>
+        )}
       </div>
     </div>
   )

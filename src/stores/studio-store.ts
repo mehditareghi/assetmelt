@@ -337,7 +337,7 @@ export const useStudioStore = create<StudioState>()(
           revokeUrl(f.originalUrl)
           revokeFileResults(f)
         })
-        set({ files: [], activeFileId: null, isCropEditing: false })
+        set({ files: [], activeFileId: null, isCropEditing: false, isProcessing: false })
       },
 
       setActiveFile: (id) => {

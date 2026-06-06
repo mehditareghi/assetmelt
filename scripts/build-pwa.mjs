@@ -62,7 +62,9 @@ const OFFLINE_URL_ALIASES = {
 const assetMap = new Map()
 for (const entry of manifestEntries) {
   const url = OFFLINE_URL_ALIASES[`/${entry.url}`] ?? `/${entry.url}`
-  assetMap.set(url, entry.size ?? 0)
+  const filePath = join(publicDir, entry.url)
+  const size = existsSync(filePath) ? statSync(filePath).size : 0
+  assetMap.set(url, Math.max(assetMap.get(url) ?? 0, size))
 }
 
 const assets = [...assetMap.entries()].map(([url, size]) => ({ url, size }))

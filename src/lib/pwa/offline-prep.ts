@@ -1,5 +1,7 @@
 export const OFFLINE_CACHE_NAME = 'assetmelt-offline-v2'
 export const OFFLINE_VERSION_KEY = 'assetmelt-offline-version'
+export const OFFLINE_MANIFEST_META_KEY = 'assetmelt-offline-manifest-meta'
+export const OFFLINE_SW_ACTIVATING_KEY = 'assetmelt-sw-activating-offline'
 export const OFFLINE_READY_DISMISSED_KEY = 'assetmelt-offline-ready-dismissed'
 export const OFFLINE_PROMPT_DISMISSED_KEY = 'assetmelt-offline-prompt-dismissed'
 
@@ -106,6 +108,52 @@ function setStoredOfflineVersion(version: string): void {
   }
 }
 
+function getCachedManifestMeta(): Pick<OfflineManifest, 'version' | 'totalBytes'> | null {
+  try {
+    const raw = localStorage.getItem(OFFLINE_MANIFEST_META_KEY)
+    if (!raw) return null
+    const parsed = JSON.parse(raw) as Pick<OfflineManifest, 'version' | 'totalBytes'>
+    if (typeof parsed.version !== 'string' || typeof parsed.totalBytes !== 'number') return null
+    return parsed
+  } catch {
+    return null
+  }
+}
+
+function setCachedManifestMeta(manifest: OfflineManifest): void {
+  try {
+    localStorage.setItem(
+      OFFLINE_MANIFEST_META_KEY,
+      JSON.stringify({ version: manifest.version, totalBytes: manifest.totalBytes }),
+    )
+  } catch {
+    // ignore storage failures
+  }
+}
+
+export function markOfflineServiceWorkerActivation(): void {
+  try {
+    sessionStorage.setItem(OFFLINE_SW_ACTIVATING_KEY, '1')
+  } catch {
+    // ignore storage failures
+  }
+}
+
+export function consumeOfflineServiceWorkerActivation(): boolean {
+  try {
+    const active = sessionStorage.getItem(OFFLINE_SW_ACTIVATING_KEY) === '1'
+    if (active) sessionStorage.removeItem(OFFLINE_SW_ACTIVATING_KEY)
+    return active
+  } catch {
+    return false
+  }
+}
+
+async function hasCachedStudioShell(): Promise<boolean> {
+  const cache = await caches.open(OFFLINE_CACHE_NAME)
+  return Boolean(await cache.match('/studio'))
+}
+
 async function fetchOfflineManifest(): Promise<OfflineManifest> {
   const response = await fetch(MANIFEST_URL, { cache: 'no-cache' })
   if (!response.ok) {
@@ -122,7 +170,7 @@ function isRedirectResponse(response: Response): boolean {
 }
 
 /** Safari rejects cached responses that carry redirect metadata — store clean 200 copies. */
-async function toStorableResponse(response: Response): Promise<Response> {
+async function toStorableResponse(response: Response): Promise<{ response: Response; size: number }> {
   if (!response.ok || isRedirectResponse(response)) {
     throw new Error(`Unexpected response while caching (${response.status}).`)
   }
@@ -132,7 +180,10 @@ async function toStorableResponse(response: Response): Promise<Response> {
   const contentType = response.headers.get('Content-Type')
   if (contentType) headers.set('Content-Type', contentType)
 
-  return new Response(body, { status: 200, headers })
+  return {
+    response: new Response(body, { status: 200, headers }),
+    size: body.size,
+  }
 }
 
 async function seedNavigationShells(cache: Cache): Promise<void> {
@@ -141,7 +192,7 @@ async function seedNavigationShells(cache: Cache): Promise<void> {
     if (existing && !isRedirectResponse(existing)) continue
 
     const response = await fetch(url, { redirect: 'follow' })
-    const storable = await toStorableResponse(response)
+    const { response: storable } = await toStorableResponse(response)
     await cache.put(url, storable)
   }
 }
@@ -166,6 +217,7 @@ async function waitForServiceWorkerControl(timeoutMs = 10_000): Promise<void> {
 }
 
 async function activateServiceWorker(): Promise<void> {
+  markOfflineServiceWorkerActivation()
   const registration = await navigator.serviceWorker.register(SW_URL, { scope: '/' })
 
   if (registration.waiting) {
@@ -195,30 +247,55 @@ export async function getOfflinePrepSnapshot(): Promise<{
   }
 
   const storedVersion = getStoredOfflineVersion()
-  let manifest: OfflineManifest | null = null
+  const cachedMeta = getCachedManifestMeta()
+  const hasShell = storedVersion ? await hasCachedStudioShell() : false
+
+  if (storedVersion && hasShell) {
+    const cachedManifest: OfflineManifest | null = cachedMeta
+      ? {
+          version: cachedMeta.version,
+          totalBytes: cachedMeta.totalBytes,
+          assets: [],
+          assetSizes: {},
+        }
+      : null
+
+    if (!navigator.onLine) {
+      return { status: 'ready', manifest: cachedManifest, storedVersion }
+    }
+
+    try {
+      const remoteManifest = await fetchOfflineManifest()
+      if (remoteManifest.version !== storedVersion) {
+        return { status: 'outdated', manifest: remoteManifest, storedVersion }
+      }
+      setCachedManifestMeta(remoteManifest)
+      return { status: 'ready', manifest: remoteManifest, storedVersion }
+    } catch {
+      return { status: 'ready', manifest: cachedManifest, storedVersion }
+    }
+  }
 
   try {
-    manifest = await fetchOfflineManifest()
+    const manifest = await fetchOfflineManifest()
+    return { status: 'not-ready', manifest, storedVersion }
   } catch {
+    if (storedVersion && hasShell) {
+      return {
+        status: 'ready',
+        manifest: cachedMeta
+          ? {
+              version: cachedMeta.version,
+              totalBytes: cachedMeta.totalBytes,
+              assets: [],
+              assetSizes: {},
+            }
+          : null,
+        storedVersion,
+      }
+    }
     return { status: 'error', manifest: null, storedVersion }
   }
-
-  if (!storedVersion) {
-    return { status: 'not-ready', manifest, storedVersion }
-  }
-
-  if (manifest.version !== storedVersion) {
-    return { status: 'outdated', manifest, storedVersion }
-  }
-
-  const cache = await caches.open(OFFLINE_CACHE_NAME)
-  const hasStudioShell = await cache.match('/studio')
-
-  if (!hasStudioShell) {
-    return { status: 'not-ready', manifest, storedVersion: null }
-  }
-
-  return { status: 'ready', manifest, storedVersion }
 }
 
 export async function prepareForOffline(
@@ -249,9 +326,10 @@ export async function prepareForOffline(
 
     const url = manifest.assets[index]!
     const request = new Request(url, { credentials: 'same-origin' })
+    const expectedSize = manifest.assetSizes[url] ?? 0
 
     if (!shouldReplace && (await cache.match(request))) {
-      loadedBytes += manifest.assetSizes[url] ?? 0
+      loadedBytes += expectedSize
       onProgress({
         phase: 'downloading',
         loaded: index + 1,
@@ -264,7 +342,7 @@ export async function prepareForOffline(
     }
 
     const response = await fetch(request, { redirect: 'follow' })
-    const storable = await toStorableResponse(response)
+    const { response: storable, size: storedSize } = await toStorableResponse(response)
 
     try {
       await cache.put(request, storable)
@@ -274,7 +352,7 @@ export async function prepareForOffline(
       }
       throw new Error(`Could not save ${url} to device storage.`)
     }
-    loadedBytes += manifest.assetSizes[url] ?? Number(response.headers.get('content-length') ?? 0)
+    loadedBytes += expectedSize > 0 ? expectedSize : storedSize
 
     onProgress({
       phase: 'downloading',
@@ -292,12 +370,13 @@ export async function prepareForOffline(
     phase: 'activating',
     loaded: total,
     total,
-    loadedBytes: manifest.totalBytes,
-    totalBytes: manifest.totalBytes,
+    loadedBytes: Math.max(loadedBytes, manifest.totalBytes),
+    totalBytes: Math.max(manifest.totalBytes, loadedBytes),
   })
 
   await activateServiceWorker()
   setStoredOfflineVersion(manifest.version)
+  setCachedManifestMeta(manifest)
 }
 
 export function formatOfflineSize(bytes: number): string {
