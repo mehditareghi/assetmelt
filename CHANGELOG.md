@@ -4,6 +4,13 @@ All notable changes to Asset Melt are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/) and [Conventional Commits](https://www.conventionalcommits.org/).
 
 
+## [0.7.7](https://github.com/mehditareghi/assetmelt/compare/v0.7.6...v0.7.7) (2026-06-06)
+
+
+### Bug Fixes
+
+* offline mode ([d044f3c](https://github.com/mehditareghi/assetmelt/commit/d044f3c0d1c4dbe26448ae9d7b42b09f233dae63))
+
 ## [0.7.6](https://github.com/mehditareghi/assetmelt/compare/v0.7.5...v0.7.6) (2026-06-06)
 
 
