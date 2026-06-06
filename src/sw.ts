@@ -1,8 +1,8 @@
 /// <reference lib="webworker" />
 
-declare const self: ServiceWorkerGlobalScope
+const sw = self as unknown as ServiceWorkerGlobalScope
 
-const CACHE_NAME = 'assetmelt-offline-v1'
+const CACHE_NAME = 'assetmelt-offline-v2'
 
 const OFFLINE_FALLBACK_HTML = `<!DOCTYPE html>
 <html lang="en">
@@ -23,52 +23,91 @@ const OFFLINE_FALLBACK_HTML = `<!DOCTYPE html>
 </body>
 </html>`
 
+function isRedirectResponse(response: Response): boolean {
+  return (
+    (response.status >= 300 && response.status < 400) ||
+    response.type === 'opaqueredirect'
+  )
+}
+
+function isHtmlResponse(response: Response): boolean {
+  const type = response.headers.get('content-type') ?? ''
+  return type.includes('text/html')
+}
+
+async function toNavigationResponse(response: Response): Promise<Response | undefined> {
+  if (!response.ok || isRedirectResponse(response) || !isHtmlResponse(response)) {
+    return undefined
+  }
+
+  const body = await response.blob()
+  return new Response(body, {
+    status: 200,
+    headers: {
+      'Content-Type': response.headers.get('content-type') ?? 'text/html; charset=utf-8',
+    },
+  })
+}
+
 async function matchCached(request: Request): Promise<Response | undefined> {
   const cache = await caches.open(CACHE_NAME)
-  return (await cache.match(request)) ?? undefined
+  const response = await cache.match(request)
+  if (!response || isRedirectResponse(response)) return undefined
+  return response
 }
 
 async function serveNavigation(pathname: string): Promise<Response | undefined> {
   const paths =
-    pathname === '/studio' || pathname === '/studio/'
+    pathname === '/studio' || pathname === '/studio/' || pathname === '/studio/index.html'
       ? ['/studio', '/studio/index.html']
       : pathname === '/'
         ? ['/', '/index.html']
         : [pathname]
 
   for (const path of paths) {
-    const response = await matchCached(new Request(path))
-    if (response) return response
+    const cached = await matchCached(new Request(path))
+    if (!cached) continue
+    const navigationResponse = await toNavigationResponse(cached)
+    if (navigationResponse) return navigationResponse
   }
 
   return undefined
 }
 
-self.addEventListener('install', () => {
+sw.addEventListener('install', () => {
   // Activation is triggered by the client after the offline pack download completes.
 })
 
-self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim())
+sw.addEventListener('activate', (event) => {
+  event.waitUntil(
+    (async () => {
+      await caches.delete('assetmelt-offline-v1')
+      await sw.clients.claim()
+    })(),
+  )
 })
 
-self.addEventListener('fetch', (event) => {
+sw.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return
   event.respondWith(handleFetch(event.request))
 })
 
 async function handleFetch(request: Request): Promise<Response> {
+  if (request.mode === 'navigate') {
+    const pathname = new URL(request.url).pathname
+    const shell = await serveNavigation(pathname)
+    if (shell) return shell
+  }
+
   const cached = await matchCached(request)
   if (cached) return cached
 
   try {
-    return await fetch(request)
+    const response = await fetch(request)
+    if (isRedirectResponse(response)) return response
+    return response
   } catch {
     if (request.mode === 'navigate') {
-      const pathname = new URL(request.url).pathname
-      const shell = await serveNavigation(pathname)
-      if (shell) return shell
-
       const studioShell = await serveNavigation('/studio')
       if (studioShell) return studioShell
 
@@ -81,8 +120,8 @@ async function handleFetch(request: Request): Promise<Response> {
   }
 }
 
-self.addEventListener('message', (event) => {
+sw.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') {
-    self.skipWaiting()
+    sw.skipWaiting()
   }
 })

@@ -41,7 +41,7 @@ const offlineManifestDest = join(publicDir, 'offline-manifest.json')
 console.log(`Building PWA for Nitro preset "${preset}" → ${publicDir}`)
 
 console.log('Generating offline manifest...')
-const { manifestEntries, count, size, warnings } = await getManifest({
+const { manifestEntries, warnings } = await getManifest({
   globDirectory: publicDir,
   globPatterns: ['**/*.{js,css,html,wasm,woff2,svg,png,webmanifest}'],
   globIgnores: ['sw.js', 'offline-manifest.json', '**/node_modules/**'],
@@ -53,17 +53,27 @@ if (warnings.length > 0) {
 }
 
 const version = JSON.parse(readFileSync(join(root, 'public/version.json'), 'utf8')).version
-const assets = manifestEntries.map((entry) => ({
-  url: `/${entry.url}`,
-  size: entry.size ?? 0,
-}))
+
+/** Safari rejects SW responses that were fetched through redirects — use canonical 200 URLs. */
+const OFFLINE_URL_ALIASES = {
+  '/studio/index.html': '/studio',
+}
+
+const assetMap = new Map()
+for (const entry of manifestEntries) {
+  const url = OFFLINE_URL_ALIASES[`/${entry.url}`] ?? `/${entry.url}`
+  assetMap.set(url, entry.size ?? 0)
+}
+
+const assets = [...assetMap.entries()].map(([url, size]) => ({ url, size }))
+const totalBytes = assets.reduce((sum, asset) => sum + asset.size, 0)
 
 writeFileSync(
   offlineManifestDest,
   `${JSON.stringify(
     {
       version,
-      totalBytes: size,
+      totalBytes,
       assets: assets.map((asset) => asset.url),
       assetSizes: Object.fromEntries(assets.map((asset) => [asset.url, asset.size])),
     },
@@ -73,7 +83,7 @@ writeFileSync(
 )
 
 console.log(
-  `Offline manifest: ${count} files, ${(size / 1024 / 1024).toFixed(1)} MB → offline-manifest.json`,
+  `Offline manifest: ${assets.length} files, ${(totalBytes / 1024 / 1024).toFixed(1)} MB → offline-manifest.json`,
 )
 
 console.log('Transpiling service worker...')

@@ -2,13 +2,6 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "pnpm install",
   "buildCommand": "git fetch --tags --force 2>/dev/null || true && pnpm run build",
-  "redirects": [
-    {
-      "source": "/studio/index.html",
-      "destination": "/studio",
-      "permanent": true
-    }
-  ],
   "headers": [
     {
       "source": "/sw.js",

@@ -1,4 +1,4 @@
-export const OFFLINE_CACHE_NAME = 'assetmelt-offline-v1'
+export const OFFLINE_CACHE_NAME = 'assetmelt-offline-v2'
 export const OFFLINE_VERSION_KEY = 'assetmelt-offline-version'
 export const OFFLINE_READY_DISMISSED_KEY = 'assetmelt-offline-ready-dismissed'
 export const OFFLINE_PROMPT_DISMISSED_KEY = 'assetmelt-offline-prompt-dismissed'
@@ -114,18 +114,35 @@ async function fetchOfflineManifest(): Promise<OfflineManifest> {
   return response.json() as Promise<OfflineManifest>
 }
 
-async function seedNavigationShells(cache: Cache): Promise<void> {
-  const studioShell =
-    (await cache.match('/studio/index.html')) ?? (await cache.match('/studio'))
-  if (studioShell) {
-    await cache.put('/studio', studioShell.clone())
-    await cache.put('/studio/index.html', studioShell.clone())
+function isRedirectResponse(response: Response): boolean {
+  return (
+    (response.status >= 300 && response.status < 400) ||
+    response.type === 'opaqueredirect'
+  )
+}
+
+/** Safari rejects cached responses that carry redirect metadata — store clean 200 copies. */
+async function toStorableResponse(response: Response): Promise<Response> {
+  if (!response.ok || isRedirectResponse(response)) {
+    throw new Error(`Unexpected response while caching (${response.status}).`)
   }
 
-  const indexShell = (await cache.match('/index.html')) ?? (await cache.match('/'))
-  if (indexShell) {
-    await cache.put('/', indexShell.clone())
-    await cache.put('/index.html', indexShell.clone())
+  const body = await response.blob()
+  const headers = new Headers()
+  const contentType = response.headers.get('Content-Type')
+  if (contentType) headers.set('Content-Type', contentType)
+
+  return new Response(body, { status: 200, headers })
+}
+
+async function seedNavigationShells(cache: Cache): Promise<void> {
+  for (const url of ['/studio', '/']) {
+    const existing = await cache.match(url)
+    if (existing && !isRedirectResponse(existing)) continue
+
+    const response = await fetch(url, { redirect: 'follow' })
+    const storable = await toStorableResponse(response)
+    await cache.put(url, storable)
   }
 }
 
@@ -195,8 +212,7 @@ export async function getOfflinePrepSnapshot(): Promise<{
   }
 
   const cache = await caches.open(OFFLINE_CACHE_NAME)
-  const hasStudioShell =
-    (await cache.match('/studio/index.html')) ?? (await cache.match('/studio'))
+  const hasStudioShell = await cache.match('/studio')
 
   if (!hasStudioShell) {
     return { status: 'not-ready', manifest, storedVersion: null }
@@ -247,13 +263,11 @@ export async function prepareForOffline(
       continue
     }
 
-    const response = await fetch(request)
-    if (!response.ok) {
-      throw new Error(`Failed to download ${url}`)
-    }
+    const response = await fetch(request, { redirect: 'follow' })
+    const storable = await toStorableResponse(response)
 
     try {
-      await cache.put(request, response.clone())
+      await cache.put(request, storable)
     } catch (error) {
       if (error instanceof DOMException && error.name === 'QuotaExceededError') {
         throw error
