@@ -1,31 +1,8 @@
 /// <reference lib="webworker" />
 
-import { clientsClaim } from 'workbox-core'
-import {
-  cleanupOutdatedCaches,
-  createHandlerBoundToURL,
-  matchPrecache,
-  precacheAndRoute,
-} from 'workbox-precaching'
-import { registerRoute, NavigationRoute } from 'workbox-routing'
-import { CacheFirst, NetworkFirst } from 'workbox-strategies'
-import { CacheableResponsePlugin } from 'workbox-cacheable-response'
-import { ExpirationPlugin } from 'workbox-expiration'
-
 declare const self: ServiceWorkerGlobalScope
 
-const PAGES_CACHE = 'pages-cache'
-
-/** Keys match Workbox precache manifest URLs (relative to /sw.js, no leading slash). */
-const PRERENDERED_SHELLS: Record<string, string> = {
-  '/': 'index.html',
-  '/studio': 'studio/index.html',
-  '/studio/': 'studio/index.html',
-  '/studio/index.html': 'studio/index.html',
-}
-
-precacheAndRoute(self.__WB_MANIFEST)
-cleanupOutdatedCaches()
+const CACHE_NAME = 'assetmelt-offline-v1'
 
 const OFFLINE_FALLBACK_HTML = `<!DOCTYPE html>
 <html lang="en">
@@ -41,162 +18,68 @@ const OFFLINE_FALLBACK_HTML = `<!DOCTYPE html>
 <body>
   <div>
     <h1>You're offline</h1>
-    <p>Open Asset Melt once while online so this device can cache the studio. Then it works on a plane.</p>
+    <p>Download the offline pack from the studio while you're online to use Asset Melt without a connection.</p>
   </div>
 </body>
 </html>`
 
-async function serveShellForPath(pathname: string): Promise<Response | undefined> {
-  const shellKey = PRERENDERED_SHELLS[pathname]
-  if (!shellKey) return undefined
-
-  const cached = await caches.match(new Request(pathname))
-  if (cached) return cached
-
-  return (await matchPrecache(shellKey)) ?? undefined
+async function matchCached(request: Request): Promise<Response | undefined> {
+  const cache = await caches.open(CACHE_NAME)
+  return (await cache.match(request)) ?? undefined
 }
 
-/** Seed pages-cache from precache so offline navigations work without a network fetch. */
-async function seedPagesCacheFromPrecache() {
-  const cache = await caches.open(PAGES_CACHE)
-  await Promise.all(
-    Object.entries(PRERENDERED_SHELLS).map(async ([pathname, shellKey]) => {
-      const shell = await matchPrecache(shellKey)
-      if (!shell) return
-      await cache.put(new Request(pathname), shell.clone())
-    }),
-  )
+async function serveNavigation(pathname: string): Promise<Response | undefined> {
+  const paths =
+    pathname === '/studio' || pathname === '/studio/'
+      ? ['/studio', '/studio/index.html']
+      : pathname === '/'
+        ? ['/', '/index.html']
+        : [pathname]
+
+  for (const path of paths) {
+    const response = await matchCached(new Request(path))
+    if (response) return response
+  }
+
+  return undefined
 }
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    (async () => {
-      await seedPagesCacheFromPrecache()
-      await self.skipWaiting()
-    })(),
-  )
+self.addEventListener('install', () => {
+  // Activation is triggered by the client after the offline pack download completes.
 })
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    (async () => {
-      await clientsClaim()
-    })(),
-  )
+  event.waitUntil(self.clients.claim())
 })
 
-const indexShellHandler = createHandlerBoundToURL('index.html')
-const studioShellHandler = createHandlerBoundToURL('studio/index.html')
+self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return
+  event.respondWith(handleFetch(event.request))
+})
 
-registerRoute(
-  new NavigationRoute(async ({ request, url }) => {
-    const pathname = new URL(url).pathname
+async function handleFetch(request: Request): Promise<Response> {
+  const cached = await matchCached(request)
+  if (cached) return cached
 
-    const boundHandler =
-      pathname === '/'
-        ? indexShellHandler
-        : pathname === '/studio' ||
-            pathname === '/studio/' ||
-            pathname === '/studio/index.html'
-          ? studioShellHandler
-          : undefined
+  try {
+    return await fetch(request)
+  } catch {
+    if (request.mode === 'navigate') {
+      const pathname = new URL(request.url).pathname
+      const shell = await serveNavigation(pathname)
+      if (shell) return shell
 
-    try {
-      const networkResponse = await fetch(request)
-      if (networkResponse?.ok) {
-        const cache = await caches.open(PAGES_CACHE)
-        await cache.put(request, networkResponse.clone())
-        return networkResponse
-      }
-    } catch {
-      // offline — serve precached shells below
+      const studioShell = await serveNavigation('/studio')
+      if (studioShell) return studioShell
+
+      return new Response(OFFLINE_FALLBACK_HTML, {
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      })
     }
 
-    if (boundHandler) {
-      try {
-        return await boundHandler({ request, url, event: undefined! })
-      } catch {
-        // fall through to manual shell lookup
-      }
-    }
-
-    const shell = await serveShellForPath(pathname)
-    if (shell) return shell
-
-    const cached = await caches.match(request, { ignoreSearch: true })
-    if (cached) return cached
-
-    const studioShell = await serveShellForPath('/studio')
-    if (studioShell) return studioShell
-
-    return new Response(OFFLINE_FALLBACK_HTML, {
-      headers: { 'Content-Type': 'text/html; charset=utf-8' },
-    })
-  }),
-)
-
-registerRoute(
-  ({ url }) => url.pathname === '/version.json',
-  new NetworkFirst({
-    cacheName: 'version-cache',
-    networkTimeoutSeconds: 3,
-    plugins: [
-      new CacheableResponsePlugin({ statuses: [0, 200] }),
-      new ExpirationPlugin({
-        maxEntries: 4,
-        maxAgeSeconds: 60 * 60,
-      }),
-    ],
-  }),
-)
-
-registerRoute(
-  ({ url }) =>
-    url.hostname === 'fonts.googleapis.com' ||
-    url.hostname === 'fonts.gstatic.com',
-  new CacheFirst({
-    cacheName: 'google-fonts',
-    plugins: [
-      new CacheableResponsePlugin({ statuses: [0, 200] }),
-      new ExpirationPlugin({
-        maxEntries: 32,
-        maxAgeSeconds: 365 * 24 * 60 * 60,
-      }),
-    ],
-  }),
-)
-
-registerRoute(
-  ({ request }) =>
-    request.destination === 'style' ||
-    request.destination === 'script' ||
-    request.destination === 'font' ||
-    request.destination === 'worker',
-  new CacheFirst({
-    cacheName: 'static-assets',
-    plugins: [
-      new CacheableResponsePlugin({ statuses: [0, 200] }),
-      new ExpirationPlugin({
-        maxEntries: 128,
-        maxAgeSeconds: 7 * 24 * 60 * 60,
-      }),
-    ],
-  }),
-)
-
-registerRoute(
-  ({ request }) => request.destination === 'image',
-  new CacheFirst({
-    cacheName: 'images-cache',
-    plugins: [
-      new CacheableResponsePlugin({ statuses: [0, 200] }),
-      new ExpirationPlugin({
-        maxEntries: 64,
-        maxAgeSeconds: 30 * 24 * 60 * 60,
-      }),
-    ],
-  }),
-)
+    return Response.error()
+  }
+}
 
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') {

@@ -43,9 +43,9 @@ const features = [
   },
   {
     icon: Smartphone,
-    title: 'Installable & works offline',
+    title: 'Installable app, offline on demand',
     description:
-      'Add Asset Melt to your home screen and compress on a plane — after your first visit, the full studio stays on your device. No cloud upload, no account.',
+      'Add Asset Melt to your home screen for a focused studio experience. Offline mode is optional — download the pack once when you want plane-ready compression.',
   },
 ]
 

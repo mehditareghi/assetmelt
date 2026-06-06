@@ -15,7 +15,7 @@ import { SiteLayout } from '@/components/layout/site-layout'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/sonner'
 import { PwaManager } from '@/components/pwa/pwa-manager'
-import { serviceWorkerBootstrapScript } from '@/lib/pwa/register-sw'
+import { documentBootstrapScript } from '@/lib/pwa/register-sw'
 import { getAppVersion } from '@/lib/app-version-fn'
 import { AppVersionProvider } from '@/lib/version'
 import appCss from '@/styles/globals.css?url'
@@ -82,7 +82,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
         <HeadContent />
-        <script dangerouslySetInnerHTML={{ __html: serviceWorkerBootstrapScript }} />
+        <script dangerouslySetInnerHTML={{ __html: documentBootstrapScript }} />
       </head>
       <body>
         {isGoogleAnalyticsEnabled && (

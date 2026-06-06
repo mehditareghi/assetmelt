@@ -1,5 +1,6 @@
 import { Download, Play, Redo2, Settings, Trash2, Undo2, Upload, FileJson } from 'lucide-react'
 import { toast } from 'sonner'
+import { OfflinePrepRestoreLink } from '@/components/pwa/offline-prep-restore-link'
 import { useStudioStore } from '@/stores/studio-store'
 import { downloadProcessedFiles, fileHasDownloadableResult } from '@/lib/download-results'
 import { PresetPicker } from '@/components/studio/preset-picker'
@@ -85,6 +86,8 @@ export function StudioToolbar() {
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex flex-wrap items-center gap-3">
         <PresetPicker disabled={isCropEditing} />
+
+        <OfflinePrepRestoreLink variant="toolbar" />
 
         <div className="flex items-center gap-2">
           <Switch

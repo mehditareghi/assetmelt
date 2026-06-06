@@ -1,9 +1,9 @@
 import { createHash } from 'node:crypto'
-import { existsSync, readFileSync, statSync, unlinkSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { dirname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { build } from 'esbuild'
-import { injectManifest } from 'workbox-build'
+import { getManifest } from 'workbox-build'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const srcSw = resolve(root, 'src/sw.ts')
@@ -35,10 +35,46 @@ function resolveNitroOutput() {
 }
 
 const { preset, publicDir, serverEntry } = resolveNitroOutput()
-const tempSwPath = join(publicDir, 'sw-src.js')
 const swDest = join(publicDir, 'sw.js')
+const offlineManifestDest = join(publicDir, 'offline-manifest.json')
 
 console.log(`Building PWA for Nitro preset "${preset}" → ${publicDir}`)
+
+console.log('Generating offline manifest...')
+const { manifestEntries, count, size, warnings } = await getManifest({
+  globDirectory: publicDir,
+  globPatterns: ['**/*.{js,css,html,wasm,woff2,svg,png,webmanifest}'],
+  globIgnores: ['sw.js', 'offline-manifest.json', '**/node_modules/**'],
+  maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+})
+
+if (warnings.length > 0) {
+  console.warn('Workbox warnings:', warnings.join('\n'))
+}
+
+const version = JSON.parse(readFileSync(join(root, 'public/version.json'), 'utf8')).version
+const assets = manifestEntries.map((entry) => ({
+  url: `/${entry.url}`,
+  size: entry.size ?? 0,
+}))
+
+writeFileSync(
+  offlineManifestDest,
+  `${JSON.stringify(
+    {
+      version,
+      totalBytes: size,
+      assets: assets.map((asset) => asset.url),
+      assetSizes: Object.fromEntries(assets.map((asset) => [asset.url, asset.size])),
+    },
+    null,
+    2,
+  )}\n`,
+)
+
+console.log(
+  `Offline manifest: ${count} files, ${(size / 1024 / 1024).toFixed(1)} MB → offline-manifest.json`,
+)
 
 console.log('Transpiling service worker...')
 const result = await build({
@@ -47,7 +83,7 @@ const result = await build({
   format: 'iife',
   platform: 'browser',
   target: 'es2020',
-  outfile: tempSwPath,
+  outfile: swDest,
   minify: false,
   logLevel: 'warning',
 })
@@ -57,31 +93,7 @@ if (result.errors.length > 0) {
   process.exit(1)
 }
 
-console.log('Generating service worker with workbox injectManifest...')
-
-try {
-  const { count, size, warnings } = await injectManifest({
-    swSrc: tempSwPath,
-    swDest,
-    globDirectory: publicDir,
-    globPatterns: ['**/*.{js,css,html,wasm,woff2,svg,png,webmanifest}'],
-    globIgnores: ['sw-src.js', 'sw.js', '**/node_modules/**'],
-    maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-  })
-
-  unlinkSync(tempSwPath)
-
-  if (warnings.length > 0) {
-    console.warn('Workbox warnings:', warnings.join('\n'))
-  }
-
-  console.log(
-    `Service worker generated with ${count} files, totaling ${(size / 1024).toFixed(1)} KB`,
-  )
-} catch (error) {
-  console.error('Error generating service worker:', error)
-  process.exit(1)
-}
+console.log(`Service worker written → ${swDest}`)
 
 if (!existsSync(serverEntry)) {
   console.log('No server bundle to patch (static hosting only).')

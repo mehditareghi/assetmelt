@@ -2,10 +2,12 @@ import { useEffect } from 'react'
 import { Outlet, useLocation } from '@tanstack/react-router'
 import { SiteHeader } from '@/components/layout/site-header'
 import { SiteFooter } from '@/components/layout/site-footer'
+import { OfflinePrepProvider } from '@/lib/pwa/offline-prep-context'
 
 export function SiteLayout() {
   const { pathname, hash } = useLocation()
   const variant = pathname.startsWith('/studio') ? 'studio' : 'landing'
+  const isStudio = pathname.startsWith('/studio')
 
   useEffect(() => {
     if (pathname !== '/' || !hash) return
@@ -16,11 +18,17 @@ export function SiteLayout() {
     return () => window.clearTimeout(timer)
   }, [pathname, hash])
 
-  return (
+  const layout = (
     <div className="flex min-h-screen flex-col">
       <SiteHeader variant={variant} />
       <Outlet />
       <SiteFooter />
     </div>
   )
+
+  if (isStudio) {
+    return <OfflinePrepProvider>{layout}</OfflinePrepProvider>
+  }
+
+  return layout
 }

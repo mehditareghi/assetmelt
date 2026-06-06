@@ -1,4 +1,5 @@
 import { DropZone } from '@/components/studio/drop-zone'
+import { OfflinePrepPanel } from '@/components/pwa/offline-prep-panel'
 import { FileQueue } from '@/components/studio/file-queue'
 import { PreviewPanel } from '@/components/studio/preview-panel'
 import { SettingsPanel } from '@/components/studio/settings-panel'
@@ -86,6 +87,7 @@ function Studio() {
       <div className="landing-hero-grid pointer-events-none fixed inset-0 -z-10 opacity-25" />
 
       <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
+        <OfflinePrepPanel />
         <div className="glass-surface rounded-2xl p-3 sm:p-4">
           <StudioToolbar />
         </div>

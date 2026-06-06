@@ -9,26 +9,8 @@ declare global {
   }
 }
 
-const OFFLINE_TOAST_KEY = 'assetmelt-pwa-offline-toast'
-
 let deferredPrompt: BeforeInstallPromptEvent | null = null
 const listeners = new Set<() => void>()
-
-export function hasShownOfflineToast(): boolean {
-  try {
-    return localStorage.getItem(OFFLINE_TOAST_KEY) === '1'
-  } catch {
-    return false
-  }
-}
-
-export function markOfflineToastShown(): void {
-  try {
-    localStorage.setItem(OFFLINE_TOAST_KEY, '1')
-  } catch {
-    // ignore storage failures
-  }
-}
 
 export function isAppInstalled(): boolean {
   if (typeof window === 'undefined') return false
@@ -43,9 +25,34 @@ export function isIos(): boolean {
   return /iphone|ipad|ipod/i.test(navigator.userAgent)
 }
 
+export function isIosSafari(): boolean {
+  if (!isIos()) return false
+  const ua = navigator.userAgent
+  return /safari/i.test(ua) && !/crios|fxios|edgios|opios|gsa/i.test(ua)
+}
+
+export function isInAppBrowser(): boolean {
+  if (typeof navigator === 'undefined') return false
+  return /(FBAN|FBAV|Instagram|Twitter|Line|LinkedInApp|Snapchat|Pinterest)/i.test(
+    navigator.userAgent,
+  )
+}
+
+export type InstallPlatform = 'native' | 'ios'
+
+export function getInstallPlatform(): InstallPlatform | null {
+  if (isAppInstalled()) return null
+  if (deferredPrompt) return 'native'
+  if (isIos()) return 'ios'
+  return null
+}
+
 export function canShowInstall(): boolean {
-  if (isAppInstalled()) return false
-  return deferredPrompt !== null || isIos()
+  return getInstallPlatform() !== null
+}
+
+export function hasNativeInstallPrompt(): boolean {
+  return deferredPrompt !== null
 }
 
 export function subscribeInstallPrompt(listener: () => void): () => void {

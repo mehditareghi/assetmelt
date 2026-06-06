@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
 import { InstallAppLink } from '@/components/pwa/install-app-link'
+import { OfflinePrepRestoreLink } from '@/components/pwa/offline-prep-restore-link'
 import { Badge } from '@/components/ui/badge'
 import { useAppVersion } from '@/lib/version'
 import { Shield } from 'lucide-react'
@@ -42,6 +43,8 @@ function FooterSectionLink({ id, label }: { id: string; label: string }) {
 
 export function SiteFooter() {
   const version = useAppVersion()
+  const location = useLocation()
+  const isStudio = location.pathname.startsWith('/studio')
 
   return (
     <footer className="mt-auto border-t border-border/40">
@@ -64,6 +67,7 @@ export function SiteFooter() {
               >
                 Studio
               </Link>
+              {isStudio ? <OfflinePrepRestoreLink /> : null}
               <InstallAppLink />
             </nav>
           </div>

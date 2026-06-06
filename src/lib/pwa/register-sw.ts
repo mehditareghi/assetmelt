@@ -1,11 +1,10 @@
 const SW_URL = '/sw.js'
 
 export interface ServiceWorkerCallbacks {
-  onOfflineReady?: () => void
   onNeedRefresh?: (reload: () => void) => void
 }
 
-export function registerServiceWorker(callbacks: ServiceWorkerCallbacks): () => void {
+export function watchServiceWorkerUpdates(callbacks: ServiceWorkerCallbacks): () => void {
   if (!import.meta.env.PROD || typeof window === 'undefined' || !('serviceWorker' in navigator)) {
     return () => {}
   }
@@ -37,33 +36,25 @@ export function registerServiceWorker(callbacks: ServiceWorkerCallbacks): () => 
 
       installing.addEventListener('statechange', () => {
         if (installing.state !== 'installed') return
-
         if (navigator.serviceWorker.controller) {
           notifyNeedRefresh(registration)
-        } else {
-          callbacks.onOfflineReady?.()
         }
       })
     })
   }
 
-  const register = async () => {
+  const watch = async () => {
     try {
       const registration = await navigator.serviceWorker.getRegistration(SW_URL)
-      if (registration) {
-        wireRegistration(registration)
-        await registration.update()
-        return
-      }
-
-      const nextRegistration = await navigator.serviceWorker.register(SW_URL, { scope: '/' })
-      wireRegistration(nextRegistration)
+      if (!registration) return
+      wireRegistration(registration)
+      await registration.update()
     } catch {
-      // SW registration can fail on unsupported or insecure contexts.
+      // SW updates are optional until the user opts into offline mode.
     }
   }
 
-  void register()
+  void watch()
 
   return () => {
     navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange)
@@ -71,4 +62,4 @@ export function registerServiceWorker(callbacks: ServiceWorkerCallbacks): () => 
 }
 
 /** Inline-safe bootstrap for the document shell (runs before React). */
-export const serviceWorkerBootstrapScript = `(function(){var p=location.pathname;if(p==='/studio/index.html'){history.replaceState(null,'','/studio'+location.search+location.hash)}if(!('serviceWorker'in navigator))return;navigator.serviceWorker.register('${SW_URL}',{scope:'/'}).catch(function(){})})();`
+export const documentBootstrapScript = `(function(){var p=location.pathname;if(p==='/studio/index.html'){history.replaceState(null,'','/studio'+location.search+location.hash)}})();`
