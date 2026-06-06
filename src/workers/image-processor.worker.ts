@@ -15,6 +15,7 @@ import {
 } from '@/lib/image/size-budget-encode'
 import { toMozJpegWasmOptions } from '@/lib/image/jpeg-encode'
 import { formatOutputFilename } from '@/lib/presets'
+import { orientImageDataFromExif } from '@/lib/image/exif-orientation'
 import { applyCrop, applyFilters, applyRotateFlip } from '@/lib/image/image-transforms'
 
 function postProgress(id: string, progress: number, stage: string) {
@@ -25,41 +26,50 @@ async function decodeToImageData(
   buffer: ArrayBuffer,
   format: InputFormat,
 ): Promise<ImageData> {
+  let imageData: ImageData
   switch (format) {
     case 'jpeg': {
       const { decode } = await import('@jsquash/jpeg')
-      return decode(buffer)
+      imageData = await decode(buffer)
+      break
     }
     case 'png': {
       const { decode } = await import('@jsquash/png')
-      return decode(buffer)
+      imageData = await decode(buffer)
+      break
     }
     case 'webp': {
       const { decode } = await import('@jsquash/webp')
-      return decode(buffer)
+      imageData = await decode(buffer)
+      break
     }
     case 'avif': {
       const { decode } = await import('@jsquash/avif')
       const decoded = await decode(buffer)
       if (!decoded) throw new Error('Failed to decode AVIF')
-      return decoded
+      imageData = decoded
+      break
     }
     case 'jxl': {
       const { decode } = await import('@jsquash/jxl')
-      return decode(buffer)
+      imageData = await decode(buffer)
+      break
     }
     case 'qoi': {
       const { decode } = await import('@jsquash/qoi')
-      return decode(buffer)
+      imageData = await decode(buffer)
+      break
     }
     default:
-      return decodeViaCanvas(buffer)
+      imageData = await decodeViaCanvas(buffer)
   }
+
+  return orientImageDataFromExif(imageData, buffer)
 }
 
 async function decodeViaCanvas(buffer: ArrayBuffer): Promise<ImageData> {
   const blob = new Blob([buffer])
-  const bitmap = await createImageBitmap(blob)
+  const bitmap = await createImageBitmap(blob, { imageOrientation: 'none' })
   const canvas = new OffscreenCanvas(bitmap.width, bitmap.height)
   const ctx = canvas.getContext('2d')!
   ctx.drawImage(bitmap, 0, 0)

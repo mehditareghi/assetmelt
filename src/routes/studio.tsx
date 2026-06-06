@@ -88,7 +88,7 @@ function Studio() {
 
       <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
         <OfflinePrepPanel />
-        <div className="glass-surface rounded-2xl p-3 sm:p-4">
+        <div className="glass-surface overflow-visible rounded-2xl p-3 sm:p-4">
           <StudioToolbar />
         </div>
 

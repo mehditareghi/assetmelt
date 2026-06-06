@@ -24,7 +24,6 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { pipelineSchema } from '@/lib/schemas/pipeline-schema'
-import { cn } from '@/lib/utils'
 
 export function StudioToolbar() {
   const files = useStudioStore((s) => s.files)
@@ -103,9 +102,9 @@ export function StudioToolbar() {
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+    <div className="flex w-full min-w-0 flex-col gap-3">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
           <div className="min-w-0 flex-1">
             <PresetPicker disabled={isCropEditing} />
           </div>
@@ -121,7 +120,7 @@ export function StudioToolbar() {
             />
             <Label
               htmlFor="advanced"
-              className="hidden items-center gap-1.5 text-sm sm:flex"
+              className="hidden items-center gap-1.5 text-sm lg:flex"
             >
               <Settings className="size-3.5" />
               Advanced
@@ -129,7 +128,7 @@ export function StudioToolbar() {
           </div>
         </div>
 
-        <div className="hidden flex-wrap items-center justify-end gap-2 sm:flex">
+        <div className="hidden shrink-0 flex-wrap items-center justify-end gap-2 lg:flex">
           <Button
             variant="outline"
             size="icon-sm"
@@ -205,40 +204,39 @@ export function StudioToolbar() {
         </div>
       </div>
 
-      {/* Mobile: primary actions — full width, always visible */}
+      {/* Phone / tablet / PWA: stacked primary actions — nothing clipped */}
       {hasFiles && (
-        <div
-          className={cn(
-            'grid gap-2 sm:hidden',
-            doneCount > 0 ? 'grid-cols-2' : 'grid-cols-1',
-          )}
-        >
+        <div className="flex flex-col gap-2 lg:hidden">
           <Button
             size="sm"
-            className="h-9 w-full gap-1.5"
+            className="h-10 w-full min-w-0 justify-center gap-2"
             onClick={() => processAll()}
             disabled={!canProcess}
           >
-            <Play className="size-3.5" />
-            Process ({files.length})
+            <Play className="size-4 shrink-0" />
+            <span className="truncate">
+              Process{files.length > 0 ? ` · ${files.length} file${files.length === 1 ? '' : 's'}` : ''}
+            </span>
           </Button>
           {doneCount > 0 && (
             <Button
               variant="secondary"
               size="sm"
-              className="h-9 w-full gap-1.5"
+              className="h-10 w-full min-w-0 justify-center gap-2"
               onClick={() => void handleExportAll()}
               disabled={!canDownload}
             >
-              <Download className="size-3.5" />
-              Download ({doneCount})
+              <Download className="size-4 shrink-0" />
+              <span className="truncate">
+                Download{doneCount > 0 ? ` · ${doneCount} ready` : ''}
+              </span>
             </Button>
           )}
         </div>
       )}
 
-      {/* Mobile: compact utility strip — no scroll */}
-      <div className="flex items-center gap-1 sm:hidden">
+      {/* Phone / tablet / PWA: utility strip */}
+      <div className="flex items-center gap-1 lg:hidden">
         <Button
           variant="outline"
           size="icon-sm"

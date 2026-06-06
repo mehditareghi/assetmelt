@@ -61,18 +61,16 @@ export function CompareScrubber({
   }
 
   return (
-    <div
-      ref={regionRef}
-      role="slider"
-      aria-label="Compare before and after. Drag horizontally."
-      aria-valuemin={0}
-      aria-valuemax={100}
-      aria-valuenow={position}
-      tabIndex={0}
-      className={cn(
-        'group/compare relative aspect-video w-full cursor-ew-resize touch-none overflow-hidden rounded-2xl bg-muted/20 select-none [container-type:inline-size] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none',
-        className,
-      )}
+    <div className={cn('rounded-2xl', className)}>
+      <div
+        ref={regionRef}
+        role="slider"
+        aria-label="Compare before and after. Drag horizontally."
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={position}
+        tabIndex={0}
+        className="group/compare relative aspect-video w-full cursor-ew-resize touch-none overflow-hidden rounded-2xl bg-muted/20 select-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
@@ -89,18 +87,13 @@ export function CompareScrubber({
           draggable={false}
         />
 
-        <div
-          className="pointer-events-none absolute inset-y-0 left-0 overflow-hidden"
-          style={{ width: `${position}%` }}
-        >
-          <img
-            src={beforeUrl}
-            alt={beforeLabel}
-            className="h-full max-w-none object-contain"
-            style={{ width: '100cqw', height: '100%' }}
-            draggable={false}
-          />
-        </div>
+        <img
+          src={beforeUrl}
+          alt={beforeLabel}
+          className="pointer-events-none absolute inset-0 size-full object-contain"
+          style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}
+          draggable={false}
+        />
 
         {/* Full-height seam; grip sits on top at center without shortening the line */}
         <div
@@ -126,6 +119,7 @@ export function CompareScrubber({
             {overlay}
           </div>
         )}
+      </div>
     </div>
   )
 }

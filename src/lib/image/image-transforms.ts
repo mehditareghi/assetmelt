@@ -36,6 +36,47 @@ export function applyCrop(imageData: ImageData, crop: CropConfig): ImageData {
   return canvasToImageData(out)
 }
 
+/** Apply JPEG/TIFF EXIF orientation (values 1–8) so pixels match browser display. */
+export function applyExifOrientation(imageData: ImageData, orientation: number): ImageData {
+  if (orientation <= 1 || orientation > 8) return imageData
+
+  const src = imageDataToCanvas(imageData)
+  const srcW = imageData.width
+  const srcH = imageData.height
+  const swap = orientation >= 5 && orientation <= 8
+  const outW = swap ? srcH : srcW
+  const outH = swap ? srcW : srcH
+  const canvas = createCanvas(outW, outH)
+  const ctx = getTransformContext(canvas)
+
+  switch (orientation) {
+    case 2:
+      ctx.transform(-1, 0, 0, 1, srcW, 0)
+      break
+    case 3:
+      ctx.transform(-1, 0, 0, -1, srcW, srcH)
+      break
+    case 4:
+      ctx.transform(1, 0, 0, -1, 0, srcH)
+      break
+    case 5:
+      ctx.transform(0, 1, 1, 0, 0, 0)
+      break
+    case 6:
+      ctx.transform(0, 1, -1, 0, srcH, 0)
+      break
+    case 7:
+      ctx.transform(0, -1, -1, 0, srcH, srcW)
+      break
+    case 8:
+      ctx.transform(0, -1, 1, 0, 0, srcW)
+      break
+  }
+
+  ctx.drawImage(src as unknown as CanvasImageSource, 0, 0)
+  return canvasToImageData(canvas)
+}
+
 export function applyRotateFlip(
   imageData: ImageData,
   rotate: PipelineConfig['rotate'],
