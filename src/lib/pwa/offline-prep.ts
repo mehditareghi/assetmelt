@@ -197,44 +197,45 @@ async function seedNavigationShells(cache: Cache): Promise<void> {
   }
 }
 
-async function waitForServiceWorkerControl(timeoutMs = 10_000): Promise<void> {
-  if (navigator.serviceWorker.controller) return
-
-  await new Promise<void>((resolve, reject) => {
-    const timer = window.setTimeout(() => {
-      reject(new Error('Timed out while activating offline mode.'))
-    }, timeoutMs)
-
-    navigator.serviceWorker.addEventListener(
-      'controllerchange',
-      () => {
-        window.clearTimeout(timer)
-        resolve()
-      },
-      { once: true },
-    )
-  })
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
+/** Best-effort SW activation — never block the offline-ready UI. */
 async function activateServiceWorker(): Promise<void> {
   markOfflineServiceWorkerActivation()
+
+  try {
+    await Promise.race([requestServiceWorkerActivation(), delay(2500)])
+  } catch {
+    // The offline pack is already cached client-side.
+  }
+}
+
+async function requestServiceWorkerActivation(): Promise<void> {
   const registration = await navigator.serviceWorker.register(SW_URL, { scope: '/' })
 
-  if (registration.waiting) {
-    registration.waiting.postMessage({ type: 'SKIP_WAITING' })
-  } else if (registration.installing) {
-    await new Promise<void>((resolve) => {
-      registration.installing!.addEventListener('statechange', () => {
-        if (registration.installing?.state !== 'installed') return
-        registration.waiting?.postMessage({ type: 'SKIP_WAITING' })
-        resolve()
-      })
-    })
+  const requestSkipWaiting = () => {
+    registration.waiting?.postMessage({ type: 'SKIP_WAITING' })
   }
 
-  if (!navigator.serviceWorker.controller) {
-    await waitForServiceWorkerControl()
-  }
+  requestSkipWaiting()
+
+  const installing = registration.installing
+  if (!installing) return
+
+  await new Promise<void>((resolve) => {
+    const finish = () => resolve()
+
+    installing.addEventListener('statechange', () => {
+      if (installing.state === 'installed') {
+        requestSkipWaiting()
+      }
+      if (registration.active) finish()
+    })
+
+    if (registration.active) finish()
+  })
 }
 
 export async function getOfflinePrepSnapshot(): Promise<{
@@ -366,6 +367,9 @@ export async function prepareForOffline(
 
   await seedNavigationShells(cache)
 
+  setStoredOfflineVersion(manifest.version)
+  setCachedManifestMeta(manifest)
+
   onProgress({
     phase: 'activating',
     loaded: total,
@@ -375,8 +379,6 @@ export async function prepareForOffline(
   })
 
   await activateServiceWorker()
-  setStoredOfflineVersion(manifest.version)
-  setCachedManifestMeta(manifest)
 }
 
 export function formatOfflineSize(bytes: number): string {

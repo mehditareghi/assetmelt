@@ -1,13 +1,30 @@
-import { Download, Play, Redo2, Settings, Trash2, Undo2, Upload, FileJson } from 'lucide-react'
+import {
+  Download,
+  MoreHorizontal,
+  Play,
+  Redo2,
+  Settings,
+  Trash2,
+  Undo2,
+  Upload,
+  FileJson,
+} from 'lucide-react'
 import { toast } from 'sonner'
 import { OfflinePrepRestoreLink } from '@/components/pwa/offline-prep-restore-link'
 import { useStudioStore } from '@/stores/studio-store'
 import { downloadProcessedFiles, fileHasDownloadableResult } from '@/lib/download-results'
 import { PresetPicker } from '@/components/studio/preset-picker'
 import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { pipelineSchema } from '@/lib/schemas/pipeline-schema'
+import { cn } from '@/lib/utils'
 
 export function StudioToolbar() {
   const files = useStudioStore((s) => s.files)
@@ -26,6 +43,9 @@ export function StudioToolbar() {
   const canRedo = useStudioStore((s) => s.canRedo)
 
   const doneCount = files.filter(fileHasDownloadableResult).length
+  const hasFiles = files.length > 0
+  const canProcess = hasFiles && !isCropEditing && !isProcessing
+  const canDownload = doneCount > 0 && !isCropEditing && !isProcessing
 
   const handleExportAll = async () => {
     const done = files.filter(fileHasDownloadableResult)
@@ -83,33 +103,147 @@ export function StudioToolbar() {
   }
 
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex flex-wrap items-center gap-3">
-        <PresetPicker disabled={isCropEditing} />
+    <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+          <div className="min-w-0 flex-1">
+            <PresetPicker disabled={isCropEditing} />
+          </div>
 
-        <OfflinePrepRestoreLink variant="toolbar" />
+          <OfflinePrepRestoreLink variant="toolbar" />
 
-        <div className="flex items-center gap-2">
-          <Switch
-            id="advanced"
-            checked={isAdvancedMode}
-            onCheckedChange={setAdvancedMode}
+          <div className="flex shrink-0 items-center gap-2">
+            <Switch
+              id="advanced"
+              checked={isAdvancedMode}
+              onCheckedChange={setAdvancedMode}
+              disabled={isCropEditing}
+            />
+            <Label
+              htmlFor="advanced"
+              className="hidden items-center gap-1.5 text-sm sm:flex"
+            >
+              <Settings className="size-3.5" />
+              Advanced
+            </Label>
+          </div>
+        </div>
+
+        <div className="hidden flex-wrap items-center justify-end gap-2 sm:flex">
+          <Button
+            variant="outline"
+            size="icon-sm"
+            onClick={() => undo()}
+            disabled={!canUndo()}
+            title="Undo (⌘Z)"
+            aria-label="Undo"
+          >
+            <Undo2 className="size-3.5" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon-sm"
+            onClick={() => redo()}
+            disabled={!canRedo()}
+            title="Redo (⌘⇧Z)"
+            aria-label="Redo"
+          >
+            <Redo2 className="size-3.5" />
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleImportConfig}
             disabled={isCropEditing}
-          />
-          <Label htmlFor="advanced" className="flex items-center gap-1.5 text-sm">
-            <Settings className="size-3.5" />
-            Advanced
-          </Label>
+            className="gap-1.5"
+          >
+            <Upload className="size-3.5" />
+            Import
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportConfig}
+            disabled={isCropEditing}
+            className="gap-1.5"
+          >
+            <FileJson className="size-3.5" />
+            Export JSON
+          </Button>
+          {hasFiles && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearFiles}
+              disabled={isCropEditing || isProcessing}
+              className="gap-1.5"
+            >
+              <Trash2 className="size-3.5" />
+            </Button>
+          )}
+          <Button
+            size="sm"
+            onClick={() => processAll()}
+            disabled={!canProcess}
+            className="gap-1.5"
+          >
+            <Play className="size-3.5" />
+            Process{hasFiles ? ` (${files.length})` : ''}
+          </Button>
+          {doneCount > 0 && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => void handleExportAll()}
+              disabled={!canDownload}
+              className="gap-1.5"
+            >
+              <Download className="size-3.5" />
+              Download ({doneCount})
+            </Button>
+          )}
         </div>
       </div>
 
-      <div className="flex flex-nowrap items-center gap-2 overflow-x-auto sm:flex-wrap sm:overflow-visible">
+      {/* Mobile: primary actions — full width, always visible */}
+      {hasFiles && (
+        <div
+          className={cn(
+            'grid gap-2 sm:hidden',
+            doneCount > 0 ? 'grid-cols-2' : 'grid-cols-1',
+          )}
+        >
+          <Button
+            size="sm"
+            className="h-9 w-full gap-1.5"
+            onClick={() => processAll()}
+            disabled={!canProcess}
+          >
+            <Play className="size-3.5" />
+            Process ({files.length})
+          </Button>
+          {doneCount > 0 && (
+            <Button
+              variant="secondary"
+              size="sm"
+              className="h-9 w-full gap-1.5"
+              onClick={() => void handleExportAll()}
+              disabled={!canDownload}
+            >
+              <Download className="size-3.5" />
+              Download ({doneCount})
+            </Button>
+          )}
+        </div>
+      )}
+
+      {/* Mobile: compact utility strip — no scroll */}
+      <div className="flex items-center gap-1 sm:hidden">
         <Button
           variant="outline"
           size="icon-sm"
           onClick={() => undo()}
           disabled={!canUndo()}
-          title="Undo (⌘Z)"
           aria-label="Undo"
         >
           <Undo2 className="size-3.5" />
@@ -119,63 +253,40 @@ export function StudioToolbar() {
           size="icon-sm"
           onClick={() => redo()}
           disabled={!canRedo()}
-          title="Redo (⌘⇧Z)"
           aria-label="Redo"
         >
           <Redo2 className="size-3.5" />
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleImportConfig}
-          disabled={isCropEditing}
-          className="gap-1.5"
-        >
-          <Upload className="size-3.5" />
-          <span className="hidden sm:inline">Import</span>
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleExportConfig}
-          disabled={isCropEditing}
-          className="gap-1.5"
-        >
-          <FileJson className="size-3.5" />
-          <span className="hidden sm:inline">Export JSON</span>
-        </Button>
-        {files.length > 0 && (
+        {hasFiles && (
           <Button
             variant="ghost"
-            size="sm"
+            size="icon-sm"
             onClick={clearFiles}
             disabled={isCropEditing || isProcessing}
-            className="gap-1.5"
+            aria-label="Clear queue"
           >
             <Trash2 className="size-3.5" />
           </Button>
         )}
-        <Button
-          size="sm"
-          onClick={() => processAll()}
-          disabled={isCropEditing || isProcessing || files.length === 0}
-          className="gap-1.5"
-        >
-          <Play className="size-3.5" />
-          Process{files.length > 0 ? ` (${files.length})` : ''}
-        </Button>
-        {doneCount > 0 && (
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => void handleExportAll()}
-            disabled={isCropEditing || isProcessing}
-            className="gap-1.5"
-          >
-            <Download className="size-3.5" />
-            Download ({doneCount})
-          </Button>
-        )}
+        <div className="ml-auto">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon-sm" aria-label="More actions">
+                <MoreHorizontal className="size-3.5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleImportConfig} disabled={isCropEditing}>
+                <Upload className="size-3.5" />
+                Import pipeline
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExportConfig} disabled={isCropEditing}>
+                <FileJson className="size-3.5" />
+                Export pipeline JSON
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
     </div>
   )
