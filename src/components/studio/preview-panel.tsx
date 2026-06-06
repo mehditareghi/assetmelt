@@ -200,10 +200,11 @@ export function PreviewPanel() {
           </p>
         </>
       ) : (
-        <div
-          ref={previewContainerRef}
-          className="relative aspect-video w-full overflow-hidden rounded-xl border border-border/50 bg-muted/20"
-        >
+        <div className="overflow-visible rounded-xl p-px ring-1 ring-border/50">
+          <div
+            ref={previewContainerRef}
+            className="relative aspect-video w-full overflow-hidden rounded-[calc(0.75rem-1px)] bg-muted/20"
+          >
           {displayUrl && (
             <img
               ref={previewImageRef}
@@ -277,6 +278,7 @@ export function PreviewPanel() {
               Edit crop
             </Button>
           )}
+          </div>
         </div>
       )}
 
@@ -315,7 +317,7 @@ export function PreviewPanel() {
               </span>
             </div>
           )}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 overflow-visible sm:grid-cols-4">
             <Stat label="Original" value={filesize(compareStats.originalSize)} />
             <Stat label="Output" value={filesize(compareStats.outputSize)} />
             <Stat
@@ -344,11 +346,13 @@ function Stat({
   highlight?: boolean
 }) {
   return (
-    <div className="glass-surface rounded-xl p-3">
-      <p className="font-mono text-xs text-muted-foreground">{label}</p>
-      <p className={cn('mt-1 font-mono text-sm font-medium', highlight && 'text-primary')}>
-        {value}
-      </p>
+    <div className="glass-surface overflow-visible rounded-xl p-px">
+      <div className="rounded-[calc(0.75rem-1px)] p-3">
+        <p className="font-mono text-xs text-muted-foreground">{label}</p>
+        <p className={cn('mt-1 font-mono text-sm font-medium', highlight && 'text-primary')}>
+          {value}
+        </p>
+      </div>
     </div>
   )
 }

@@ -61,7 +61,7 @@ export function CompareScrubber({
   }
 
   return (
-    <div className={cn('rounded-2xl', className)}>
+    <div className={cn('glass-surface overflow-visible rounded-2xl p-px', className)}>
       <div
         ref={regionRef}
         role="slider"
@@ -70,7 +70,7 @@ export function CompareScrubber({
         aria-valuemax={100}
         aria-valuenow={position}
         tabIndex={0}
-        className="group/compare relative aspect-video w-full cursor-ew-resize touch-none overflow-hidden rounded-2xl bg-muted/20 select-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+        className="group/compare relative aspect-video w-full cursor-ew-resize touch-none overflow-hidden rounded-[calc(1rem-1px)] bg-muted/20 select-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}

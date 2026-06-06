@@ -1,4 +1,5 @@
 import { DropZone } from '@/components/studio/drop-zone'
+import { AppUpdatePanel } from '@/components/pwa/app-update-panel'
 import { OfflinePrepPanel } from '@/components/pwa/offline-prep-panel'
 import { FileQueue } from '@/components/studio/file-queue'
 import { PreviewPanel } from '@/components/studio/preview-panel'
@@ -88,6 +89,7 @@ function Studio() {
 
       <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
         <OfflinePrepPanel />
+        <AppUpdatePanel />
         <div className="glass-surface overflow-visible rounded-2xl p-3 sm:p-4">
           <StudioToolbar />
         </div>
@@ -107,7 +109,7 @@ function Studio() {
                 <FileQueue />
               </aside>
 
-              <section className="min-w-0">
+              <section className="min-w-0 overflow-visible">
                 <PreviewPanel />
               </section>
 
