@@ -4,6 +4,13 @@ All notable changes to Asset Melt are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/) and [Conventional Commits](https://www.conventionalcommits.org/).
 
 
+## [0.9.0](https://github.com/mehditareghi/assetmelt/compare/v0.8.0...v0.9.0) (2026-06-07)
+
+
+### Features
+
+* add blog ([d67a840](https://github.com/mehditareghi/assetmelt/commit/d67a84068bf6a9278a53f4b06d87e5b11841b154))
+
 ## [0.8.0](https://github.com/mehditareghi/assetmelt/compare/v0.7.14...v0.8.0) (2026-06-07)
 
 
