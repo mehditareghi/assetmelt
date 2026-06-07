@@ -4,6 +4,13 @@ All notable changes to Asset Melt are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/) and [Conventional Commits](https://www.conventionalcommits.org/).
 
 
+## [0.7.14](https://github.com/mehditareghi/assetmelt/compare/v0.7.13...v0.7.14) (2026-06-07)
+
+
+### Bug Fixes
+
+* footer text placement and color ([e1bd444](https://github.com/mehditareghi/assetmelt/commit/e1bd4442b0bfe36f26189370b2d4ce36ff6323b0))
+
 ## [0.7.13](https://github.com/mehditareghi/assetmelt/compare/v0.7.12...v0.7.13) (2026-06-07)
 
 
