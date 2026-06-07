@@ -4,6 +4,13 @@ All notable changes to Asset Melt are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/) and [Conventional Commits](https://www.conventionalcommits.org/).
 
 
+## [0.8.0](https://github.com/mehditareghi/assetmelt/compare/v0.7.14...v0.8.0) (2026-06-07)
+
+
+### Features
+
+* offline pack size and tool landing pages ([0d19384](https://github.com/mehditareghi/assetmelt/commit/0d19384c8045861d808308f867c0ff36259c2634))
+
 ## [0.7.14](https://github.com/mehditareghi/assetmelt/compare/v0.7.13...v0.7.14) (2026-06-07)
 
 
