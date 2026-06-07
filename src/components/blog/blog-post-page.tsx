@@ -1,5 +1,4 @@
 import { Link } from '@tanstack/react-router'
-import { motion } from 'motion/react'
 import { ChevronRight, Clock } from 'lucide-react'
 import type { ComponentType } from 'react'
 import {
@@ -56,11 +55,7 @@ export function BlogPostPage({ post, Content }: BlogPostPageProps) {
             </ol>
           </nav>
 
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45 }}
-          >
+          <div>
             <div className="mb-4 flex flex-wrap items-center gap-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
               <time dateTime={post.publishedAt}>Published {formatDate(post.publishedAt)}</time>
               {post.updatedAt ? (
@@ -80,7 +75,7 @@ export function BlogPostPage({ post, Content }: BlogPostPageProps) {
               {post.title}
             </h1>
             <p className="mt-4 text-lg leading-relaxed text-muted-foreground">{post.description}</p>
-          </motion.div>
+          </div>
         </header>
 
         {post.heroWebp ? (

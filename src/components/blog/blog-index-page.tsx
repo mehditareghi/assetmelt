@@ -1,5 +1,4 @@
 import { Link } from '@tanstack/react-router'
-import { motion } from 'motion/react'
 import { BookOpen } from 'lucide-react'
 import { BlogPostCard } from '@/components/blog/blog-post-card'
 import { LandingSectionHeader } from '@/components/landing/landing-section-header'
@@ -16,20 +15,14 @@ export function BlogIndexPage() {
         <div className="landing-section-glow pointer-events-none absolute inset-x-0 top-0 -z-10 h-[50vh]" />
 
         <div className="relative mx-auto max-w-3xl text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45 }}
-          >
-            <LandingSectionHeader
-              icon={BookOpen}
-              eyebrow="Blog"
-              title="Image compression guides"
-              titleAccent="for the privacy-conscious web"
-              description="Deep dives on browser-based compression, modern formats, and workflows that never upload your files."
-              className="mb-0"
-            />
-          </motion.div>
+          <LandingSectionHeader
+            icon={BookOpen}
+            eyebrow="Blog"
+            title="Image compression guides"
+            titleAccent="for the privacy-conscious web"
+            description="Deep dives on browser-based compression, modern formats, and workflows that never upload your files."
+            className="mb-0"
+          />
         </div>
       </section>
 

@@ -24,6 +24,10 @@ test('compile-blog outputs repo artifacts', () => {
   assert.ok(Array.isArray(paths))
   assert.ok(paths.length >= 4)
   assert.ok(paths.every((path) => path.startsWith('/blog/')))
+
+  const index = readFileSync(indexPath, 'utf8')
+  assert.match(index, /BLOG_POST_LOADERS/)
+  assert.doesNotMatch(index, /^import BlogPost_/m)
 })
 
 test('generate-sitemap writes blog urls', () => {
