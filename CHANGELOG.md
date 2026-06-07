@@ -4,6 +4,13 @@ All notable changes to Asset Melt are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/) and [Conventional Commits](https://www.conventionalcommits.org/).
 
 
+## [0.7.13](https://github.com/mehditareghi/assetmelt/compare/v0.7.12...v0.7.13) (2026-06-07)
+
+
+### Bug Fixes
+
+* update on PWA ([7a732e0](https://github.com/mehditareghi/assetmelt/commit/7a732e0b280e2f02fc3c28a34d2683014dade501))
+
 ## [0.7.12](https://github.com/mehditareghi/assetmelt/compare/v0.7.11...v0.7.12) (2026-06-07)
 
 
