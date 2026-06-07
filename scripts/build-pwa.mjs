@@ -9,6 +9,9 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const srcSw = resolve(root, 'src/sw.ts')
 
 function resolveNitroOutput() {
+  /** Prefer the freshest Nitro output when both `.vercel/output` and `.output` exist locally. */
+  let selected = null
+
   for (const nitroRoot of [
     resolve(root, '.vercel/output'),
     resolve(root, '.output'),
@@ -25,13 +28,26 @@ function resolveNitroOutput() {
       process.exit(1)
     }
 
-    return { nitroRoot, preset: nitro.preset, publicDir, serverEntry }
+    const builtAt = nitro.date ? Date.parse(nitro.date) : 0
+    if (!selected || builtAt >= selected.builtAt) {
+      selected = {
+        nitroRoot,
+        preset: nitro.preset,
+        publicDir,
+        serverEntry,
+        builtAt,
+      }
+    }
   }
 
-  console.error(
-    'Error: Nitro build output not found. Expected .vercel/output or .output after vite build.',
-  )
-  process.exit(1)
+  if (!selected) {
+    console.error(
+      'Error: Nitro build output not found. Expected .vercel/output or .output after vite build.',
+    )
+    process.exit(1)
+  }
+
+  return selected
 }
 
 const { preset, publicDir, serverEntry } = resolveNitroOutput()

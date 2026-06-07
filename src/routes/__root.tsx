@@ -19,13 +19,7 @@ import { documentBootstrapScript } from '@/lib/pwa/register-sw'
 import { getAppVersion } from '@/lib/app-version-fn'
 import { AppVersionProvider } from '@/lib/version'
 import appCss from '@/styles/globals.css?url'
-
-// Variable fonts — ranges match actual Tailwind weights in use:
-// Bricolage (display): 600 semibold, 700 bold, 800 extrabold
-// Inter (sans): 400 normal/body, 500 medium, 600 semibold
-// JetBrains Mono: 400 metadata, 500 medium, 600 semibold, 700 bold
-const googleFontsHref =
-  'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Inter:wght@400..600&family=JetBrains+Mono:wght@400..700&display=swap'
+import { fontPreloads } from '@/lib/fonts'
 
 export const Route = createRootRoute({
   beforeLoad: ({ location }) => {
@@ -46,17 +40,17 @@ export const Route = createRootRoute({
       { name: 'apple-mobile-web-app-title', content: 'Asset Melt' },
     ],
     links: [
+      ...fontPreloads.map(({ href, type }) => ({
+        rel: 'preload' as const,
+        href,
+        as: 'font' as const,
+        type,
+        crossOrigin: 'anonymous' as const,
+      })),
       { rel: 'stylesheet', href: appCss },
       { rel: 'manifest', href: '/manifest.webmanifest' },
       { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
       { rel: 'apple-touch-icon', href: '/icons/icon-192.png' },
-      { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-      {
-        rel: 'preconnect',
-        href: 'https://fonts.gstatic.com',
-        crossOrigin: 'anonymous',
-      },
-      { rel: 'stylesheet', href: googleFontsHref },
     ],
   }),
   component: RootComponent,

@@ -17,6 +17,9 @@
     "prepare": "husky"
   },
   "dependencies": {
+    "@fontsource-variable/bricolage-grotesque": "^5.2.10",
+    "@fontsource-variable/inter": "^5.2.8",
+    "@fontsource-variable/jetbrains-mono": "^5.2.8",
     "@hookform/resolvers": "^5.4.0",
     "@jsquash/avif": "^2.1.1",
     "@jsquash/jpeg": "^1.6.0",
@@ -62,10 +65,10 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
     "commit-and-tag-version": "^12.7.3",
+    "esbuild": "^0.25.12",
     "eslint": "^10.3.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
-    "esbuild": "^0.25.12",
     "globals": "^17.6.0",
     "husky": "^9.1.7",
     "nitro": "3.0.260522-beta",
