@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { applyAppUpdate } from '@/lib/pwa/apply-app-update'
 import {
   dismissUpdate,
   fetchRemoteVersion,
@@ -44,7 +45,7 @@ export function useAppUpdate() {
   }, [latestVersion])
 
   const reload = useCallback(() => {
-    window.location.reload()
+    void applyAppUpdate()
   }, [])
 
   return {

@@ -35,6 +35,16 @@ function isHtmlResponse(response: Response): boolean {
   return type.includes('text/html')
 }
 
+function navigationShellPaths(pathname: string): string[] {
+  if (pathname === '/studio' || pathname === '/studio/' || pathname === '/studio/index.html') {
+    return ['/studio', '/studio/index.html']
+  }
+  if (pathname === '/' || pathname === '/index.html') {
+    return ['/', '/index.html']
+  }
+  return [pathname]
+}
+
 async function toNavigationResponse(response: Response): Promise<Response | undefined> {
   if (!response.ok || isRedirectResponse(response) || !isHtmlResponse(response)) {
     return undefined
@@ -57,14 +67,7 @@ async function matchCached(request: Request): Promise<Response | undefined> {
 }
 
 async function serveNavigation(pathname: string): Promise<Response | undefined> {
-  const paths =
-    pathname === '/studio' || pathname === '/studio/' || pathname === '/studio/index.html'
-      ? ['/studio', '/studio/index.html']
-      : pathname === '/'
-        ? ['/', '/index.html']
-        : [pathname]
-
-  for (const path of paths) {
+  for (const path of navigationShellPaths(pathname)) {
     const cached = await matchCached(new Request(path))
     if (!cached) continue
     const navigationResponse = await toNavigationResponse(cached)
@@ -72,6 +75,38 @@ async function serveNavigation(pathname: string): Promise<Response | undefined> 
   }
 
   return undefined
+}
+
+async function cacheNavigationShell(pathname: string, response: Response): Promise<void> {
+  const storable = await toNavigationResponse(response)
+  if (!storable) return
+
+  const body = await storable.blob()
+  const contentType =
+    storable.headers.get('content-type') ?? 'text/html; charset=utf-8'
+  const cache = await caches.open(CACHE_NAME)
+
+  for (const path of navigationShellPaths(pathname)) {
+    await cache.put(
+      new Request(path),
+      new Response(body, {
+        status: 200,
+        headers: { 'Content-Type': contentType },
+      }),
+    )
+  }
+}
+
+async function fetchFreshNavigation(request: Request): Promise<Response | undefined> {
+  try {
+    const response = await fetch(request, { cache: 'no-store' })
+    if (!response.ok || isRedirectResponse(response) || !isHtmlResponse(response)) {
+      return undefined
+    }
+    return response
+  } catch {
+    return undefined
+  }
 }
 
 sw.addEventListener('install', () => {
@@ -93,8 +128,17 @@ sw.addEventListener('fetch', (event) => {
 })
 
 async function handleFetch(request: Request): Promise<Response> {
+  const pathname = new URL(request.url).pathname
+
   if (request.mode === 'navigate') {
-    const pathname = new URL(request.url).pathname
+    if (sw.navigator.onLine) {
+      const fresh = await fetchFreshNavigation(request)
+      if (fresh) {
+        await cacheNavigationShell(pathname, fresh.clone())
+        return fresh
+      }
+    }
+
     const shell = await serveNavigation(pathname)
     if (shell) return shell
   }

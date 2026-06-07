@@ -1,3 +1,4 @@
+import { applyAppUpdate } from '@/lib/pwa/apply-app-update'
 import { consumeOfflineServiceWorkerActivation } from '@/lib/pwa/offline-prep'
 
 const SW_URL = '/sw.js'
@@ -22,15 +23,15 @@ export function watchServiceWorkerUpdates(callbacks: ServiceWorkerCallbacks): ()
 
   navigator.serviceWorker.addEventListener('controllerchange', onControllerChange)
 
-  const notifyNeedRefresh = (registration: ServiceWorkerRegistration) => {
+  const notifyNeedRefresh = () => {
     callbacks.onNeedRefresh?.(() => {
-      registration.waiting?.postMessage({ type: 'SKIP_WAITING' })
+      void applyAppUpdate()
     })
   }
 
   const wireRegistration = (registration: ServiceWorkerRegistration) => {
     if (registration.waiting && navigator.serviceWorker.controller) {
-      notifyNeedRefresh(registration)
+      notifyNeedRefresh()
     }
 
     registration.addEventListener('updatefound', () => {
@@ -40,7 +41,7 @@ export function watchServiceWorkerUpdates(callbacks: ServiceWorkerCallbacks): ()
       installing.addEventListener('statechange', () => {
         if (installing.state !== 'installed') return
         if (navigator.serviceWorker.controller) {
-          notifyNeedRefresh(registration)
+          notifyNeedRefresh()
         }
       })
     })
