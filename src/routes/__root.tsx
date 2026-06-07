@@ -20,8 +20,12 @@ import { getAppVersion } from '@/lib/app-version-fn'
 import { AppVersionProvider } from '@/lib/version'
 import appCss from '@/styles/globals.css?url'
 
+// Variable fonts — ranges match actual Tailwind weights in use:
+// Bricolage (display): 600 semibold, 700 bold, 800 extrabold
+// Inter (sans): 400 normal/body, 500 medium, 600 semibold
+// JetBrains Mono: 400 metadata, 500 medium, 600 semibold, 700 bold
 const googleFontsHref =
-  'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap'
+  'https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Inter:wght@400..600&family=JetBrains+Mono:wght@400..700&display=swap'
 
 export const Route = createRootRoute({
   beforeLoad: ({ location }) => {
