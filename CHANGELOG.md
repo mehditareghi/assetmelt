@@ -4,6 +4,14 @@ All notable changes to Asset Melt are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/) and [Conventional Commits](https://www.conventionalcommits.org/).
 
 
+## [0.7.12](https://github.com/mehditareghi/assetmelt/compare/v0.7.11...v0.7.12) (2026-06-07)
+
+
+### Bug Fixes
+
+* fonts ([08f9bdb](https://github.com/mehditareghi/assetmelt/commit/08f9bdbba25f37d8c833e8b5b84a100bf91d9dbe))
+* use variable fonts ([6e2524f](https://github.com/mehditareghi/assetmelt/commit/6e2524f3b385aeed49b6d9fee61af703d9b50efb))
+
 ## [0.7.11](https://github.com/mehditareghi/assetmelt/compare/v0.7.10...v0.7.11) (2026-06-06)
 
 
