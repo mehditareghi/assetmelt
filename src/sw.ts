@@ -1,8 +1,10 @@
 /// <reference lib="webworker" />
 
+declare const OFFLINE_CACHE_NAME: string
+
 const sw = self as unknown as ServiceWorkerGlobalScope
 
-const CACHE_NAME = 'assetmelt-offline-v2'
+const CACHE_NAME = OFFLINE_CACHE_NAME
 
 const OFFLINE_FALLBACK_HTML = `<!DOCTYPE html>
 <html lang="en">
@@ -35,14 +37,12 @@ function isHtmlResponse(response: Response): boolean {
   return type.includes('text/html')
 }
 
-function navigationShellPaths(pathname: string): string[] {
-  if (pathname === '/studio' || pathname === '/studio/' || pathname === '/studio/index.html') {
-    return ['/studio', '/studio/index.html']
-  }
-  if (pathname === '/' || pathname === '/index.html') {
-    return ['/', '/index.html']
-  }
-  return [pathname]
+function isStudioNavigation(pathname: string): boolean {
+  return pathname === '/studio' || pathname === '/studio/' || pathname === '/studio/index.html'
+}
+
+function studioNavigationPaths(): string[] {
+  return ['/studio', '/studio/index.html']
 }
 
 async function toNavigationResponse(response: Response): Promise<Response | undefined> {
@@ -66,8 +66,8 @@ async function matchCached(request: Request): Promise<Response | undefined> {
   return response
 }
 
-async function serveNavigation(pathname: string): Promise<Response | undefined> {
-  for (const path of navigationShellPaths(pathname)) {
+async function serveStudioNavigation(): Promise<Response | undefined> {
+  for (const path of studioNavigationPaths()) {
     const cached = await matchCached(new Request(path))
     if (!cached) continue
     const navigationResponse = await toNavigationResponse(cached)
@@ -77,7 +77,7 @@ async function serveNavigation(pathname: string): Promise<Response | undefined> 
   return undefined
 }
 
-async function cacheNavigationShell(pathname: string, response: Response): Promise<void> {
+async function cacheStudioNavigationShell(response: Response): Promise<void> {
   const storable = await toNavigationResponse(response)
   if (!storable) return
 
@@ -86,7 +86,7 @@ async function cacheNavigationShell(pathname: string, response: Response): Promi
     storable.headers.get('content-type') ?? 'text/html; charset=utf-8'
   const cache = await caches.open(CACHE_NAME)
 
-  for (const path of navigationShellPaths(pathname)) {
+  for (const path of studioNavigationPaths()) {
     await cache.put(
       new Request(path),
       new Response(body, {
@@ -117,6 +117,7 @@ sw.addEventListener('activate', (event) => {
   event.waitUntil(
     (async () => {
       await caches.delete('assetmelt-offline-v1')
+      await caches.delete('assetmelt-offline-v2')
       await sw.clients.claim()
     })(),
   )
@@ -134,13 +135,26 @@ async function handleFetch(request: Request): Promise<Response> {
     if (sw.navigator.onLine) {
       const fresh = await fetchFreshNavigation(request)
       if (fresh) {
-        await cacheNavigationShell(pathname, fresh.clone())
+        if (isStudioNavigation(pathname)) {
+          await cacheStudioNavigationShell(fresh.clone())
+        }
         return fresh
       }
     }
 
-    const shell = await serveNavigation(pathname)
-    if (shell) return shell
+    if (!sw.navigator.onLine) {
+      const studioShell = await serveStudioNavigation()
+      if (studioShell) return studioShell
+
+      return new Response(OFFLINE_FALLBACK_HTML, {
+        headers: { 'Content-Type': 'text/html; charset=utf-8' },
+      })
+    }
+
+    if (isStudioNavigation(pathname)) {
+      const studioShell = await serveStudioNavigation()
+      if (studioShell) return studioShell
+    }
   }
 
   const cached = await matchCached(request)
@@ -152,7 +166,7 @@ async function handleFetch(request: Request): Promise<Response> {
     return response
   } catch {
     if (request.mode === 'navigate') {
-      const studioShell = await serveNavigation('/studio')
+      const studioShell = await serveStudioNavigation()
       if (studioShell) return studioShell
 
       return new Response(OFFLINE_FALLBACK_HTML, {

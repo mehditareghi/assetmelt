@@ -1,4 +1,4 @@
-import { Link } from '@tanstack/react-router'
+import { Link, useLocation } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/layout/theme-toggle'
 import { cn } from '@/lib/utils'
@@ -8,12 +8,16 @@ interface SiteHeaderProps {
 }
 
 const LANDING_LINKS = [
-  { href: '#features', label: 'Features' },
-  { href: '#how-it-works', label: 'How it works' },
-  { href: '#support', label: 'Support' },
+  { href: '/#features', label: 'Features' },
+  { href: '/#how-it-works', label: 'How it works' },
+  { href: '/#support', label: 'Support' },
 ] as const
 
 export function SiteHeader({ variant = 'landing' }: SiteHeaderProps) {
+  const { pathname } = useLocation()
+  const isHome = pathname === '/'
+  const showSectionLinks = variant === 'landing' && isHome
+
   return (
     <header className="sticky top-0 z-50 pt-3">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -26,7 +30,7 @@ export function SiteHeader({ variant = 'landing' }: SiteHeaderProps) {
         </Link>
 
         <nav className="flex items-center gap-1 sm:gap-2">
-          {variant === 'landing' &&
+          {showSectionLinks &&
             LANDING_LINKS.map((link, i) => (
               <Button
                 key={link.href}
@@ -42,6 +46,11 @@ export function SiteHeader({ variant = 'landing' }: SiteHeaderProps) {
                 <a href={link.href}>{link.label}</a>
               </Button>
             ))}
+          {!isHome && variant === 'landing' ? (
+            <Button variant="ghost" size="sm" asChild className="hidden font-mono text-xs sm:inline-flex">
+              <Link to="/">Home</Link>
+            </Button>
+          ) : null}
           <ThemeToggle />
           {variant === 'landing' ? (
             <Button size="sm" asChild className="ml-1">

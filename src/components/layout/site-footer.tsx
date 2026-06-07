@@ -2,6 +2,7 @@ import { Link, useLocation, useNavigate } from '@tanstack/react-router'
 import { InstallAppLink } from '@/components/pwa/install-app-link'
 import { OfflinePrepRestoreLink } from '@/components/pwa/offline-prep-restore-link'
 import { Badge } from '@/components/ui/badge'
+import { TOOL_PAGE_LIST } from '@/lib/tool-pages'
 import { useAppVersion } from '@/lib/version'
 import { Shield } from 'lucide-react'
 
@@ -69,6 +70,21 @@ export function SiteFooter() {
               </Link>
               {isStudio ? <OfflinePrepRestoreLink /> : null}
               <InstallAppLink />
+            </nav>
+
+            <nav
+              aria-label="Tool pages"
+              className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 sm:justify-start"
+            >
+              {TOOL_PAGE_LIST.map((page) => (
+                <Link
+                  key={page.id}
+                  to={page.path}
+                  className="font-mono text-[11px] text-muted-foreground transition-colors hover:text-primary"
+                >
+                  {page.breadcrumbLabel}
+                </Link>
+              ))}
             </nav>
           </div>
 

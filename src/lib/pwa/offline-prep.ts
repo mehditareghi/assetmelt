@@ -1,4 +1,4 @@
-export const OFFLINE_CACHE_NAME = 'assetmelt-offline-v2'
+export const OFFLINE_CACHE_NAME = 'assetmelt-offline-v3'
 export const OFFLINE_VERSION_KEY = 'assetmelt-offline-version'
 export const OFFLINE_MANIFEST_META_KEY = 'assetmelt-offline-manifest-meta'
 export const OFFLINE_SW_ACTIVATING_KEY = 'assetmelt-sw-activating-offline'
@@ -9,7 +9,7 @@ const SW_URL = '/sw.js'
 const MANIFEST_URL = '/offline-manifest.json'
 
 export interface OfflineManifest {
-  version: string
+  packVersion: string
   totalBytes: number
   assets: string[]
   assetSizes: Record<string, number>
@@ -108,13 +108,16 @@ function setStoredOfflineVersion(version: string): void {
   }
 }
 
-function getCachedManifestMeta(): Pick<OfflineManifest, 'version' | 'totalBytes'> | null {
+function getCachedManifestMeta(): Pick<OfflineManifest, 'packVersion' | 'totalBytes'> | null {
   try {
     const raw = localStorage.getItem(OFFLINE_MANIFEST_META_KEY)
     if (!raw) return null
-    const parsed = JSON.parse(raw) as Pick<OfflineManifest, 'version' | 'totalBytes'>
-    if (typeof parsed.version !== 'string' || typeof parsed.totalBytes !== 'number') return null
-    return parsed
+    const parsed = JSON.parse(raw) as Partial<Pick<OfflineManifest, 'packVersion' | 'totalBytes'>> & {
+      version?: string
+    }
+    const packVersion = parsed.packVersion ?? parsed.version
+    if (typeof packVersion !== 'string' || typeof parsed.totalBytes !== 'number') return null
+    return { packVersion, totalBytes: parsed.totalBytes }
   } catch {
     return null
   }
@@ -124,11 +127,15 @@ function setCachedManifestMeta(manifest: OfflineManifest): void {
   try {
     localStorage.setItem(
       OFFLINE_MANIFEST_META_KEY,
-      JSON.stringify({ version: manifest.version, totalBytes: manifest.totalBytes }),
+      JSON.stringify({ packVersion: manifest.packVersion, totalBytes: manifest.totalBytes }),
     )
   } catch {
     // ignore storage failures
   }
+}
+
+function readManifestPackVersion(manifest: OfflineManifest & { version?: string }): string {
+  return manifest.packVersion ?? manifest.version ?? ''
 }
 
 export function markOfflineServiceWorkerActivation(): void {
@@ -187,14 +194,14 @@ async function toStorableResponse(response: Response): Promise<{ response: Respo
 }
 
 async function seedNavigationShells(cache: Cache): Promise<void> {
-  for (const url of ['/studio', '/']) {
-    const existing = await cache.match(url)
-    if (existing && !isRedirectResponse(existing)) continue
+  const url = '/studio'
+  const existing = await cache.match(url)
+  if (existing && !isRedirectResponse(existing)) return
 
-    const response = await fetch(url, { redirect: 'follow' })
-    const { response: storable } = await toStorableResponse(response)
-    await cache.put(url, storable)
-  }
+  const response = await fetch(url, { redirect: 'follow' })
+  const { response: storable } = await toStorableResponse(response)
+  await cache.put(url, storable)
+  await cache.put('/studio/index.html', storable.clone())
 }
 
 function delay(ms: number): Promise<void> {
@@ -254,7 +261,7 @@ export async function getOfflinePrepSnapshot(): Promise<{
   if (storedVersion && hasShell) {
     const cachedManifest: OfflineManifest | null = cachedMeta
       ? {
-          version: cachedMeta.version,
+          packVersion: cachedMeta.packVersion,
           totalBytes: cachedMeta.totalBytes,
           assets: [],
           assetSizes: {},
@@ -267,7 +274,8 @@ export async function getOfflinePrepSnapshot(): Promise<{
 
     try {
       const remoteManifest = await fetchOfflineManifest()
-      if (remoteManifest.version !== storedVersion) {
+      const remotePackVersion = readManifestPackVersion(remoteManifest)
+      if (remotePackVersion !== storedVersion) {
         return { status: 'outdated', manifest: remoteManifest, storedVersion }
       }
       setCachedManifestMeta(remoteManifest)
@@ -286,7 +294,7 @@ export async function getOfflinePrepSnapshot(): Promise<{
         status: 'ready',
         manifest: cachedMeta
           ? {
-              version: cachedMeta.version,
+              packVersion: cachedMeta.packVersion,
               totalBytes: cachedMeta.totalBytes,
               assets: [],
               assetSizes: {},
@@ -308,8 +316,9 @@ export async function prepareForOffline(
   }
 
   const manifest = await fetchOfflineManifest()
+  const manifestPackVersion = readManifestPackVersion(manifest)
   const storedVersion = getStoredOfflineVersion()
-  const shouldReplace = storedVersion !== manifest.version
+  const shouldReplace = storedVersion !== manifestPackVersion
 
   if (shouldReplace) {
     await caches.delete(OFFLINE_CACHE_NAME)
@@ -367,7 +376,7 @@ export async function prepareForOffline(
 
   await seedNavigationShells(cache)
 
-  setStoredOfflineVersion(manifest.version)
+  setStoredOfflineVersion(manifestPackVersion)
   setCachedManifestMeta(manifest)
 
   onProgress({

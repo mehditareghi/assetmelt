@@ -1,5 +1,11 @@
 import { motion } from 'motion/react'
 import { HelpCircle } from 'lucide-react'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
 import { LandingSectionHeader } from '@/components/landing/landing-section-header'
 import { FAQ_ITEMS } from '@/lib/llm-content'
 
@@ -22,29 +28,30 @@ export function FaqSection() {
             title="Common questions"
             titleAccent="straight answers"
             description="Everything you need to know before opening the studio."
-            className="mb-10"
+            className="mb-8"
           />
         </motion.div>
 
-        <dl className="space-y-6">
-          {FAQ_ITEMS.map((item, i) => (
-            <motion.div
-              key={item.question}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-40px' }}
-              transition={{ duration: 0.35, delay: i * 0.04 }}
-              className="glass-surface rounded-2xl p-5 sm:p-6"
-            >
-              <dt className="font-display text-base font-semibold sm:text-lg">
-                {item.question}
-              </dt>
-              <dd className="mt-2 text-sm leading-relaxed text-muted-foreground sm:text-base">
-                {item.answer}
-              </dd>
-            </motion.div>
-          ))}
-        </dl>
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-40px' }}
+          transition={{ duration: 0.4 }}
+          className="glass-surface rounded-2xl px-5 sm:px-6"
+        >
+          <Accordion type="single" collapsible className="w-full">
+            {FAQ_ITEMS.map((item, i) => (
+              <AccordionItem key={item.question} value={`faq-${i}`}>
+                <AccordionTrigger className="font-display text-base font-semibold hover:no-underline">
+                  {item.question}
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  {item.answer}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </motion.div>
       </div>
     </section>
   )

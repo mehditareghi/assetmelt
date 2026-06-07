@@ -14,6 +14,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { warmUpWorker } from '@/lib/image/worker-bridge'
+import { useOptionalOfflinePrepContext } from '@/lib/pwa/offline-prep-context'
 import { buildSeoHead } from '@/lib/seo'
 import { SITE_URL } from '@/lib/site'
 import { useStudioStore } from '@/stores/studio-store'
@@ -56,6 +57,8 @@ function Studio() {
   const files = useStudioStore((s) => s.files);
   const undo = useStudioStore((s) => s.undo);
   const redo = useStudioStore((s) => s.redo);
+  const offlinePrep = useOptionalOfflinePrepContext();
+  const hideOfflinePanels = offlinePrep?.offlineStudioChrome ?? false;
 
   useEffect(() => {
     warmUpWorker();
@@ -88,8 +91,8 @@ function Studio() {
       <div className="landing-hero-grid pointer-events-none fixed inset-0 -z-10 opacity-25" />
 
       <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
-        <OfflinePrepPanel />
-        <AppUpdatePanel />
+        {!hideOfflinePanels ? <OfflinePrepPanel /> : null}
+        {!hideOfflinePanels ? <AppUpdatePanel /> : null}
         <div className="glass-surface overflow-visible rounded-2xl p-3 sm:p-4">
           <StudioToolbar />
         </div>

@@ -3,7 +3,10 @@ import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { dirname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { build } from 'esbuild'
-import { getManifest } from 'workbox-build'
+import {
+  buildOfflineManifest,
+  summarizeOfflinePack,
+} from './lib/offline-pack-assets.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const srcSw = resolve(root, 'src/sw.ts')
@@ -56,52 +59,17 @@ const offlineManifestDest = join(publicDir, 'offline-manifest.json')
 
 console.log(`Building PWA for Nitro preset "${preset}" → ${publicDir}`)
 
-console.log('Generating offline manifest...')
-const { manifestEntries, warnings } = await getManifest({
-  globDirectory: publicDir,
-  globPatterns: ['**/*.{js,css,html,wasm,woff2,svg,png,webmanifest}'],
-  globIgnores: ['sw.js', 'offline-manifest.json', '**/node_modules/**'],
-  maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-})
+console.log('Generating studio offline manifest...')
+const offlineManifest = buildOfflineManifest(publicDir)
+const summary = summarizeOfflinePack(offlineManifest)
 
-if (warnings.length > 0) {
-  console.warn('Workbox warnings:', warnings.join('\n'))
-}
-
-const version = JSON.parse(readFileSync(join(root, 'public/version.json'), 'utf8')).version
-
-/** Safari rejects SW responses that were fetched through redirects — use canonical 200 URLs. */
-const OFFLINE_URL_ALIASES = {
-  '/studio/index.html': '/studio',
-}
-
-const assetMap = new Map()
-for (const entry of manifestEntries) {
-  const url = OFFLINE_URL_ALIASES[`/${entry.url}`] ?? `/${entry.url}`
-  const filePath = join(publicDir, entry.url)
-  const size = existsSync(filePath) ? statSync(filePath).size : 0
-  assetMap.set(url, Math.max(assetMap.get(url) ?? 0, size))
-}
-
-const assets = [...assetMap.entries()].map(([url, size]) => ({ url, size }))
-const totalBytes = assets.reduce((sum, asset) => sum + asset.size, 0)
-
-writeFileSync(
-  offlineManifestDest,
-  `${JSON.stringify(
-    {
-      version,
-      totalBytes,
-      assets: assets.map((asset) => asset.url),
-      assetSizes: Object.fromEntries(assets.map((asset) => [asset.url, asset.size])),
-    },
-    null,
-    2,
-  )}\n`,
-)
+writeFileSync(offlineManifestDest, `${JSON.stringify(offlineManifest, null, 2)}\n`)
 
 console.log(
-  `Offline manifest: ${assets.length} files, ${(totalBytes / 1024 / 1024).toFixed(1)} MB → offline-manifest.json`,
+  `Offline manifest: ${summary.assetCount} files, ${summary.totalMb} MB, pack ${offlineManifest.packVersion} → offline-manifest.json`,
+)
+console.log(
+  `  studio shell + ${summary.jsCount} JS + ${summary.wasmCount} WASM (marketing pages excluded)`,
 )
 
 console.log('Transpiling service worker...')
@@ -114,6 +82,9 @@ const result = await build({
   outfile: swDest,
   minify: false,
   logLevel: 'warning',
+  define: {
+    OFFLINE_CACHE_NAME: JSON.stringify('assetmelt-offline-v3'),
+  },
 })
 
 if (result.errors.length > 0) {

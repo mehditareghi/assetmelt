@@ -2,7 +2,7 @@ import { OFFLINE_CACHE_NAME } from '@/lib/pwa/offline-prep'
 
 const SW_URL = '/sw.js'
 
-const NAVIGATION_SHELL_PATHS = ['/', '/index.html', '/studio', '/studio/index.html']
+const NAVIGATION_SHELL_PATHS = ['/studio', '/studio/index.html']
 
 /** Drop cached app shells so the next load can fetch fresh HTML when online. */
 export async function purgeCachedNavigationShells(): Promise<void> {

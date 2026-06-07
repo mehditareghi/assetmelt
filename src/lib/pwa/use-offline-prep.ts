@@ -36,7 +36,20 @@ const INITIAL_STATE: OfflinePrepState = {
 
 export function useOfflinePrep() {
   const [state, setState] = useState<OfflinePrepState>(INITIAL_STATE)
+  const [isOffline, setIsOffline] = useState(() =>
+    typeof navigator !== 'undefined' ? !navigator.onLine : false,
+  )
   const abortRef = useRef<AbortController | null>(null)
+
+  useEffect(() => {
+    const updateOnlineState = () => setIsOffline(!navigator.onLine)
+    window.addEventListener('online', updateOnlineState)
+    window.addEventListener('offline', updateOnlineState)
+    return () => {
+      window.removeEventListener('online', updateOnlineState)
+      window.removeEventListener('offline', updateOnlineState)
+    }
+  }, [])
 
   const refresh = useCallback(async () => {
     if (!isAppInstalled() || !isOfflinePrepSupported()) {
@@ -176,11 +189,17 @@ export function useOfflinePrep() {
     })
   }, [])
 
+  const offlineStudioChrome = isOffline && state.status === 'ready'
+
   const showRestoreLink =
-    state.visible && state.promptDismissed && state.status === 'not-ready'
+    !offlineStudioChrome &&
+    state.visible &&
+    state.promptDismissed &&
+    state.status === 'not-ready'
 
   return {
     ...state,
+    offlineStudioChrome,
     showRestoreLink,
     refresh,
     startDownload,

@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { OfflinePrepRestoreLink } from '@/components/pwa/offline-prep-restore-link'
+import { useOptionalOfflinePrepContext } from '@/lib/pwa/offline-prep-context'
 import { useStudioStore } from '@/stores/studio-store'
 import { downloadProcessedFiles, fileHasDownloadableResult } from '@/lib/download-results'
 import { PresetPicker } from '@/components/studio/preset-picker'
@@ -26,6 +27,8 @@ import { Label } from '@/components/ui/label'
 import { pipelineSchema } from '@/lib/schemas/pipeline-schema'
 
 export function StudioToolbar() {
+  const offlinePrep = useOptionalOfflinePrepContext()
+  const hideOfflineChrome = offlinePrep?.offlineStudioChrome ?? false
   const files = useStudioStore((s) => s.files)
   const activePresetId = useStudioStore((s) => s.activePresetId)
   const isAdvancedMode = useStudioStore((s) => s.isAdvancedMode)
@@ -109,7 +112,7 @@ export function StudioToolbar() {
             <PresetPicker disabled={isCropEditing} />
           </div>
 
-          <OfflinePrepRestoreLink variant="toolbar" />
+          {!hideOfflineChrome ? <OfflinePrepRestoreLink variant="toolbar" /> : null}
 
           <div className="flex shrink-0 items-center gap-2">
             <Switch
