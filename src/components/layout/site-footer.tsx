@@ -86,11 +86,15 @@ export function SiteFooter() {
 
       <div className="border-t border-border/30">
         <div className="mx-auto max-w-7xl px-4 py-4 text-center sm:px-6 lg:px-8">
-          <p className="font-mono text-xs text-muted-foreground">
-            © {YEAR}{' '}
-            <span className="text-foreground/90">Mehdi Tareghi</span>
-            <span className="mx-2 text-border/80">·</span>
-            <span className="text-muted-foreground/70">/* shipped without a backend */</span>
+          <p className="flex flex-col items-center gap-1 font-mono text-xs text-muted-foreground sm:flex-row sm:justify-center">
+            <span>
+              © {YEAR}{' '}
+              <span className="text-foreground">Mehdi Tareghi</span>
+            </span>
+            <span aria-hidden="true" className="hidden sm:inline">
+              {' · '}
+            </span>
+            <span>/* shipped without a backend */</span>
           </p>
         </div>
       </div>
