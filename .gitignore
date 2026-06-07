@@ -34,3 +34,8 @@ dist-ssr
 
 public/version.json
 src/generated/app-version.ts
+src/generated/blog/
+src/generated/blog-index.ts
+src/generated/blog-meta.json
+src/generated/blog-prerender-paths.json
+public/blog/

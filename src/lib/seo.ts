@@ -1,4 +1,3 @@
-import type { FAQ_ITEMS } from '@/lib/llm-content'
 import { DEFAULT_OG_IMAGE, SITE_NAME, SITE_URL } from '@/lib/site'
 
 export interface SeoConfig {
@@ -7,11 +6,14 @@ export interface SeoConfig {
   path: `/${string}` | '/'
   ogImage?: string
   ogType?: 'website' | 'article'
+  publishedTime?: string
+  modifiedTime?: string
   jsonLd?: Record<string, unknown> | Array<Record<string, unknown>>
   llmDiscovery?: boolean
+  rssAlternate?: string
 }
 
-type FaqItem = (typeof FAQ_ITEMS)[number]
+type FaqLike = { question: string; answer: string }
 
 export function buildSeoHead({
   title,
@@ -19,8 +21,11 @@ export function buildSeoHead({
   path,
   ogImage = DEFAULT_OG_IMAGE,
   ogType = 'website',
+  publishedTime,
+  modifiedTime,
   jsonLd,
   llmDiscovery = false,
+  rssAlternate,
 }: SeoConfig) {
   const url = path === '/' ? SITE_URL : `${SITE_URL}${path}`
 
@@ -51,6 +56,16 @@ export function buildSeoHead({
     ],
     links: [
       { rel: 'canonical', href: url },
+      ...(rssAlternate
+        ? [
+            {
+              rel: 'alternate',
+              type: 'application/rss+xml',
+              title: `${SITE_NAME} Blog RSS`,
+              href: rssAlternate,
+            },
+          ]
+        : []),
       ...(llmDiscovery
         ? [
             {
@@ -70,6 +85,15 @@ export function buildSeoHead({
     ],
   }
 
+  if (ogType === 'article') {
+    if (publishedTime) {
+      head.meta.push({ property: 'article:published_time', content: publishedTime })
+    }
+    if (modifiedTime) {
+      head.meta.push({ property: 'article:modified_time', content: modifiedTime })
+    }
+  }
+
   if (jsonLd) {
     head.scripts = [
       {
@@ -82,10 +106,10 @@ export function buildSeoHead({
   return head
 }
 
-export function buildFaqJsonLd(faqItems: readonly FaqItem[]) {
+export function buildFaqJsonLd(faqItems: readonly FaqLike[], pageId?: string) {
   return {
     '@type': 'FAQPage',
-    '@id': `${SITE_URL}/#faq`,
+    '@id': pageId ?? `${SITE_URL}/#faq`,
     mainEntity: faqItems.map((item) => ({
       '@type': 'Question',
       name: item.question,
@@ -99,7 +123,7 @@ export function buildFaqJsonLd(faqItems: readonly FaqItem[]) {
 
 export function buildLandingJsonLd(
   description: string,
-  faqItems: readonly FaqItem[],
+  faqItems: readonly FaqLike[],
 ) {
   return {
     '@context': 'https://schema.org',

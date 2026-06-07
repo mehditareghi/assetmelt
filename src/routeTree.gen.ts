@@ -12,9 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as StudioRouteImport } from './routes/studio'
 import { Route as SquooshAlternativeRouteImport } from './routes/squoosh-alternative'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as ToolsBatchImageCompressorRouteImport } from './routes/tools/batch-image-compressor'
 import { Route as ConvertHeicToJpgRouteImport } from './routes/convert/heic-to-jpg'
 import { Route as CompressAvifRouteImport } from './routes/compress/avif'
+import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 
 const StudioRoute = StudioRouteImport.update({
   id: '/studio',
@@ -29,6 +31,11 @@ const SquooshAlternativeRoute = SquooshAlternativeRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ToolsBatchImageCompressorRoute =
@@ -47,31 +54,42 @@ const CompressAvifRoute = CompressAvifRouteImport.update({
   path: '/compress/avif',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/blog/$slug',
+  path: '/blog/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/squoosh-alternative': typeof SquooshAlternativeRoute
   '/studio': typeof StudioRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/compress/avif': typeof CompressAvifRoute
   '/convert/heic-to-jpg': typeof ConvertHeicToJpgRoute
   '/tools/batch-image-compressor': typeof ToolsBatchImageCompressorRoute
+  '/blog/': typeof BlogIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/squoosh-alternative': typeof SquooshAlternativeRoute
   '/studio': typeof StudioRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/compress/avif': typeof CompressAvifRoute
   '/convert/heic-to-jpg': typeof ConvertHeicToJpgRoute
   '/tools/batch-image-compressor': typeof ToolsBatchImageCompressorRoute
+  '/blog': typeof BlogIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/squoosh-alternative': typeof SquooshAlternativeRoute
   '/studio': typeof StudioRoute
+  '/blog/$slug': typeof BlogSlugRoute
   '/compress/avif': typeof CompressAvifRoute
   '/convert/heic-to-jpg': typeof ConvertHeicToJpgRoute
   '/tools/batch-image-compressor': typeof ToolsBatchImageCompressorRoute
+  '/blog/': typeof BlogIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -79,34 +97,42 @@ export interface FileRouteTypes {
     | '/'
     | '/squoosh-alternative'
     | '/studio'
+    | '/blog/$slug'
     | '/compress/avif'
     | '/convert/heic-to-jpg'
     | '/tools/batch-image-compressor'
+    | '/blog/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/squoosh-alternative'
     | '/studio'
+    | '/blog/$slug'
     | '/compress/avif'
     | '/convert/heic-to-jpg'
     | '/tools/batch-image-compressor'
+    | '/blog'
   id:
     | '__root__'
     | '/'
     | '/squoosh-alternative'
     | '/studio'
+    | '/blog/$slug'
     | '/compress/avif'
     | '/convert/heic-to-jpg'
     | '/tools/batch-image-compressor'
+    | '/blog/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SquooshAlternativeRoute: typeof SquooshAlternativeRoute
   StudioRoute: typeof StudioRoute
+  BlogSlugRoute: typeof BlogSlugRoute
   CompressAvifRoute: typeof CompressAvifRoute
   ConvertHeicToJpgRoute: typeof ConvertHeicToJpgRoute
   ToolsBatchImageCompressorRoute: typeof ToolsBatchImageCompressorRoute
+  BlogIndexRoute: typeof BlogIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -132,6 +158,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/tools/batch-image-compressor': {
       id: '/tools/batch-image-compressor'
       path: '/tools/batch-image-compressor'
@@ -153,6 +186,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CompressAvifRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/blog/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -160,9 +200,11 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SquooshAlternativeRoute: SquooshAlternativeRoute,
   StudioRoute: StudioRoute,
+  BlogSlugRoute: BlogSlugRoute,
   CompressAvifRoute: CompressAvifRoute,
   ConvertHeicToJpgRoute: ConvertHeicToJpgRoute,
   ToolsBatchImageCompressorRoute: ToolsBatchImageCompressorRoute,
+  BlogIndexRoute: BlogIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

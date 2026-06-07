@@ -1,0 +1,155 @@
+---
+title: "HEIC to JPG in the Browser: Convert iPhone Photos Without Uploading"
+description: "Learn how to convert HEIC and HEIF iPhone photos to JPG entirely in your browser — private, batch-friendly, and powered by local WASM decoders. No cloud upload required."
+slug: heic-to-jpg-browser-guide
+publishedAt: 2026-05-22
+updatedAt: 2026-06-07
+keywords:
+  - HEIC to JPG
+  - convert HEIC browser
+  - iPhone photos to JPEG
+  - HEIF converter online
+  - private HEIC conversion
+heroImage: hero
+heroImageAlt: "Diagram showing HEIC to JPG conversion happening locally in the browser"
+relatedTools:
+  - heic-to-jpg
+faq:
+  - question: "Why do iPhones save photos as HEIC instead of JPG?"
+    answer: "Apple uses HEIC (High Efficiency Image Container) because it stores better quality at roughly half the file size of JPEG. The tradeoff is compatibility — many older apps, CMS platforms, and email clients expect JPG or PNG."
+  - question: "Can Asset Melt convert HEIC files in batch?"
+    answer: "Yes. Drop multiple HEIC or HEIF files into the studio queue. Each file is decoded locally and can be exported as JPG, WebP, AVIF, or PNG depending on your pipeline settings."
+  - question: "Is HEIC conversion safe for private photos?"
+    answer: "With client-side conversion, your photos never leave your device. Asset Melt decodes HEIC in the browser and re-encodes to your chosen format — no server upload step."
+  - question: "Will converting HEIC to JPG reduce quality?"
+    answer: "Decoding HEIC and re-encoding to JPG is a lossy step if you choose JPEG output. Use high quality settings (90+) for archival conversions, or export to WebP/AVIF for web use with better compression."
+  - question: "Does Windows show HEIC files without conversion?"
+    answer: "Windows 10 and 11 can open HEIC with the optional HEIF Image Extensions from the Microsoft Store. Many web upload forms and older apps still reject .heic extensions regardless — conversion remains the reliable path."
+  - question: "Can I convert Live Photos or burst sequences?"
+    answer: "Asset Melt processes still HEIC/HEIF images. Live Photo video components and burst stacks are separate files — export the still frame you need from Photos first, then convert in the studio."
+---
+
+Apple's **HEIC format** is excellent for storage on your iPhone — smaller files, better highlight detail — but terrible for compatibility when you need to email a photo, upload to a legacy CMS, or share with someone on Windows without extra codecs.
+
+The usual advice is "use an online HEIC converter." That works, but it means sending personal photos to a stranger's server. **Browser-based HEIC to JPG conversion** solves the compatibility problem without the privacy tradeoff.
+
+## What HEIC and HEIF actually are
+
+HEIC files are containers, usually holding HEVC-encoded image data. iPhones also use related HEIF variants. Windows 10/11 can open them natively in recent versions, but web upload forms, Slack, and many design tools still reject `.heic` extensions.
+
+When you convert **HEIC to JPG**, you decode the container locally, get raw pixel data, and run a JPEG encoder (like MozJPEG) with your chosen quality setting.
+
+HEIC's advantage is compression efficiency: a 12-megapixel iPhone photo might be 1.5 MB in HEIC versus 3–4 MB as a equivalent-quality JPEG. That savings matters on your phone's storage but creates friction the moment you leave Apple's ecosystem.
+
+<Callout title="Asset Melt decodes HEIC before your pipeline runs" variant="info">
+If you drop a HEIC file into the studio, it is transparently decoded to JPEG in-memory, then your resize/compress settings apply. You do not need a separate conversion step.
+</Callout>
+
+## Why iPhone users hit the HEIC wall
+
+Apple switched the default camera format to HEIC years ago. Most users never notice until they:
+
+- Email a photo to a relative whose mail client shows a blank attachment
+- Upload product shots to a WooCommerce store that only accepts JPG
+- Import vacation photos into a Google Slides deck
+- Submit ID documents to a government portal with strict MIME type rules
+- Sync to a NAS or backup tool that indexes by extension
+
+Each of these is a **compatibility** problem, not a quality problem. The image looks fine on your iPhone; the destination simply does not speak HEIC.
+
+## Why cloud HEIC converters are risky
+
+Free "HEIC to JPG online" tools are convenient but problematic for:
+
+- **Family photos and travel shots** you would not post publicly
+- **Client deliverables** under NDA
+- **Medical or legal images** with compliance requirements
+- **Unreleased product photography**
+
+Even services that claim immediate deletion still processed your file on their infrastructure. You cannot audit that path. Some free converters inject watermarks, downsample aggressively, or require email signup — costs that are invisible until after upload.
+
+Local conversion means the only software touching your pixels is the browser tab you opened — auditable, offline-capable, and under your control.
+
+## Step-by-step: iPhone photos to JPG locally
+
+1. AirDrop or sync photos to your computer (or use Files on iPad).
+2. Open <ToolLink tool="heic-to-jpg">Asset Melt's HEIC converter page</ToolLink> or go straight to the studio.
+3. Drop `.heic` / `.heif` files into the queue.
+4. Choose output format — **JPEG** for maximum compatibility, **WebP** or **AVIF** for web.
+5. Set max dimension if you do not need full 12MP resolution.
+6. Process and download.
+
+For a single quick conversion, the dedicated tool page works. For mixed folders (HEIC + PNG + JPG), the studio batch queue is faster.
+
+### Getting HEIC files off your iPhone efficiently
+
+- **AirDrop to Mac:** Select photos in the Photos app → Share → AirDrop. Fastest for small batches.
+- **iCloud Photos sync:** Enable on Mac/PC; files appear in the Photos library as HEIC unless you change iPhone settings.
+- **Files app export:** On iPhone, select photos → Share → Save to Files, then transfer via cable or cloud drive you control.
+- **Change iPhone default to JPEG:** Settings → Camera → Formats → Most Compatible. New shots save as JPG; existing library stays HEIC.
+
+Changing the iPhone default is a valid long-term fix if compatibility matters more than storage savings. Many photographers keep HEIC on-device and convert only for delivery — Asset Melt fits that workflow.
+
+## Batch converting a vacation folder
+
+Real workflows rarely involve one file. You come back from a trip with 400 HEIC files and need JPGs for Google Photos backup, a blog post, and email.
+
+Asset Melt handles heterogeneous batches: HEIC files decode first, then the same pipeline applies to everything in the queue. Export as a ZIP when you are done.
+
+For 400 files, expect several minutes on a typical laptop — dominated by decode and encode CPU time, not network. You can leave the tab open, review per-file savings in the queue, and cancel individual items if a file fails.
+
+## Quality settings that matter
+
+When exporting JPG from HEIC:
+
+- **Quality 90–92** — visually near-identical for most sharing; good for client delivery
+- **Quality 80–85** — sweet spot for web and social; much smaller files
+- **Resize to 2048px or 1920px** — often saves more bytes than aggressive quality reduction
+
+If your destination supports modern formats, **WebP** or **AVIF** after HEIC decode typically beats JPG on file size at the same perceived quality. A HEIC → AVIF pipeline can produce web-ready assets smaller than the original HEIC with no visible loss on phone-sized screens.
+
+### When to keep full resolution
+
+Keep original pixel dimensions when:
+
+- Printing at large sizes
+- Delivering to a retoucher who will crop aggressively
+- Archiving a "master" before any destructive edits
+
+Downsample for web, email, and social — human vision and display density rarely benefit from 4032px-wide images in a 600px-wide blog column.
+
+## HEIC on Android and desktop
+
+While HEIC is associated with iPhones, you may also encounter HEIC exports from other cameras and conversion tools. The same browser workflow applies — magic-byte detection identifies HEIC even when the extension is wrong.
+
+Some Android devices save HEIF in certain camera modes. Desktop apps like Lightroom and Capture One can export HEIC. Asset Melt's decoder handles standard HEIF/HEIC containers regardless of origin.
+
+## Troubleshooting common HEIC issues
+
+**"File won't drop into the browser"** — Check the extension is `.heic` or `.heif`. Some sync tools rename files; verify magic bytes by re-exporting from Photos.
+
+**Colors look washed out after conversion** — HEIC often embeds wide-gamut P3 color. Browsers map to sRGB during decode. For critical color work, verify on a calibrated display and compare against Apple's Preview export.
+
+**One file in a batch fails** — Corrupted downloads from interrupted AirDrop or incomplete iCloud sync can produce truncated containers. Re-sync that photo and retry.
+
+**Output JPG is larger than the HEIC source** — Expected when converting to high-quality JPEG. HEIC's HEVC compression is more efficient than JPEG at the same visual quality. Lower quality, resize, or switch to WebP/AVIF for web delivery.
+
+## HEIC vs JPG vs WebP for delivery
+
+| Destination | Recommended export |
+| --- | --- |
+| Email to non-technical recipients | JPG, quality 85–90 |
+| WordPress / legacy CMS | JPG or WebP if plugin supports it |
+| Your own static site | AVIF + WebP in `<picture>` |
+| Google Photos backup | JPG (Google accepts HEIC but converts anyway) |
+| Print shop | JPG quality 92+, full resolution |
+
+## Related workflows
+
+After converting, you may want to:
+
+- **Batch compress** the JPGs for web → see our <ToolLink tool="batch-image-compressor">batch image compressor guide</ToolLink>
+- **Compare AVIF vs WebP** for your CMS → read [AVIF vs WebP in 2026](/blog/avif-vs-webp-2026)
+- **Understand the broader privacy story** → [How to compress images in the browser](/blog/compress-images-in-browser)
+
+<StudioCta label="Convert HEIC files in the studio" />

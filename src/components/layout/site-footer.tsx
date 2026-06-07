@@ -4,7 +4,7 @@ import { OfflinePrepRestoreLink } from '@/components/pwa/offline-prep-restore-li
 import { Badge } from '@/components/ui/badge'
 import { TOOL_PAGE_LIST } from '@/lib/tool-pages'
 import { useAppVersion } from '@/lib/version'
-import { Shield } from 'lucide-react'
+import { Rss, Shield } from 'lucide-react'
 
 const YEAR = new Date().getFullYear()
 
@@ -68,6 +68,20 @@ export function SiteFooter() {
               >
                 Studio
               </Link>
+              <Link
+                to="/blog"
+                className="font-mono text-xs text-muted-foreground transition-colors hover:text-primary"
+              >
+                Blog
+              </Link>
+              <a
+                href="/rss.xml"
+                className="inline-flex items-center gap-1 font-mono text-xs text-muted-foreground transition-colors hover:text-primary"
+                aria-label="RSS feed"
+              >
+                <Rss className="size-3" aria-hidden="true" />
+                RSS
+              </a>
               {isStudio ? <OfflinePrepRestoreLink /> : null}
               <InstallAppLink />
             </nav>

@@ -4,6 +4,7 @@ import { HeroSection } from "@/components/landing/hero-section";
 import { HowItWorksSection } from "@/components/landing/how-it-works-section";
 import { SupportSection } from "@/components/landing/support-section";
 import { TechStrip } from "@/components/landing/tech-strip";
+import { BlogSection } from "@/components/landing/blog-section";
 import { FAQ_ITEMS } from "@/lib/llm-content";
 import { buildLandingJsonLd, buildSeoHead } from "@/lib/seo";
 import { createFileRoute } from "@tanstack/react-router";
@@ -30,6 +31,7 @@ function Index() {
       <FeaturesSection />
       <HowItWorksSection />
       <TechStrip />
+      <BlogSection />
       <FaqSection />
       <SupportSection />
     </main>

@@ -47,9 +47,14 @@ export function SiteHeader({ variant = 'landing' }: SiteHeaderProps) {
               </Button>
             ))}
           {!isHome && variant === 'landing' ? (
-            <Button variant="ghost" size="sm" asChild className="hidden font-mono text-xs sm:inline-flex">
-              <Link to="/">Home</Link>
-            </Button>
+            <>
+              <Button variant="ghost" size="sm" asChild className="hidden font-mono text-xs sm:inline-flex">
+                <Link to="/">Home</Link>
+              </Button>
+              <Button variant="ghost" size="sm" asChild className="hidden font-mono text-xs sm:inline-flex">
+                <Link to="/blog">Blog</Link>
+              </Button>
+            </>
           ) : null}
           <ThemeToggle />
           {variant === 'landing' ? (

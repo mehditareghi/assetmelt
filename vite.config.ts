@@ -11,7 +11,8 @@ export default defineConfig({
     tanstackStart({
       prerender: {
         enabled: true,
-        crawlLinks: false,
+        // Crawl blog post links from /blog/ and other prerendered pages.
+        crawlLinks: true,
         autoStaticPathsDiscovery: true,
       },
     }),

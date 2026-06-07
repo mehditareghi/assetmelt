@@ -1,0 +1,179 @@
+---
+title: "Asset Melt vs Squoosh: A Privacy-First Alternative After Google's Shutdown"
+description: "Google shut down Squoosh.app — here's how Asset Melt compares as a client-side image compressor with batch processing, size budgets, HEIC support, and the same WASM codecs."
+slug: squoosh-alternative-guide
+publishedAt: 2026-06-01
+updatedAt: 2026-06-07
+keywords:
+  - Squoosh alternative
+  - Google Squoosh replacement
+  - client-side image compressor
+  - browser image tool 2026
+  - WASM image compression
+heroImage: hero
+heroImageAlt: "Illustration comparing Asset Melt as a Squoosh alternative with local WASM codecs"
+relatedTools:
+  - squoosh-alternative
+faq:
+  - question: "Is Google Squoosh still available?"
+    answer: "Google discontinued Squoosh.app. The open-source codecs live on in libraries like libwebp and rav1e, and tools like Asset Melt embed them via WASM for browser-based compression."
+  - question: "Does Asset Melt use the same codecs as Squoosh?"
+    answer: "Yes — Asset Melt builds on the same family of WASM codecs (MozJPEG, WebP, AVIF, Oxipng, JPEG XL, QOI, and more) via jsquash and related libraries derived from the Squoosh ecosystem."
+  - question: "What does Asset Melt add beyond Squoosh?"
+    answer: "Batch queue processing, ZIP export, size-budget encoding, platform presets, HEIC decode, pipeline JSON import/export, PWA offline mode, and a persistent studio workflow — Squoosh was optimized for one image at a time."
+  - question: "Is Asset Melt free?"
+    answer: "Yes. Asset Melt is free to use with no account required. Processing happens locally in your browser."
+  - question: "Can I import my old Squoosh settings?"
+    answer: "Squoosh did not expose portable preset files, but Asset Melt's Advanced mode exposes the same per-codec sliders. Start with Web Optimized preset and tune quality to match your remembered Squoosh workflow."
+  - question: "Is Asset Melt open source like Squoosh?"
+    answer: "Asset Melt is a free product focused on local processing. The underlying codec libraries (MozJPEG, libwebp, rav1e, etc.) remain open source — the same ecosystem Squoosh demonstrated."
+---
+
+When Google shut down Squoosh.app, a generation of developers lost the simplest demo of what WASM could do for media on the web. Squoosh was never just a toy — it proved that **client-side image compression** could match server quality without uploads.
+
+**Asset Melt** picks up that philosophy and builds a production-minded studio around the same codec stack: batch queues, presets, size budgets, and HEIC — while keeping the core promise Squoosh made famous: **your images stay on your device.**
+
+## What made Squoosh important
+
+Squoosh did three things brilliantly:
+
+1. **Visual before/after** — instant feedback on quality tradeoffs
+2. **Codec education** — side-by-side comparisons of MozJPEG vs WebP vs AVIF
+3. **Local processing** — WASM codecs with no server round trip
+
+Its limitation was scope: one image, manual downloads, no batch workflow, no persistent presets for teams shipping hundreds of assets weekly.
+
+Developers bookmarked Squoosh for quick "make this PNG smaller" tasks. Designers used it to understand WebP quality sliders. Performance engineers cited it in conference talks as proof that browsers could replace upload-based tooling. When Google retired the app, those workflows did not disappear — they migrated to tools that either honored the local-first model or abandoned it entirely.
+
+## Same foundation: WASM codecs in the browser
+
+Asset Melt embeds Squoosh-era technology through maintained WASM ports:
+
+- MozJPEG for JPEG
+- libwebp for WebP stills
+- rav1e for AVIF
+- Oxipng for PNG recompression
+- JPEG XL and QOI for next-gen workflows
+
+If you loved Squoosh's *quality*, you are using the same math — wrapped in a studio built for repeat workflows.
+
+The encoding algorithms do not care whether they run in Google's demo or Asset Melt's studio. Quantization tables, chroma subsampling, and predictor modes are identical. What changes is the **product surface**: queue management, export formats, and preset persistence.
+
+<Callout title="Not a cloud re-skin" variant="info">
+There is no "upload for faster processing" hidden path. Open DevTools, throttle your network offline, and the studio still encodes — because the work happens locally.
+</Callout>
+
+## Where Asset Melt goes further
+
+| Capability | Squoosh | Asset Melt |
+| --- | --- | --- |
+| Single-image tuning | Excellent | Supported |
+| Batch queue | No | Yes |
+| ZIP export | No | Yes |
+| Size budget targeting | No | Yes |
+| HEIC / HEIF decode | Limited | Built-in |
+| Platform presets (OG, social) | No | Yes |
+| Pipeline JSON import/export | No | Yes |
+| Installable PWA + offline pack | No | Yes |
+| Accounts / uploads | No | No |
+
+For a one-off codec experiment, Squoosh's UI was perfect. For **shipping a landing page, docs site, or ecommerce refresh**, batch and presets dominate.
+
+## Privacy as a feature, not footnote
+
+Post-Squoosh, many "alternatives" are traditional upload compressors with slick UI. They are not spiritual successors — they invert the architecture.
+
+Asset Melt's <ToolLink tool="squoosh-alternative">Squoosh alternative page</ToolLink> documents the comparison explicitly because users searching for Squoosh deserve to know which tools honor local processing.
+
+Use cases where local-only matters:
+
+- NDA product photography
+- Pre-release marketing assets
+- Personal family photos
+- Regulated environments blocking external uploads
+
+Upload-based "Squoosh alternatives" may compress well, but they reintroduce the trust problem Squoosh eliminated. Read privacy policies carefully: "we delete after processing" still means your bytes transited their servers.
+
+## Migration workflow from Squoosh habits
+
+If your old workflow was "drag image → tweak slider → download":
+
+1. Open `/studio` instead of squoosh.app
+2. Drop files — single or many
+3. Pick **Web Optimized** (WebP, 1920px) as a Squoosh-like starting point
+4. Switch to Advanced mode for per-codec sliders matching Squoosh depth
+5. Export individually or as ZIP
+
+For AVIF experiments, try the <ToolLink tool="avif-compressor">AVIF tool page</ToolLink> or Advanced encode settings in the studio.
+
+### Mapping Squoosh codec choices to Asset Melt
+
+| Squoosh codec | Asset Melt equivalent |
+| --- | --- |
+| MozJPEG | JPEG output, MozJPEG encoder |
+| WebP | WebP still encoder |
+| AVIF (avifenc/rav1e) | AVIF encoder via WASM |
+| OxiPNG | PNG recompression |
+| Browser JPEG | Standard JPEG (MozJPEG preferred) |
+| Resize | Built into pipeline before encode |
+
+Squoosh's split-view before/after maps to Asset Melt's preview panel with original/processed toggle and byte savings column.
+
+## Offline and installable
+
+Squoosh worked offline only while a tab stayed cached. Asset Melt offers an optional **offline pack** — download once while online, compress on a plane later. The studio strips marketing chrome when offline so you are not one click away from broken pages.
+
+Install as a PWA from the browser menu for an app-icon experience. The offline pack includes WASM codec binaries — a one-time download comparable to installing a desktop app, but without admin privileges on locked-down machines.
+
+## Batch workflows Squoosh never shipped
+
+Real production tasks that frustrated Squoosh users:
+
+- **50 blog images** before a launch — Asset Melt queue processes all, ZIP export
+- **Mixed HEIC + PNG folder** from a client — auto-detect formats, unified pipeline
+- **OG image size budget** — "must be under 200 KB" with automatic quality search
+- **Team preset sharing** — JSON pipeline in git, not screenshots of slider values
+
+These are not edge cases. They are the difference between a demo and a tool you use every sprint.
+
+## Who should use Asset Melt
+
+- **Developers** optimizing sites for Core Web Vitals
+- **Designers** batch-exporting social and OG assets
+- **Privacy-conscious users** rejecting upload-based tools
+- **Former Squoosh users** who need batch and presets
+- **Content teams** publishing image-heavy blogs and docs
+
+## Who might still want something else
+
+- **CLI automation in CI** — use `sharp`, `avifenc`, or `cwebp` in pipelines; use Asset Melt for human-in-the-loop tuning
+- **RAW photo development** — Asset Melt is for web delivery formats, not Lightroom replacements
+- **Video compression** — Squoosh never did video either; use dedicated video tools
+
+For CI, a common hybrid pattern is: designers tune presets in Asset Melt → export JSON → engineers script batch encodes in GitHub Actions with native CLI tools using the same quality numbers.
+
+## The post-Squoosh landscape
+
+Since Squoosh shut down, the market split into three camps:
+
+1. **Local-first WASM tools** (Asset Melt) — same architecture, expanded features
+2. **Upload compressors** — fast to build, privacy tradeoff
+3. **Desktop apps** — powerful, install required
+
+If Squoosh's shutdown taught one lesson, it is that local WASM compression is viable production technology — not a Google experiment. The codecs outlived the demo app. Asset Melt exists to carry the workflow forward.
+
+## Frequently asked migration questions
+
+**"I only used Squoosh once a month — is Asset Melt overkill?"** No account, no install — bookmark `/studio` the same way you bookmarked Squoosh. Single-image workflows still work; batch is there when you need it.
+
+**"Will Google bring Squoosh back?"** Google has not announced a revival. The open-source codec libraries remain maintained independently. Building on those libraries — as both Squoosh and Asset Melt did — is the durable path.
+
+**"Can I trust a smaller tool vs a Google product?"** Verify the architecture: throttle your network offline in DevTools and confirm encoding still works. Local-first tools prove their model by behavior, not brand size.
+
+## Try it
+
+If you miss Squoosh, Asset Melt is the workflow upgrade — same WASM soul, studio-grade queue.
+
+<StudioCta label="Open the studio — free, no account" />
+
+Explore more: [browser compression guide](/blog/compress-images-in-browser) · [AVIF vs WebP](/blog/avif-vs-webp-2026) · [HEIC to JPG locally](/blog/heic-to-jpg-browser-guide)

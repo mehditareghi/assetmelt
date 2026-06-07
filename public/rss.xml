@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Asset Melt Blog</title>
+    <link>https://assetmelt.com/blog</link>
+    <description>Guides on client-side image compression, format conversion, and browser-based privacy-first workflows.</description>
+    <language>en-us</language>
+    <atom:link href="https://assetmelt.com/rss.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Asset Melt vs Squoosh: A Privacy-First Alternative After Google's Shutdown</title>
+      <link>https://assetmelt.com/blog/squoosh-alternative-guide</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/squoosh-alternative-guide</guid>
+      <description>Google shut down Squoosh.app — here's how Asset Melt compares as a client-side image compressor with batch processing, size budgets, HEIC support, and the same WASM codecs.</description>
+      <pubDate>Mon, 01 Jun 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>AVIF vs WebP in 2026: Which Format Should You Use?</title>
+      <link>https://assetmelt.com/blog/avif-vs-webp-2026</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/avif-vs-webp-2026</guid>
+      <description>AVIF vs WebP compared for web delivery — compression efficiency, browser support, encoding speed, and when to use each in your picture element fallback chain.</description>
+      <pubDate>Thu, 28 May 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>HEIC to JPG in the Browser: Convert iPhone Photos Without Uploading</title>
+      <link>https://assetmelt.com/blog/heic-to-jpg-browser-guide</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/heic-to-jpg-browser-guide</guid>
+      <description>Learn how to convert HEIC and HEIF iPhone photos to JPG entirely in your browser — private, batch-friendly, and powered by local WASM decoders. No cloud upload required.</description>
+      <pubDate>Fri, 22 May 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>How to Compress Images in the Browser Without Uploading Them</title>
+      <link>https://assetmelt.com/blog/compress-images-in-browser</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/compress-images-in-browser</guid>
+      <description>A practical guide to client-side image compression — why browser-based workflows beat cloud tools for privacy, speed, and control, and how to get smaller JPEG, PNG, WebP, and AVIF files locally.</description>
+      <pubDate>Fri, 15 May 2026 00:00:00 GMT</pubDate>
+    </item>
+  </channel>
+</rss>

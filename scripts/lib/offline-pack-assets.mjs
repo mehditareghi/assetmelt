@@ -13,6 +13,7 @@ export const OFFLINE_PACK_DENY_URLS = new Set([
 
 /** Path segments / filename hints for marketing-only assets. */
 export const OFFLINE_PACK_DENY_PATTERNS = [
+  /^\/blog/,
   /^\/convert\//,
   /^\/tools\//,
   /^\/compress\//,

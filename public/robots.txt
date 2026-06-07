@@ -1,6 +1,7 @@
 # Asset Melt — open to search and AI crawlers for discovery
 # LLM-readable summary: https://assetmelt.com/llms.txt
 # Full product corpus: https://assetmelt.com/llms-full.txt
+# Blog RSS feed: https://assetmelt.com/rss.xml
 
 User-agent: *
 Allow: /
