@@ -25,6 +25,7 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import { pipelineSchema } from '@/lib/schemas/pipeline-schema'
+import { trackExportCompleted } from '@/lib/analytics'
 
 export function StudioToolbar() {
   const offlinePrep = useOptionalOfflinePrepContext()
@@ -58,6 +59,12 @@ export function StudioToolbar() {
 
     try {
       const { kind, count } = await downloadProcessedFiles(done, activePresetId)
+      trackExportCompleted({
+        file_count: count,
+        export_type: kind,
+        preset_id: activePresetId,
+        output_format: pipeline.encode.format,
+      })
       if (kind === 'zip') {
         toast.success(
           done.length === 1

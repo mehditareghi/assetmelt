@@ -35,6 +35,7 @@ import {
   normalizePipeline,
   type PipelineChangeOptions,
 } from '@/stores/pipeline-change'
+import { trackFilesAdded, trackFilesProcessed } from '@/lib/analytics'
 
 const HISTORY_DEBOUNCE_MS = 400
 const CROP_HISTORY_DEBOUNCE_MS = 300
@@ -313,6 +314,14 @@ export const useStudioStore = create<StudioState>()(
               : {}),
           }
         })
+
+        const added = newFiles.filter((file) => file.status !== 'error')
+        if (added.length > 0) {
+          trackFilesAdded({
+            file_count: added.length,
+            has_heic: added.some((file) => file.inputFormat === 'heic'),
+          })
+        }
       },
 
       removeFile: (id) => {
@@ -731,9 +740,25 @@ export const useStudioStore = create<StudioState>()(
         if (get().isCropEditing) return
         const { files, processFile } = get()
         const pending = files.filter((f) => f.status !== 'processing')
+        if (pending.length === 0) return
+
+        let succeeded = 0
+        let failed = 0
         for (const file of pending) {
           await processFile(file.id)
+          const updated = get().files.find((f) => f.id === file.id)
+          if (updated?.status === 'done') succeeded += 1
+          else if (updated?.status === 'error') failed += 1
         }
+
+        const { pipeline, activePresetId } = get()
+        trackFilesProcessed({
+          file_count: pending.length,
+          succeeded,
+          failed,
+          output_format: pipeline.encode.format,
+          preset_id: activePresetId,
+        })
       },
 
       saveCustomPreset: (name) => {
