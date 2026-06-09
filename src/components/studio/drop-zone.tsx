@@ -44,7 +44,7 @@ export function DropZone() {
       onDrop={handleDrop}
     >
       <Upload className="mb-3 size-8 text-muted-foreground" />
-      <p className="text-sm font-medium">Drop images here or click to browse</p>
+      <p className="text-sm font-medium">Drop, paste, or click to browse</p>
       <p className="mt-1 font-mono text-xs text-muted-foreground">
         JPEG · PNG · WebP · AVIF · HEIC · SVG · GIF · JXL
       </p>

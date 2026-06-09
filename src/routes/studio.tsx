@@ -13,6 +13,10 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
+import {
+  filesFromClipboardEvent,
+  isEditablePasteTarget,
+} from '@/lib/image/clipboard-paste'
 import { warmUpWorker } from '@/lib/image/worker-bridge'
 import { useOptionalOfflinePrepContext } from '@/lib/pwa/offline-prep-context'
 import { buildSeoHead } from '@/lib/seo'
@@ -55,6 +59,7 @@ export const Route = createFileRoute("/studio")({
 
 function Studio() {
   const files = useStudioStore((s) => s.files);
+  const addFiles = useStudioStore((s) => s.addFiles);
   const undo = useStudioStore((s) => s.undo);
   const redo = useStudioStore((s) => s.redo);
   const offlinePrep = useOptionalOfflinePrepContext();
@@ -63,6 +68,18 @@ function Studio() {
   useEffect(() => {
     warmUpWorker();
   }, []);
+
+  useEffect(() => {
+    const onPaste = (event: ClipboardEvent) => {
+      if (isEditablePasteTarget(event.target)) return;
+      const pasted = filesFromClipboardEvent(event);
+      if (pasted.length === 0) return;
+      event.preventDefault();
+      void addFiles(pasted);
+    };
+    window.addEventListener("paste", onPaste);
+    return () => window.removeEventListener("paste", onPaste);
+  }, [addFiles]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
