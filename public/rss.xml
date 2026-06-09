@@ -7,6 +7,13 @@
     <language>en-us</language>
     <atom:link href="https://assetmelt.com/rss.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>How to Optimize Images for Core Web Vitals and LCP in 2026</title>
+      <link>https://assetmelt.com/blog/optimize-images-core-web-vitals-lcp</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/optimize-images-core-web-vitals-lcp</guid>
+      <description>A practical guide to fixing image-related Core Web Vitals — shrink LCP hero images, prevent CLS, and serve AVIF and WebP locally before deploy without uploading originals to a cloud optimizer.</description>
+      <pubDate>Tue, 09 Jun 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
       <title>Asset Melt vs Squoosh: A Privacy-First Alternative After Google's Shutdown</title>
       <link>https://assetmelt.com/blog/squoosh-alternative-guide</link>
       <guid isPermaLink="true">https://assetmelt.com/blog/squoosh-alternative-guide</guid>

@@ -97,6 +97,34 @@ const HEROES = {
   <text x="600" y="410" text-anchor="middle" fill="${TEXT}" font-family="system-ui,sans-serif" font-size="38" font-weight="800">Squoosh-grade codecs</text>
   <text x="600" y="455" text-anchor="middle" fill="${MUTED}" font-family="system-ui,sans-serif" font-size="21">Same WASM engines · batch workflow · 100% local</text>
   `),
+
+  'optimize-images-core-web-vitals-lcp': heroSvg(`
+  <g filter="url(#shadow)">
+    <rect x="80" y="72" width="1040" height="486" rx="28" fill="${CARD}" stroke="${CARD_STROKE}" stroke-width="2"/>
+  </g>
+  <rect x="140" y="140" width="420" height="280" rx="20" fill="${AMBER_SOFT}" stroke="${AMBER}" stroke-width="2" stroke-opacity="0.35"/>
+  <circle cx="220" cy="220" r="36" fill="${AMBER}" fill-opacity="0.25"/>
+  <polygon points="210,205 210,235 235,220" fill="${AMBER}" fill-opacity="0.7"/>
+  <rect x="280" y="190" width="240" height="18" rx="9" fill="${MUTED}" fill-opacity="0.2"/>
+  <rect x="280" y="222" width="200" height="14" rx="7" fill="${MUTED}" fill-opacity="0.14"/>
+  <rect x="280" y="250" width="160" height="14" rx="7" fill="${MUTED}" fill-opacity="0.1"/>
+  <text x="350" y="340" fill="${TEXT}" font-family="system-ui,sans-serif" font-size="22" font-weight="700">Hero image</text>
+  <text x="350" y="368" fill="${MUTED}" font-family="system-ui,sans-serif" font-size="17">2.4 MB → 140 KB AVIF</text>
+  <path d="M580 280h80" stroke="${TEXT}" stroke-width="4" stroke-linecap="round" stroke-opacity="0.25"/>
+  <polygon points="660,280 638,268 638,292" fill="${TEXT}" fill-opacity="0.25"/>
+  <rect x="680" y="140" width="380" height="280" rx="20" fill="${TEAL_SOFT}" stroke="${TEAL}" stroke-width="2" stroke-opacity="0.35"/>
+  <text x="870" y="200" text-anchor="middle" fill="${TEAL}" font-family="system-ui,sans-serif" font-size="18" font-weight="700" letter-spacing="2">LCP</text>
+  <text x="870" y="275" text-anchor="middle" fill="${TEXT}" font-family="system-ui,sans-serif" font-size="72" font-weight="800">1.8s</text>
+  <rect x="760" y="310" width="220" height="36" rx="18" fill="${TEAL}" fill-opacity="0.15"/>
+  <text x="870" y="334" text-anchor="middle" fill="${TEAL}" font-family="system-ui,sans-serif" font-size="18" font-weight="700">Good · Core Web Vitals</text>
+  <rect x="140" y="448" width="160" height="44" rx="12" fill="${TEAL_SOFT}" stroke="${TEAL}" stroke-width="1.5" stroke-opacity="0.35"/>
+  <text x="220" y="477" text-anchor="middle" fill="${TEAL}" font-family="system-ui,sans-serif" font-size="16" font-weight="700">LCP</text>
+  <rect x="320" y="448" width="160" height="44" rx="12" fill="${MUTED}" fill-opacity="0.08" stroke="${CARD_STROKE}" stroke-width="1.5"/>
+  <text x="400" y="477" text-anchor="middle" fill="${MUTED}" font-family="system-ui,sans-serif" font-size="16" font-weight="600">INP</text>
+  <rect x="500" y="448" width="160" height="44" rx="12" fill="${MUTED}" fill-opacity="0.08" stroke="${CARD_STROKE}" stroke-width="1.5"/>
+  <text x="580" y="477" text-anchor="middle" fill="${MUTED}" font-family="system-ui,sans-serif" font-size="16" font-weight="600">CLS</text>
+  <text x="870" y="477" text-anchor="middle" fill="${MUTED}" font-family="system-ui,sans-serif" font-size="20">Shrink the LCP image before deploy</text>
+  `),
 }
 
 async function main() {
