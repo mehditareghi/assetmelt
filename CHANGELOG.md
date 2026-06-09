@@ -4,6 +4,13 @@ All notable changes to Asset Melt are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/) and [Conventional Commits](https://www.conventionalcommits.org/).
 
 
+## [0.10.0](https://github.com/mehditareghi/assetmelt/compare/v0.9.1...v0.10.0) (2026-06-09)
+
+
+### Features
+
+* paste functionality ([e860ca3](https://github.com/mehditareghi/assetmelt/commit/e860ca3c1dd850b86177b8829ee8f088aa003212))
+
 ## [0.9.1](https://github.com/mehditareghi/assetmelt/compare/v0.9.0...v0.9.1) (2026-06-07)
 
 
