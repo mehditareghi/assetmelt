@@ -14,7 +14,7 @@
   </url>
   <url>
     <loc>https://assetmelt.com/blog</loc>
-    <lastmod>2026-06-07</lastmod>
+    <lastmod>2026-06-09</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -44,6 +44,7 @@
   </url>
   <url>
     <loc>https://assetmelt.com/blog/optimize-images-core-web-vitals-lcp</loc>
+    <lastmod>2026-06-09</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

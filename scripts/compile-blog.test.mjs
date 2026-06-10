@@ -26,8 +26,9 @@ test('compile-blog outputs repo artifacts', () => {
   assert.ok(paths.every((path) => path.startsWith('/blog/')))
 
   const index = readFileSync(indexPath, 'utf8')
-  assert.match(index, /BLOG_POST_LOADERS/)
-  assert.doesNotMatch(index, /^import BlogPost_/m)
+  assert.match(index, /BLOG_POST_CONTENT/)
+  assert.match(index, /export function getBlogPostContent/)
+  assert.match(index, /^import Post/m)
 })
 
 test('generate-sitemap writes blog urls', () => {

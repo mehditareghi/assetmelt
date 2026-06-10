@@ -3,7 +3,6 @@ export {
   BLOG_POSTS,
   BLOG_POST_SLUGS,
   getBlogPost,
-  getCachedBlogPostContent,
-  loadBlogPostContent,
+  getBlogPostContent,
   getLatestBlogPosts,
 } from '@/generated/blog-index'
