@@ -1,4 +1,6 @@
 allowBuilds:
+  esbuild: false
+  exifreader: false
   sharp: false
 onlyBuiltDependencies:
   - esbuild

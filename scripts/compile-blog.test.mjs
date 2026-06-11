@@ -40,6 +40,9 @@ test('generate-sitemap writes blog urls', () => {
   const sitemap = readFileSync('public/sitemap.xml', 'utf8')
   assert.match(sitemap, /\/blog<\/loc>/)
   assert.match(sitemap, /compress-images-in-browser/)
+  assert.match(sitemap, /\/privacy<\/loc>/)
+  assert.match(sitemap, /\/about<\/loc>/)
+  assert.match(sitemap, /\/author<\/loc>/)
   assert.match(sitemap, /<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/)
 
   const rss = readFileSync('public/rss.xml', 'utf8')

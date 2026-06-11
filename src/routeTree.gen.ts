@@ -11,6 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StudioRouteImport } from './routes/studio'
 import { Route as SquooshAlternativeRouteImport } from './routes/squoosh-alternative'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as AuthorRouteImport } from './routes/author'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as ToolsBatchImageCompressorRouteImport } from './routes/tools/batch-image-compressor'
@@ -26,6 +29,21 @@ const StudioRoute = StudioRouteImport.update({
 const SquooshAlternativeRoute = SquooshAlternativeRouteImport.update({
   id: '/squoosh-alternative',
   path: '/squoosh-alternative',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthorRoute = AuthorRouteImport.update({
+  id: '/author',
+  path: '/author',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -62,6 +80,9 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/author': typeof AuthorRoute
+  '/privacy': typeof PrivacyRoute
   '/squoosh-alternative': typeof SquooshAlternativeRoute
   '/studio': typeof StudioRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -72,6 +93,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/author': typeof AuthorRoute
+  '/privacy': typeof PrivacyRoute
   '/squoosh-alternative': typeof SquooshAlternativeRoute
   '/studio': typeof StudioRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -83,6 +107,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/author': typeof AuthorRoute
+  '/privacy': typeof PrivacyRoute
   '/squoosh-alternative': typeof SquooshAlternativeRoute
   '/studio': typeof StudioRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -95,6 +122,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
+    | '/author'
+    | '/privacy'
     | '/squoosh-alternative'
     | '/studio'
     | '/blog/$slug'
@@ -105,6 +135,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
+    | '/author'
+    | '/privacy'
     | '/squoosh-alternative'
     | '/studio'
     | '/blog/$slug'
@@ -115,6 +148,9 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/about'
+    | '/author'
+    | '/privacy'
     | '/squoosh-alternative'
     | '/studio'
     | '/blog/$slug'
@@ -126,6 +162,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
+  AuthorRoute: typeof AuthorRoute
+  PrivacyRoute: typeof PrivacyRoute
   SquooshAlternativeRoute: typeof SquooshAlternativeRoute
   StudioRoute: typeof StudioRoute
   BlogSlugRoute: typeof BlogSlugRoute
@@ -149,6 +188,27 @@ declare module '@tanstack/react-router' {
       path: '/squoosh-alternative'
       fullPath: '/squoosh-alternative'
       preLoaderRoute: typeof SquooshAlternativeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/author': {
+      id: '/author'
+      path: '/author'
+      fullPath: '/author'
+      preLoaderRoute: typeof AuthorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -198,6 +258,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
+  AuthorRoute: AuthorRoute,
+  PrivacyRoute: PrivacyRoute,
   SquooshAlternativeRoute: SquooshAlternativeRoute,
   StudioRoute: StudioRoute,
   BlogSlugRoute: BlogSlugRoute,

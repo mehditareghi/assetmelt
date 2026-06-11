@@ -134,6 +134,12 @@ export function buildLandingJsonLd(
         name: SITE_NAME,
         url: SITE_URL,
         description,
+        publisher: {
+          '@type': 'Organization',
+          name: SITE_NAME,
+          url: SITE_URL,
+          logo: DEFAULT_OG_IMAGE,
+        },
       },
       {
         '@type': 'WebApplication',

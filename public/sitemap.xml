@@ -43,6 +43,21 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://assetmelt.com/privacy</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://assetmelt.com/about</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://assetmelt.com/author</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://assetmelt.com/blog/optimize-images-core-web-vitals-lcp</loc>
     <lastmod>2026-06-09</lastmod>
     <changefreq>monthly</changefreq>

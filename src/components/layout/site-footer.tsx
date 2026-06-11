@@ -74,6 +74,18 @@ export function SiteFooter() {
               >
                 Blog
               </Link>
+              <Link
+                to="/about"
+                className="font-mono text-xs text-muted-foreground transition-colors hover:text-primary"
+              >
+                About
+              </Link>
+              <Link
+                to="/privacy"
+                className="font-mono text-xs text-muted-foreground transition-colors hover:text-primary"
+              >
+                Privacy
+              </Link>
               <a
                 href="/rss.xml"
                 className="inline-flex items-center gap-1 font-mono text-xs text-muted-foreground transition-colors hover:text-primary"
@@ -119,7 +131,12 @@ export function SiteFooter() {
           <p className="flex flex-col items-center gap-1 font-mono text-xs text-muted-foreground sm:flex-row sm:justify-center">
             <span>
               © {YEAR}{' '}
-              <span className="text-foreground">Mehdi Tareghi</span>
+              <Link
+                to="/author"
+                className="text-foreground transition-colors hover:text-primary"
+              >
+                Mehdi Tareghi
+              </Link>
             </span>
             <span aria-hidden="true" className="hidden sm:inline">
               {' · '}

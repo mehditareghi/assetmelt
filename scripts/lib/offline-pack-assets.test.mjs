@@ -111,6 +111,9 @@ test('buildOfflineManifest exposes packVersion instead of app version', () => {
 
 test('deny patterns stay focused on marketing-only assets', () => {
   assert.ok(OFFLINE_PACK_DENY_PATTERNS.some((pattern) => pattern.test('/squoosh-alternative')))
+  assert.ok(OFFLINE_PACK_DENY_PATTERNS.some((pattern) => pattern.test('/privacy')))
+  assert.ok(OFFLINE_PACK_DENY_PATTERNS.some((pattern) => pattern.test('/about')))
+  assert.ok(OFFLINE_PACK_DENY_PATTERNS.some((pattern) => pattern.test('/author')))
   assert.ok(OFFLINE_PACK_DENY_PATTERNS.some((pattern) => pattern.test('/assets/tool-landing-page-abc.js')))
   assert.equal(
     OFFLINE_PACK_DENY_PATTERNS.some((pattern) => pattern.test('/assets/studio-route.js')),

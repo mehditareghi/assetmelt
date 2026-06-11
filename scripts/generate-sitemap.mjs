@@ -7,6 +7,7 @@ const ROOT = dirname(dirname(fileURLToPath(import.meta.url)))
 const SITE_URL = 'https://assetmelt.com'
 const GENERATED_META = join(ROOT, 'src/generated/blog-meta.json')
 const TOOL_CONTENT = join(ROOT, 'src/lib/tool-pages/content.ts')
+const SITE_MODULE = join(ROOT, 'src/lib/site.ts')
 const SITEMAP_PATH = join(ROOT, 'public/sitemap.xml')
 const RSS_PATH = join(ROOT, 'public/rss.xml')
 
@@ -24,6 +25,13 @@ function readToolPagePaths() {
   if (!existsSync(TOOL_CONTENT)) return []
   const source = readFileSync(TOOL_CONTENT, 'utf8')
   const paths = [...source.matchAll(/path:\s*'(\/[^']+)'/g)].map((match) => match[1])
+  return [...new Set(paths)]
+}
+
+function readTrustPagePaths() {
+  if (!existsSync(SITE_MODULE)) return []
+  const source = readFileSync(SITE_MODULE, 'utf8')
+  const paths = [...source.matchAll(/'(\/(?:privacy|about|author))'/g)].map((match) => match[1])
   return [...new Set(paths)]
 }
 
@@ -52,6 +60,7 @@ function maxDate(dates) {
 function generateSitemap() {
   const blogPosts = readBlogMeta()
   const toolPaths = readToolPagePaths()
+  const trustPaths = readTrustPagePaths()
 
   const blogLastmods = blogPosts.map((post) =>
     resolveLastmod(join(ROOT, post.sourceFile), post.updatedAt ?? post.publishedAt),
@@ -81,6 +90,12 @@ function generateSitemap() {
       lastmod: resolveLastmod(TOOL_CONTENT),
       changefreq: 'monthly',
       priority: '0.8',
+    })),
+    ...trustPaths.map((path) => ({
+      loc: `${SITE_URL}${path}`,
+      lastmod: resolveLastmod(join(ROOT, `src/routes${path}.tsx`)),
+      changefreq: 'yearly',
+      priority: '0.5',
     })),
     ...blogPosts.map((post) => ({
       loc: `${SITE_URL}${post.path}`,

@@ -10,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { getRelatedToolPages } from '@/lib/tool-pages'
 import type { BlogPostMeta } from '@/lib/blog/types'
+import { SITE_AUTHOR } from '@/lib/site'
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', {
@@ -57,6 +58,10 @@ export function BlogPostPage({ post, Content }: BlogPostPageProps) {
 
           <div>
             <div className="mb-4 flex flex-wrap items-center gap-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+              <Link to="/author" className="transition-colors hover:text-primary">
+                {SITE_AUTHOR}
+              </Link>
+              <span aria-hidden="true">·</span>
               <time dateTime={post.publishedAt}>Published {formatDate(post.publishedAt)}</time>
               {post.updatedAt ? (
                 <>

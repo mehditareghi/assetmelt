@@ -77,6 +77,7 @@ export function buildBlogPostHead(post: BlogPostMeta) {
       author: {
         '@type': 'Person',
         name: SITE_AUTHOR,
+        url: `${SITE_URL}/author`,
       },
       publisher: {
         '@type': 'Organization',
