@@ -159,7 +159,7 @@ export function CryptoDonationPanel() {
                 aria-selected={active}
                 onClick={() => handleAssetChange(item)}
                 className={cn(
-                  'inline-flex items-center gap-2 rounded-lg border px-3 py-2 font-mono text-xs transition-colors',
+                  'inline-flex items-center gap-2 rounded-full border px-3.5 py-2 font-mono text-xs transition-colors',
                   active
                     ? 'border-primary/50 bg-primary/10 text-foreground'
                     : 'border-border/60 bg-background/40 text-muted-foreground hover:border-border hover:text-foreground',

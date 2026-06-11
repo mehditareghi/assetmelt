@@ -43,7 +43,7 @@ export function HeroSection() {
             <span className="relative mx-2 inline-block text-primary">
               Melt
               <motion.span
-                className="absolute -inset-x-2 -inset-y-1 -z-10 rounded-lg bg-primary/10 blur-xl"
+                className="absolute -inset-x-2 -inset-y-1 -z-10 rounded-full bg-primary/10 blur-xl"
                 animate={{ opacity: [0.4, 0.8, 0.4] }}
                 transition={{ duration: 3, repeat: Infinity }}
               />

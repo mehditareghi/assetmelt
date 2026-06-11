@@ -7,7 +7,7 @@ import {
   useOptionalOfflinePrepContext,
 } from '@/lib/pwa/offline-prep-context'
 
-function SiteLayoutFrame({ variant }: { variant: 'landing' | 'studio' }) {
+function SiteLayoutFrame() {
   const offlinePrep = useOptionalOfflinePrepContext()
   const hideChrome = offlinePrep?.offlineStudioChrome ?? false
 
@@ -21,7 +21,7 @@ function SiteLayoutFrame({ variant }: { variant: 'landing' | 'studio' }) {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <SiteHeader variant={variant} />
+      <SiteHeader />
       <Outlet />
       <SiteFooter />
     </div>
@@ -30,7 +30,6 @@ function SiteLayoutFrame({ variant }: { variant: 'landing' | 'studio' }) {
 
 export function SiteLayout() {
   const { pathname, hash } = useLocation()
-  const variant = pathname.startsWith('/studio') ? 'studio' : 'landing'
   const isStudio = pathname.startsWith('/studio')
 
   useEffect(() => {
@@ -45,10 +44,10 @@ export function SiteLayout() {
   if (isStudio) {
     return (
       <OfflinePrepProvider>
-        <SiteLayoutFrame variant={variant} />
+        <SiteLayoutFrame />
       </OfflinePrepProvider>
     )
   }
 
-  return <SiteLayoutFrame variant={variant} />
+  return <SiteLayoutFrame />
 }

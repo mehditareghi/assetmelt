@@ -1,4 +1,5 @@
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
+import { scrollToLandingSection } from '@/lib/site-navigation'
 import { GitHubIcon, LinkedInIcon } from '@/components/icons/brand-icons'
 import { InstallAppLink } from '@/components/pwa/install-app-link'
 import { OfflinePrepRestoreLink } from '@/components/pwa/offline-prep-restore-link'
@@ -20,11 +21,6 @@ const LANDING_SECTION_LINKS = [
   { id: 'faq', label: 'FAQ' },
   { id: 'support', label: 'Support' },
 ] as const
-
-function scrollToSection(id: string) {
-  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' })
-  window.history.pushState(null, '', `#${id}`)
-}
 
 function FooterSection({
   title,
@@ -56,7 +52,7 @@ function FooterHashLink({ id, label }: { id: string; label: string }) {
       onClick={(event) => {
         event.preventDefault()
         if (location.pathname === '/') {
-          scrollToSection(id)
+          scrollToLandingSection(id)
           return
         }
         navigate({ to: '/', hash: id })
