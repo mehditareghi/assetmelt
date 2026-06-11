@@ -4,6 +4,19 @@ All notable changes to Asset Melt are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/) and [Conventional Commits](https://www.conventionalcommits.org/).
 
 
+## [0.12.0](https://github.com/mehditareghi/assetmelt/compare/v0.11.1...v0.12.0) (2026-06-11)
+
+
+### Features
+
+* added E-E-A-T pages ([36516ab](https://github.com/mehditareghi/assetmelt/commit/36516abfcd20cadbc2d56c995b0ee2d8ecd890c5))
+* liquid glass header ([8fd4fe7](https://github.com/mehditareghi/assetmelt/commit/8fd4fe7ba0a4f07e893c9038958ea3cd501d8f1d))
+
+
+### Bug Fixes
+
+* footer layout ([6d28665](https://github.com/mehditareghi/assetmelt/commit/6d286658815920625f9ee084e654d027332bf559))
+
 ## [0.11.1](https://github.com/mehditareghi/assetmelt/compare/v0.11.0...v0.11.1) (2026-06-10)
 
 
