@@ -1,5 +1,5 @@
-import React, { useEffect, useId, useRef, useState, useSyncExternalStore } from 'react';
-import { LIQUID_GLASS_NAV, type LiquidGlassMaterial, liquidGlassSafariFrostFilter, liquidGlassSvgBackdropFilter } from '@/lib/liquid-glass-tokens';
+import React, { useEffect, useId, useRef, useSyncExternalStore } from 'react';
+import { LIQUID_GLASS_NAV, type LiquidGlassMaterial, liquidGlassSvgBackdropFilter } from '@/lib/liquid-glass-tokens';
 
 export interface GlassSurfaceProps {
   children?: React.ReactNode;
@@ -61,23 +61,24 @@ function detectSvgBackdropFilterSupport() {
   return div.style.backdropFilter !== '';
 }
 
-const useDarkMode = () => {
-  const [isDark, setIsDark] = useState(false);
+function subscribeToDarkMode(onStoreChange: () => void) {
+  const root = document.documentElement;
+  const observer = new MutationObserver(onStoreChange);
+  observer.observe(root, { attributes: true, attributeFilter: ['class'] });
+  return () => observer.disconnect();
+}
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
+function getDarkModeSnapshot() {
+  return document.documentElement.classList.contains('dark');
+}
 
-    const root = document.documentElement;
-    const sync = () => setIsDark(root.classList.contains('dark'));
-    sync();
+/** Non-nav glass still needs a stable SSR guess; nav material uses CSS `.dark` instead. */
+function getDarkModeServerSnapshot() {
+  return false;
+}
 
-    const observer = new MutationObserver(sync);
-    observer.observe(root, { attributes: true, attributeFilter: ['class'] });
-    return () => observer.disconnect();
-  }, []);
-
-  return isDark;
-};
+const useDarkMode = () =>
+  useSyncExternalStore(subscribeToDarkMode, getDarkModeSnapshot, getDarkModeServerSnapshot);
 
 const GlassSurface: React.FC<GlassSurfaceProps> = ({
   children,
@@ -122,7 +123,6 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
 
   const isDarkMode = useDarkMode();
   const navTokens = material === 'navigation' ? LIQUID_GLASS_NAV : null;
-  const theme = isDarkMode ? 'dark' : 'light';
 
   const generateDisplacementMap = () => {
     const rect = containerRef.current?.getBoundingClientRect();
@@ -223,52 +223,30 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
       '--glass-saturation': saturation,
     } as React.CSSProperties;
 
+    if (navTokens) {
+      if (!svgSupported) return baseStyles;
+
+      return {
+        ...baseStyles,
+        backdropFilter: liquidGlassSvgBackdropFilter(filterId, navTokens.frost),
+      };
+    }
+
     const backdropFilterSupported = supportsBackdropFilter();
 
-    const surfaceTint = navTokens
-      ? navTokens.tint[theme]
-      : isDarkMode
-        ? `hsl(0 0% 0% / ${backgroundOpacity})`
-        : `hsl(0 0% 100% / ${backgroundOpacity})`;
-    const surfaceBorder = navTokens ? navTokens.border[theme] : undefined;
-    const surfaceShadow = navTokens
-      ? navTokens.shadow[theme]
-      : isDarkMode
-        ? '0 2px 20px rgba(0, 0, 0, 0.22), 0 1px 4px rgba(0, 0, 0, 0.14)'
-        : '0 2px 20px rgba(0, 0, 0, 0.05), 0 1px 4px rgba(0, 0, 0, 0.04)';
-
-    const safariFrost = navTokens
-      ? liquidGlassSafariFrostFilter(navTokens.frostFallback, theme)
-      : `blur(20px) saturate(1.8) brightness(${isDarkMode ? 1.15 : 1.08})`;
+    const surfaceTint = isDarkMode
+      ? `hsl(0 0% 0% / ${backgroundOpacity})`
+      : `hsl(0 0% 100% / ${backgroundOpacity})`;
+    const surfaceShadow = isDarkMode
+      ? '0 2px 20px rgba(0, 0, 0, 0.22), 0 1px 4px rgba(0, 0, 0, 0.14)'
+      : '0 2px 20px rgba(0, 0, 0, 0.05), 0 1px 4px rgba(0, 0, 0, 0.04)';
+    const safariFrost = `blur(20px) saturate(1.8) brightness(${isDarkMode ? 1.15 : 1.08})`;
 
     if (svgSupported) {
       return {
         ...baseStyles,
         background: surfaceTint,
-        backdropFilter: navTokens
-          ? liquidGlassSvgBackdropFilter(filterId, navTokens.frost)
-          : `url(#${filterId}) saturate(${saturation})`,
-        ...(surfaceBorder ? { border: surfaceBorder } : {}),
-        boxShadow: surfaceShadow,
-      };
-    }
-
-    if (isDarkMode) {
-      if (!backdropFilterSupported) {
-        return {
-          ...baseStyles,
-          background: surfaceTint,
-          ...(surfaceBorder ? { border: surfaceBorder } : {}),
-          boxShadow: surfaceShadow,
-        };
-      }
-
-      return {
-        ...baseStyles,
-        background: surfaceTint,
-        backdropFilter: safariFrost,
-        WebkitBackdropFilter: safariFrost,
-        ...(surfaceBorder ? { border: surfaceBorder } : {}),
+        backdropFilter: `url(#${filterId}) saturate(${saturation})`,
         boxShadow: surfaceShadow,
       };
     }
@@ -277,7 +255,6 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
       return {
         ...baseStyles,
         background: surfaceTint,
-        ...(surfaceBorder ? { border: surfaceBorder } : {}),
         boxShadow: surfaceShadow,
       };
     }
@@ -287,7 +264,6 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
       background: surfaceTint,
       backdropFilter: safariFrost,
       WebkitBackdropFilter: safariFrost,
-      ...(surfaceBorder ? { border: surfaceBorder } : {}),
       boxShadow: surfaceShadow,
     };
   };
@@ -295,14 +271,20 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
   const glassSurfaceClasses =
     'relative flex items-center justify-center overflow-hidden transition-opacity duration-[260ms] ease-out';
 
-  const focusVisibleClasses = isDarkMode
-    ? 'focus-visible:outline-2 focus-visible:outline-[#0A84FF] focus-visible:outline-offset-2'
-    : 'focus-visible:outline-2 focus-visible:outline-[#007AFF] focus-visible:outline-offset-2';
+  const focusVisibleClasses = navTokens
+    ? ''
+    : isDarkMode
+      ? 'focus-visible:outline-2 focus-visible:outline-[#0A84FF] focus-visible:outline-offset-2'
+      : 'focus-visible:outline-2 focus-visible:outline-[#007AFF] focus-visible:outline-offset-2';
+
+  const navMaterialClasses = navTokens
+    ? `liquid-glass-nav${svgSupported ? ' liquid-glass-nav--svg' : ''}`
+    : '';
 
   return (
     <div
       ref={containerRef}
-      className={`${glassSurfaceClasses} ${focusVisibleClasses} ${className}`}
+      className={`${glassSurfaceClasses} ${navMaterialClasses} ${focusVisibleClasses} ${className}`}
       style={getContainerStyles()}
     >
       <svg
@@ -362,8 +344,7 @@ const GlassSurface: React.FC<GlassSurfaceProps> = ({
       {navTokens && (
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 z-[1] rounded-[inherit]"
-          style={{ boxShadow: navTokens.shine[theme] }}
+          className="liquid-glass-nav-shine pointer-events-none absolute inset-0 z-[1] rounded-[inherit]"
         />
       )}
 
