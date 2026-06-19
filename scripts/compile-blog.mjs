@@ -95,10 +95,17 @@ async function processHeroImage(slug, heroImageBase) {
 
   await pipeline.clone().avif({ quality: 62, effort: 4 }).toFile(join(outDir, `${heroImageBase}.avif`))
   await pipeline.clone().webp({ quality: 82 }).toFile(join(outDir, `${heroImageBase}.webp`))
+  await pipeline
+    .clone()
+    .jpeg({ quality: 85, mozjpeg: true })
+    .toFile(join(outDir, `${heroImageBase}.jpg`))
+
+  console.log(`  ✓ ${slug}/${heroImageBase}.avif + .webp + .jpg`)
 
   return {
     avif: `/blog/${slug}/${heroImageBase}.avif`,
     webp: `/blog/${slug}/${heroImageBase}.webp`,
+    jpeg: `/blog/${slug}/${heroImageBase}.jpg`,
   }
 }
 
@@ -226,6 +233,7 @@ async function main() {
       readingTimeMinutes,
       heroAvif: heroPaths?.avif ?? null,
       heroWebp: heroPaths?.webp ?? null,
+      heroJpeg: heroPaths?.jpeg ?? null,
       sourceFile: relative(ROOT, sourcePath),
     })
 

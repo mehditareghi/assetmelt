@@ -1,144 +1,63 @@
 /**
- * Generates theme-neutral hero PNGs for blog posts.
- * Soft warm gradients and brand amber/teal accents read well on light and dark pages
- * once wrapped in the site's bordered card frame. compile-blog.mjs converts PNG → AVIF/WebP.
+ * Validates curated blog hero sources in content/blog/assets/{slug}/hero.png.
+ *
+ * Curated PNGs are NEVER overwritten here — prebuild only checks presence.
+ * compile-blog.mjs converts each hero.png → AVIF + WebP + JPEG fallback.
+ *
+ * Add a new post: place hero.png in content/blog/assets/{slug}/, then run prebuild.
  */
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { basename, dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import sharp from 'sharp'
+import matter from 'gray-matter'
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)))
-const CONTENT_DIR = join(ROOT, 'content/blog/assets')
-const WIDTH = 1200
-const HEIGHT = 630
+const CONTENT_DIR = join(ROOT, 'content/blog')
+const ASSETS_DIR = join(CONTENT_DIR, 'assets')
 
-const BG_TOP = '#f7f5f0'
-const BG_BOTTOM = '#ebe4d8'
-const CARD = '#ffffff'
-const CARD_STROKE = '#d6cfc2'
-const TEXT = '#1c1917'
-const MUTED = '#57534e'
-const AMBER = '#d97706'
-const AMBER_SOFT = '#fef3c7'
-const TEAL = '#059669'
-const TEAL_SOFT = '#d1fae5'
-const INDIGO = '#4f46e5'
-const INDIGO_SOFT = '#e0e7ff'
-
-function heroSvg(body) {
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="${BG_TOP}"/>
-      <stop offset="100%" stop-color="${BG_BOTTOM}"/>
-    </linearGradient>
-    <linearGradient id="amberGlow" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="${AMBER}" stop-opacity="0.18"/>
-      <stop offset="100%" stop-color="${AMBER}" stop-opacity="0.04"/>
-    </linearGradient>
-    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#1c1917" flood-opacity="0.08"/>
-    </filter>
-  </defs>
-  <rect width="${WIDTH}" height="${HEIGHT}" fill="url(#bg)"/>
-  <circle cx="1050" cy="90" r="140" fill="url(#amberGlow)"/>
-  <circle cx="120" cy="540" r="100" fill="${TEAL}" fill-opacity="0.06"/>
-  ${body}
-</svg>`
+function slugify(value) {
+  return String(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
 }
 
-const HEROES = {
-  'compress-images-in-browser': heroSvg(`
-  <g filter="url(#shadow)">
-    <rect x="80" y="72" width="1040" height="486" rx="28" fill="${CARD}" stroke="${CARD_STROKE}" stroke-width="2"/>
-  </g>
-  <circle cx="220" cy="210" r="64" fill="${AMBER_SOFT}" stroke="${AMBER}" stroke-width="3" stroke-opacity="0.45"/>
-  <rect x="320" y="170" width="480" height="24" rx="12" fill="${AMBER}" fill-opacity="0.85"/>
-  <rect x="320" y="214" width="380" height="16" rx="8" fill="${MUTED}" fill-opacity="0.22"/>
-  <rect x="320" y="246" width="320" height="16" rx="8" fill="${MUTED}" fill-opacity="0.15"/>
-  <rect x="160" y="340" width="880" height="140" rx="20" fill="${AMBER_SOFT}" stroke="${AMBER}" stroke-width="2" stroke-opacity="0.25"/>
-  <text x="600" y="405" text-anchor="middle" fill="${TEXT}" font-family="system-ui,sans-serif" font-size="40" font-weight="800">Compress in the browser</text>
-  <text x="600" y="448" text-anchor="middle" fill="${MUTED}" font-family="system-ui,sans-serif" font-size="21">Zero uploads · WASM codecs · Private by default</text>
-  `),
-
-  'heic-to-jpg-browser-guide': heroSvg(`
-  <g filter="url(#shadow)">
-    <rect x="80" y="72" width="1040" height="486" rx="28" fill="${CARD}" stroke="${CARD_STROKE}" stroke-width="2"/>
-  </g>
-  <rect x="180" y="160" width="300" height="300" rx="24" fill="${TEAL_SOFT}" stroke="${TEAL}" stroke-width="3" stroke-opacity="0.4"/>
-  <text x="330" y="320" text-anchor="middle" fill="${TEAL}" font-family="system-ui,sans-serif" font-size="52" font-weight="800">HEIC</text>
-  <path d="M510 310h180" stroke="${TEXT}" stroke-width="5" stroke-linecap="round" stroke-opacity="0.35"/>
-  <polygon points="690,310 660,290 660,330" fill="${TEXT}" fill-opacity="0.35"/>
-  <rect x="720" y="160" width="300" height="300" rx="24" fill="${AMBER_SOFT}" stroke="${AMBER}" stroke-width="3" stroke-opacity="0.4"/>
-  <text x="870" y="320" text-anchor="middle" fill="${AMBER}" font-family="system-ui,sans-serif" font-size="52" font-weight="800">JPG</text>
-  <text x="600" y="510" text-anchor="middle" fill="${MUTED}" font-family="system-ui,sans-serif" font-size="22">Convert iPhone photos locally — no cloud upload</text>
-  `),
-
-  'avif-vs-webp-2026': heroSvg(`
-  <g filter="url(#shadow)">
-    <rect x="80" y="72" width="1040" height="486" rx="28" fill="${CARD}" stroke="${CARD_STROKE}" stroke-width="2"/>
-  </g>
-  <rect x="120" y="120" width="460" height="320" rx="24" fill="${INDIGO_SOFT}" stroke="${INDIGO}" stroke-width="3" stroke-opacity="0.35"/>
-  <text x="350" y="265" text-anchor="middle" fill="${INDIGO}" font-family="system-ui,sans-serif" font-size="64" font-weight="800">AVIF</text>
-  <text x="350" y="315" text-anchor="middle" fill="${MUTED}" font-family="system-ui,sans-serif" font-size="20">Best compression</text>
-  <rect x="620" y="120" width="460" height="320" rx="24" fill="${TEAL_SOFT}" stroke="${TEAL}" stroke-width="3" stroke-opacity="0.35"/>
-  <text x="850" y="265" text-anchor="middle" fill="${TEAL}" font-family="system-ui,sans-serif" font-size="64" font-weight="800">WebP</text>
-  <text x="850" y="315" text-anchor="middle" fill="${MUTED}" font-family="system-ui,sans-serif" font-size="20">Broad support</text>
-  <text x="600" y="530" text-anchor="middle" fill="${TEXT}" font-family="system-ui,sans-serif" font-size="26" font-weight="700">Which format wins in 2026?</text>
-  `),
-
-  'squoosh-alternative-guide': heroSvg(`
-  <g filter="url(#shadow)">
-    <rect x="80" y="72" width="1040" height="486" rx="28" fill="${CARD}" stroke="${CARD_STROKE}" stroke-width="2"/>
-  </g>
-  <circle cx="600" cy="260" r="100" fill="${AMBER_SOFT}" stroke="${AMBER}" stroke-width="3" stroke-opacity="0.4"/>
-  <path d="M545 260 L585 300 L655 220" stroke="${AMBER}" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-  <text x="600" y="410" text-anchor="middle" fill="${TEXT}" font-family="system-ui,sans-serif" font-size="38" font-weight="800">Squoosh-grade codecs</text>
-  <text x="600" y="455" text-anchor="middle" fill="${MUTED}" font-family="system-ui,sans-serif" font-size="21">Same WASM engines · batch workflow · 100% local</text>
-  `),
-
-  'optimize-images-core-web-vitals-lcp': heroSvg(`
-  <g filter="url(#shadow)">
-    <rect x="80" y="72" width="1040" height="486" rx="28" fill="${CARD}" stroke="${CARD_STROKE}" stroke-width="2"/>
-  </g>
-  <rect x="140" y="140" width="420" height="280" rx="20" fill="${AMBER_SOFT}" stroke="${AMBER}" stroke-width="2" stroke-opacity="0.35"/>
-  <circle cx="220" cy="220" r="36" fill="${AMBER}" fill-opacity="0.25"/>
-  <polygon points="210,205 210,235 235,220" fill="${AMBER}" fill-opacity="0.7"/>
-  <rect x="280" y="190" width="240" height="18" rx="9" fill="${MUTED}" fill-opacity="0.2"/>
-  <rect x="280" y="222" width="200" height="14" rx="7" fill="${MUTED}" fill-opacity="0.14"/>
-  <rect x="280" y="250" width="160" height="14" rx="7" fill="${MUTED}" fill-opacity="0.1"/>
-  <text x="350" y="340" fill="${TEXT}" font-family="system-ui,sans-serif" font-size="22" font-weight="700">Hero image</text>
-  <text x="350" y="368" fill="${MUTED}" font-family="system-ui,sans-serif" font-size="17">2.4 MB → 140 KB AVIF</text>
-  <path d="M580 280h80" stroke="${TEXT}" stroke-width="4" stroke-linecap="round" stroke-opacity="0.25"/>
-  <polygon points="660,280 638,268 638,292" fill="${TEXT}" fill-opacity="0.25"/>
-  <rect x="680" y="140" width="380" height="280" rx="20" fill="${TEAL_SOFT}" stroke="${TEAL}" stroke-width="2" stroke-opacity="0.35"/>
-  <text x="870" y="200" text-anchor="middle" fill="${TEAL}" font-family="system-ui,sans-serif" font-size="18" font-weight="700" letter-spacing="2">LCP</text>
-  <text x="870" y="275" text-anchor="middle" fill="${TEXT}" font-family="system-ui,sans-serif" font-size="72" font-weight="800">1.8s</text>
-  <rect x="760" y="310" width="220" height="36" rx="18" fill="${TEAL}" fill-opacity="0.15"/>
-  <text x="870" y="334" text-anchor="middle" fill="${TEAL}" font-family="system-ui,sans-serif" font-size="18" font-weight="700">Good · Core Web Vitals</text>
-  <rect x="140" y="448" width="160" height="44" rx="12" fill="${TEAL_SOFT}" stroke="${TEAL}" stroke-width="1.5" stroke-opacity="0.35"/>
-  <text x="220" y="477" text-anchor="middle" fill="${TEAL}" font-family="system-ui,sans-serif" font-size="16" font-weight="700">LCP</text>
-  <rect x="320" y="448" width="160" height="44" rx="12" fill="${MUTED}" fill-opacity="0.08" stroke="${CARD_STROKE}" stroke-width="1.5"/>
-  <text x="400" y="477" text-anchor="middle" fill="${MUTED}" font-family="system-ui,sans-serif" font-size="16" font-weight="600">INP</text>
-  <rect x="500" y="448" width="160" height="44" rx="12" fill="${MUTED}" fill-opacity="0.08" stroke="${CARD_STROKE}" stroke-width="1.5"/>
-  <text x="580" y="477" text-anchor="middle" fill="${MUTED}" font-family="system-ui,sans-serif" font-size="16" font-weight="600">CLS</text>
-  <text x="870" y="477" text-anchor="middle" fill="${MUTED}" font-family="system-ui,sans-serif" font-size="20">Shrink the LCP image before deploy</text>
-  `),
+function heroSourcePath(slug, heroImageBase = 'hero') {
+  const assetDir = join(ASSETS_DIR, slug)
+  for (const ext of ['png', 'jpg', 'jpeg', 'webp']) {
+    const candidate = join(assetDir, `${heroImageBase}.${ext}`)
+    if (existsSync(candidate)) return candidate
+  }
+  return null
 }
 
-async function main() {
-  for (const [slug, svg] of Object.entries(HEROES)) {
-    const outDir = join(CONTENT_DIR, slug)
-    const outPath = join(outDir, 'hero.png')
-    mkdirSync(outDir, { recursive: true })
+function main() {
+  const mdxFiles = readdirSync(CONTENT_DIR)
+    .filter((file) => file.endsWith('.mdx'))
+    .sort()
 
-    await sharp(Buffer.from(svg)).png({ compressionLevel: 9 }).toFile(outPath)
-    console.log(`  ✓ ${slug}/hero.png`)
+  let missing = 0
+
+  for (const fileName of mdxFiles) {
+    const raw = readFileSync(join(CONTENT_DIR, fileName), 'utf8')
+    const { data } = matter(raw)
+    const slug = slugify(data.slug ?? basename(fileName, '.mdx'))
+    const heroImageBase = String(data.heroImage ?? 'hero').trim()
+    const sourcePath = heroSourcePath(slug, heroImageBase)
+
+    if (sourcePath) {
+      console.log(`  ✓ ${slug}/${basename(sourcePath)} (curated)`)
+    } else {
+      console.warn(
+        `  ⚠ Missing hero for ${slug} — add content/blog/assets/${slug}/${heroImageBase}.png`,
+      )
+      missing += 1
+    }
+  }
+
+  if (missing > 0) {
+    process.exit(1)
   }
 }
 
-main().catch((error) => {
-  console.error(error)
-  process.exit(1)
-})
+main()

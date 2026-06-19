@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router'
 import { motion } from 'motion/react'
 import { ArrowRight, Clock } from 'lucide-react'
 import type { BlogPostMeta } from '@/lib/blog/types'
+import { ResponsivePicture } from '@/components/blog/responsive-picture'
 import { cn } from '@/lib/utils'
 
 interface BlogPostCardProps {
@@ -32,21 +33,16 @@ export function BlogPostCard({ post, featured = false, className }: BlogPostCard
         params={{ slug: post.slug }}
         className="glass-surface flex h-full flex-col overflow-hidden rounded-2xl border border-border/50 transition-colors hover:border-primary/30"
       >
-        {post.heroWebp ? (
+        {post.heroJpeg && post.heroWebp ? (
           <div className="relative aspect-[16/9] overflow-hidden bg-muted/30">
-            <picture>
-              {post.heroAvif ? (
-                <source srcSet={post.heroAvif} type="image/avif" />
-              ) : null}
-              <source srcSet={post.heroWebp} type="image/webp" />
-              <img
-                src={post.heroWebp}
-                alt={post.heroImageAlt}
-                loading="lazy"
-                decoding="async"
-                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-              />
-            </picture>
+            <ResponsivePicture
+              avif={post.heroAvif}
+              webp={post.heroWebp}
+              jpeg={post.heroJpeg}
+              alt={post.heroImageAlt}
+              imgClassName="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+              loading="lazy"
+            />
           </div>
         ) : null}
 

@@ -61,6 +61,11 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://assetmelt.com/blog/image-seo-guide-2026</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://assetmelt.com/blog/optimize-images-core-web-vitals-lcp</loc>
     <lastmod>2026-06-09</lastmod>
     <changefreq>monthly</changefreq>

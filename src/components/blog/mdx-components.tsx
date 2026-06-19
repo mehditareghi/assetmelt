@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button'
 import { getToolPage } from '@/lib/tool-pages'
 import type { ToolPageId } from '@/lib/tool-pages/types'
 import { cn } from '@/lib/utils'
+import { SrcsetPlanner } from '@/components/blog/srcset-planner'
+import { ResponsivePicture } from '@/components/blog/responsive-picture'
 
 interface BlogImageProps {
   slug: string
@@ -25,17 +27,13 @@ export function BlogImage({
 
   return (
     <figure className={cn('my-8 overflow-hidden rounded-xl border border-border/50', className)}>
-      <picture>
-        <source srcSet={`${base}.avif`} type="image/avif" />
-        <source srcSet={`${base}.webp`} type="image/webp" />
-        <img
-          src={`${base}.webp`}
-          alt={alt}
-          loading="lazy"
-          decoding="async"
-          className="h-auto w-full"
-        />
-      </picture>
+      <ResponsivePicture
+        avif={`${base}.avif`}
+        webp={`${base}.webp`}
+        jpeg={`${base}.jpg`}
+        alt={alt}
+        loading="lazy"
+      />
       {caption ? (
         <figcaption className="border-t border-border/40 px-4 py-2 text-center text-sm text-muted-foreground">
           {caption}
@@ -222,6 +220,7 @@ const defaultComponents: MDXComponents = {
   StudioCta,
   ToolLink,
   BlogImage,
+  SrcsetPlanner,
 }
 
 export function useMDXComponents(components: MDXComponents = {}): MDXComponents {

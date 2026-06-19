@@ -18,6 +18,7 @@ export interface BlogPostMeta {
   heroImageAlt: string
   heroAvif: string | null
   heroWebp: string | null
+  heroJpeg: string | null
   readingTimeMinutes: number
   relatedTools: ToolPageId[]
   faq: BlogPostFaq[]

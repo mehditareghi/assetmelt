@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { getRelatedToolPages } from '@/lib/tool-pages'
 import type { BlogPostMeta } from '@/lib/blog/types'
 import { SITE_AUTHOR } from '@/lib/site'
+import { ResponsivePicture } from '@/components/blog/responsive-picture'
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', {
@@ -83,23 +84,18 @@ export function BlogPostPage({ post, Content }: BlogPostPageProps) {
           </div>
         </header>
 
-        {post.heroWebp ? (
+        {post.heroJpeg && post.heroWebp ? (
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
             <figure className="overflow-hidden rounded-2xl border border-border/50 shadow-lg shadow-black/10">
-              <picture>
-                {post.heroAvif ? (
-                  <source srcSet={post.heroAvif} type="image/avif" />
-                ) : null}
-                <source srcSet={post.heroWebp} type="image/webp" />
-                <img
-                  src={post.heroWebp}
-                  alt={post.heroImageAlt}
-                  width={1200}
-                  height={630}
-                  className="h-auto w-full"
-                  fetchPriority="high"
-                />
-              </picture>
+              <ResponsivePicture
+                avif={post.heroAvif}
+                webp={post.heroWebp}
+                jpeg={post.heroJpeg}
+                alt={post.heroImageAlt}
+                width={1200}
+                height={630}
+                fetchPriority="high"
+              />
             </figure>
           </div>
         ) : null}

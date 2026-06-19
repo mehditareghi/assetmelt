@@ -7,6 +7,13 @@
     <language>en-us</language>
     <atom:link href="https://assetmelt.com/rss.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>Image SEO in 2026: Alt Text, Filenames, Formats, and a Local Prep Workflow</title>
+      <link>https://assetmelt.com/blog/image-seo-guide-2026</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/image-seo-guide-2026</guid>
+      <description>A complete image SEO guide for 2026 — write inclusive alt text, name files for crawlers, ship AVIF and WebP with responsive srcset, strip EXIF metadata, and prep assets locally before WordPress, Shopify, or static deploys.</description>
+      <pubDate>Fri, 19 Jun 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
       <title>How to Optimize Images for Core Web Vitals and LCP in 2026</title>
       <link>https://assetmelt.com/blog/optimize-images-core-web-vitals-lcp</link>
       <guid isPermaLink="true">https://assetmelt.com/blog/optimize-images-core-web-vitals-lcp</guid>

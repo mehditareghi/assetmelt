@@ -60,9 +60,11 @@ export function buildBlogIndexHead() {
 
 export function buildBlogPostHead(post: BlogPostMeta) {
   const pageUrl = `${SITE_URL}${post.path}`
-  const ogImage = post.heroWebp
-    ? `${SITE_URL}${post.heroWebp}`
-    : undefined
+  const ogImage = post.heroJpeg
+    ? `${SITE_URL}${post.heroJpeg}`
+    : post.heroWebp
+      ? `${SITE_URL}${post.heroWebp}`
+      : undefined
   const modified = post.updatedAt ?? post.publishedAt
 
   const graph: Record<string, unknown>[] = [
