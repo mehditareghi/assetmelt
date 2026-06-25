@@ -28,7 +28,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          persist-credentials: false
 
       - name: Tag before release
         id: before
@@ -61,7 +60,7 @@ jobs:
       - name: Detect release result
         id: release_result
         run: |
-          git fetch --tags --force
+          # semantic-release creates the tag locally — no fetch needed
           AFTER="$(git describe --tags --abbrev=0 2>/dev/null || echo 'none')"
           BEFORE="${{ steps.before.outputs.tag }}"
 
