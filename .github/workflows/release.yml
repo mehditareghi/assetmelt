@@ -1,0 +1,246 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    outputs:
+      published: ${{ steps.release_result.outputs.published }}
+      version: ${{ steps.release_result.outputs.version }}
+      tag: ${{ steps.release_result.outputs.tag }}
+      previous_tag: ${{ steps.before.outputs.tag }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Tag before release
+        id: before
+        run: |
+          TAG="$(git describe --tags --abbrev=0 2>/dev/null || echo 'none')"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "Previous tag: ${TAG}"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+        env:
+          HUSKY: 0
+
+      - name: Semantic Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.SEMANTIC_RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
+          HUSKY: 0
+        run: pnpm exec semantic-release
+
+      - name: Detect release result
+        id: release_result
+        run: |
+          git fetch --tags --force
+          AFTER="$(git describe --tags --abbrev=0 2>/dev/null || echo 'none')"
+          BEFORE="${{ steps.before.outputs.tag }}"
+
+          if [ "$BEFORE" != "$AFTER" ] && [ "$AFTER" != "none" ]; then
+            VERSION="${AFTER#v}"
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "tag=${AFTER}" >> "$GITHUB_OUTPUT"
+            echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+            echo "New release: ${AFTER} (${VERSION})"
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+            echo "tag=" >> "$GITHUB_OUTPUT"
+            echo "version=" >> "$GITHUB_OUTPUT"
+            echo "No new release published."
+          fi
+
+      - name: Release summary
+        if: steps.release_result.outputs.published == 'true'
+        run: |
+          {
+            echo "## Released ${{ steps.release_result.outputs.tag }}"
+            echo ""
+            echo "Version **${{ steps.release_result.outputs.version }}** — build and deploy jobs will run next."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  deploy:
+    needs: release
+    if: needs.release.outputs.published == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+    environment:
+      name: Production
+      url: ${{ steps.deploy.outputs.url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+        env:
+          HUSKY: 0
+
+      - name: Pull Vercel environment
+        run: npx vercel@latest pull --yes --environment=production --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Build for production
+        run: npx vercel@latest build --prod --token="$VERCEL_TOKEN"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+          APP_VERSION: ${{ needs.release.outputs.version }}
+
+      - name: Deploy to Vercel production
+        id: deploy
+        run: |
+          URL="$(npx vercel@latest deploy --prebuilt --prod --token="$VERCEL_TOKEN")"
+          echo "url=${URL}" >> "$GITHUB_OUTPUT"
+          echo "Deployed to ${URL}"
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Deploy summary
+        run: |
+          {
+            echo "## Deployed v${{ needs.release.outputs.version }}"
+            echo ""
+            echo "Production URL: ${{ steps.deploy.outputs.url }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  no-deploy:
+    needs: release
+    if: needs.release.outputs.published != 'true'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Explain skipped deploy
+        run: |
+          {
+            echo "## No release — build and deploy skipped"
+            echo ""
+            echo "No new version was published. Commits since \`${{ needs.release.outputs.previous_tag }}\` did not include a releasable \`feat\`, \`fix\`, or \`perf\` commit."
+            echo ""
+            echo "| Job | Status |"
+            echo "|-----|--------|"
+            echo "| release | completed (no new tag) |"
+            echo "| deploy | skipped |"
+            echo ""
+            echo "Pull request preview deployments on Vercel are unaffected."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  notify:
+    needs: [release, deploy, no-deploy]
+    if: always() && !cancelled()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine notify status
+        id: status
+        run: |
+          if [ "${{ needs.release.result }}" = "failure" ]; then
+            echo "status=release_failed" >> "$GITHUB_OUTPUT"
+          elif [ "${{ needs.release.outputs.published }}" = "true" ]; then
+            if [ "${{ needs.deploy.result }}" = "success" ]; then
+              echo "status=released" >> "$GITHUB_OUTPUT"
+            else
+              echo "status=deploy_failed" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "status=no_release" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Fetch GitHub Release notes
+        if: needs.release.outputs.published == 'true' && steps.status.outputs.status != 'release_failed'
+        id: release_info
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ needs.release.outputs.tag }}"
+          NOTES="$(gh release view "$TAG" --repo "${{ github.repository }}" --json body -q '.body // ""' 2>/dev/null || true)"
+          URL="$(gh release view "$TAG" --repo "${{ github.repository }}" --json url -q '.url' 2>/dev/null || true)"
+          {
+            echo "notes<<EOF"
+            echo "$NOTES"
+            echo "EOF"
+            echo "url=${URL}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Prepare notify payload
+        id: notify
+        run: |
+          {
+            echo "commit_message<<EOF"
+            echo "${{ github.event.head_commit.message }}"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Notify Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_MESSAGE_THREAD_ID: ${{ secrets.TELEGRAM_MESSAGE_THREAD_ID }}
+          NOTIFY_STATUS: ${{ steps.status.outputs.status }}
+          NOTIFY_VERSION: ${{ needs.release.outputs.version }}
+          NOTIFY_TAG: ${{ needs.release.outputs.tag }}
+          NOTIFY_PREVIOUS_TAG: ${{ needs.release.outputs.previous_tag }}
+          NOTIFY_RELEASE_NOTES: ${{ steps.release_info.outputs.notes }}
+          NOTIFY_RELEASE_URL: ${{ steps.release_info.outputs.url }}
+          NOTIFY_DEPLOY_URL: ${{ needs.deploy.outputs.url }}
+          NOTIFY_WORKFLOW_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          NOTIFY_COMMIT_MESSAGE: ${{ steps.notify.outputs.commit_message }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node scripts/notify-telegram.mjs
