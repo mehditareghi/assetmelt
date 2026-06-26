@@ -11,6 +11,7 @@ export interface SeoConfig {
   jsonLd?: Record<string, unknown> | Array<Record<string, unknown>>
   llmDiscovery?: boolean
   rssAlternate?: string
+  noindex?: boolean
 }
 
 type FaqLike = { question: string; answer: string }
@@ -26,6 +27,7 @@ export function buildSeoHead({
   jsonLd,
   llmDiscovery = false,
   rssAlternate,
+  noindex = false,
 }: SeoConfig) {
   const url = path === '/' ? SITE_URL : `${SITE_URL}${path}`
 
@@ -37,7 +39,7 @@ export function buildSeoHead({
     meta: [
       { title },
       { name: 'description', content: description },
-      { name: 'robots', content: 'index, follow' },
+      { name: 'robots', content: noindex ? 'noindex, nofollow' : 'index, follow' },
       { property: 'og:title', content: title },
       { property: 'og:description', content: description },
       { property: 'og:url', content: url },

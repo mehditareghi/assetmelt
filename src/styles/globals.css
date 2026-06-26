@@ -376,6 +376,20 @@
     animation: landing-panel-scan 8s ease-in-out infinite;
   }
 
+  .not-found-zero {
+    display: inline-block;
+    animation: not-found-zero-pulse 4s ease-in-out infinite;
+  }
+
+  @keyframes not-found-zero-pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.55;
+    }
+  }
+
 }
 
 @media (prefers-reduced-motion: reduce) {
