@@ -3,6 +3,13 @@
   "installCommand": "pnpm install",
   "ignoreCommand": "bash scripts/vercel-should-build.sh",
   "buildCommand": "git fetch --tags --force 2>/dev/null || true && pnpm run build",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "permanent": true
+    }
+  ],
   "headers": [
     {
       "source": "/sw.js",
