@@ -9,8 +9,12 @@ export default defineConfig({
   // Service worker is generated post-build via scripts/build-pwa.mjs (TanStack Start + Workbox).
   plugins: [
     tanstackStart({
+      server: {
+        entry: path.resolve(__dirname, "./src/entry-server.ts"),
+      },
       prerender: {
         enabled: true,
+        autoSubfolderIndex: false,
         // Crawl blog post links from /blog/ and other prerendered pages.
         crawlLinks: true,
         autoStaticPathsDiscovery: true,
