@@ -25,7 +25,7 @@ import {
 } from '@/lib/image/clipboard-paste'
 import { warmUpWorker } from '@/lib/image/worker-bridge'
 import { useOptionalOfflinePrepContext } from '@/lib/pwa/offline-prep-context'
-import { buildSeoHead } from '@/lib/seo'
+import { buildFaqJsonLd, buildSeoHead } from '@/lib/seo'
 import { SITE_URL } from '@/lib/site'
 import { useStudioStore } from '@/stores/studio-store'
 import { createFileRoute } from '@tanstack/react-router'
@@ -34,6 +34,44 @@ import { useEffect } from 'react'
 
 const STUDIO_DESCRIPTION =
   'Compress, convert, resize, and crop images entirely in your browser. Batch processing, size budget encoding, platform presets, and Squoosh-grade codecs — no uploads, no accounts.'
+
+const STUDIO_FAQ = [
+  {
+    question: 'Does Asset Melt upload my images to a server?',
+    answer:
+      'No. Every operation — compression, conversion, resizing, and cropping — runs entirely inside your browser using WebAssembly. Your files never leave your device.',
+  },
+  {
+    question: 'Which image formats does the Studio support?',
+    answer:
+      'You can open JPEG, PNG, WebP, AVIF, GIF, TIFF, BMP, and HEIC/HEIF files. For output you can choose JPEG, PNG, WebP, or AVIF — the modern formats that deliver the smallest file sizes.',
+  },
+  {
+    question: 'Can I compress multiple images at once?',
+    answer:
+      'Yes. Drag and drop as many files as you like (or paste from clipboard) and the Studio processes them all in parallel. You can download each result individually or grab a ZIP of everything.',
+  },
+  {
+    question: 'What is "size budget" encoding?',
+    answer:
+      'Size budget lets you set a target file size (e.g. 100 KB) and the Studio automatically finds the highest quality that still fits within that limit. Useful when an upload form has a strict size cap.',
+  },
+  {
+    question: 'How does Asset Melt compare to Squoosh?',
+    answer:
+      'Asset Melt uses the same Squoosh-grade codecs (libavif, MozJPEG, WebP) but adds batch processing, platform presets, size-budget encoding, and a non-destructive crop — features that Squoosh lacks.',
+  },
+  {
+    question: 'Is Asset Melt Studio free?',
+    answer:
+      'Completely free, with no account required. There are no watermarks, no file-count limits, and no premium tier — the full feature set is available to everyone.',
+  },
+  {
+    question: 'Can I use the Studio offline?',
+    answer:
+      'Yes. After your first visit the Studio installs as a Progressive Web App. You can add it to your home screen or desktop and open it with no internet connection.',
+  },
+]
 
 export const Route = createFileRoute("/studio")({
   head: () =>
@@ -44,20 +82,26 @@ export const Route = createFileRoute("/studio")({
       llmDiscovery: true,
       jsonLd: {
         '@context': 'https://schema.org',
-        '@type': 'WebApplication',
-        name: 'Asset Melt Studio',
-        url: `${SITE_URL}/studio`,
-        applicationCategory: 'MultimediaApplication',
-        operatingSystem: 'Any',
-        description: STUDIO_DESCRIPTION,
-        isAccessibleForFree: true,
-        keywords:
-          'image compressor, image converter, browser, client-side, AVIF, WebP, HEIC, batch, free',
-        offers: {
-          '@type': 'Offer',
-          price: '0',
-          priceCurrency: 'USD',
-        },
+        '@graph': [
+          {
+            '@type': 'WebApplication',
+            '@id': `${SITE_URL}/studio#app`,
+            name: 'Asset Melt Studio',
+            url: `${SITE_URL}/studio`,
+            applicationCategory: 'MultimediaApplication',
+            operatingSystem: 'Any',
+            description: STUDIO_DESCRIPTION,
+            isAccessibleForFree: true,
+            keywords:
+              'image compressor, image converter, browser, client-side, AVIF, WebP, HEIC, batch, free',
+            offers: {
+              '@type': 'Offer',
+              price: '0',
+              priceCurrency: 'USD',
+            },
+          },
+          buildFaqJsonLd(STUDIO_FAQ, `${SITE_URL}/studio#faq`),
+        ],
       },
     }),
   component: Studio,
@@ -186,44 +230,6 @@ function Studio() {
     </>
   );
 }
-
-const STUDIO_FAQ = [
-  {
-    question: 'Does Asset Melt upload my images to a server?',
-    answer:
-      'No. Every operation — compression, conversion, resizing, and cropping — runs entirely inside your browser using WebAssembly. Your files never leave your device.',
-  },
-  {
-    question: 'Which image formats does the Studio support?',
-    answer:
-      'You can open JPEG, PNG, WebP, AVIF, GIF, TIFF, BMP, and HEIC/HEIF files. For output you can choose JPEG, PNG, WebP, or AVIF — the modern formats that deliver the smallest file sizes.',
-  },
-  {
-    question: 'Can I compress multiple images at once?',
-    answer:
-      'Yes. Drag and drop as many files as you like (or paste from clipboard) and the Studio processes them all in parallel. You can download each result individually or grab a ZIP of everything.',
-  },
-  {
-    question: 'What is "size budget" encoding?',
-    answer:
-      'Size budget lets you set a target file size (e.g. 100 KB) and the Studio automatically finds the highest quality that still fits within that limit. Useful when an upload form has a strict size cap.',
-  },
-  {
-    question: 'How does Asset Melt compare to Squoosh?',
-    answer:
-      'Asset Melt uses the same Squoosh-grade codecs (libavif, MozJPEG, WebP) but adds batch processing, platform presets, size-budget encoding, and a non-destructive crop — features that Squoosh lacks.',
-  },
-  {
-    question: 'Is Asset Melt Studio free?',
-    answer:
-      'Completely free, with no account required. There are no watermarks, no file-count limits, and no premium tier — the full feature set is available to everyone.',
-  },
-  {
-    question: 'Can I use the Studio offline?',
-    answer:
-      'Yes. After your first visit the Studio installs as a Progressive Web App. You can add it to your home screen or desktop and open it with no internet connection.',
-  },
-]
 
 function StudioSeoSection() {
   return (
