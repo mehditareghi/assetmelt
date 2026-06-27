@@ -10,6 +10,85 @@ function escapeHtml(text) {
     .replace(/>/g, '&gt;')
 }
 
+const SECTION_EMOJI = {
+  'features': '✨',
+  'bug fixes': '🐛',
+  'performance improvements': '⚡',
+  'reverts': '⏪',
+  'documentation': '📝',
+  'breaking changes': '💥',
+}
+
+/**
+ * Converts semantic-release Markdown changelog to Telegram HTML.
+ *
+ * Input example:
+ *   ## [1.2.0](...) (2024-01-15)
+ *   ### Features
+ *   * **scope:** do a thing ([abc1234](url))
+ *   ### Bug Fixes
+ *   * fix something ([def5678](url))
+ */
+function markdownToTelegramHtml(markdown) {
+  const lines = markdown.split('\n')
+  const out = []
+
+  for (const raw of lines) {
+    const line = raw.trimEnd()
+
+    // Skip the top-level ## version heading — we already show version in the title
+    if (/^##\s+\[/.test(line) || /^##\s+\d+\.\d+/.test(line)) continue
+
+    // ### Section headings
+    const sectionMatch = line.match(/^###\s+(.+)/)
+    if (sectionMatch) {
+      const title = sectionMatch[1].trim()
+      const emoji = SECTION_EMOJI[title.toLowerCase()] ?? '•'
+      if (out.length > 0) out.push('')
+      out.push(`<b>${emoji} ${escapeHtml(title)}</b>`)
+      continue
+    }
+
+    // Bullet items: * or -
+    const bulletMatch = line.match(/^[*-]\s+(.+)/)
+    if (bulletMatch) {
+      let item = bulletMatch[1]
+
+      // Remove **scope:** bold markers, keep the text
+      item = item.replace(/\*\*([^*]+)\*\*/g, '$1')
+
+      // Extract commit SHAs before escaping: ([abc1234](url)) → placeholder
+      const shas = []
+      item = item.replace(/\(\[([0-9a-f]{7,})\]\([^)]+\)\)/g, (_, sha) => {
+        shas.push(sha)
+        return `\x00SHA${shas.length - 1}\x00`
+      })
+
+      // Strip any remaining markdown links [text](url) → text
+      item = item.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+
+      // Escape HTML, then restore SHAs as <code>
+      item = escapeHtml(item)
+      item = item.replace(/\x00SHA(\d+)\x00/g, (_, i) => `<code>${shas[i]}</code>`)
+
+      out.push(`  • ${item}`)
+      continue
+    }
+
+    // Skip blank lines inside sections but preserve spacing between sections
+    if (line === '') {
+      if (out.length > 0 && out[out.length - 1] !== '') out.push('')
+      continue
+    }
+  }
+
+  // Collapse multiple consecutive blank lines into one
+  return out
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
+
 function truncate(text, max = 2800) {
   if (text.length <= max) return text
   return `${text.slice(0, max - 24)}\n\n… (truncated)`
@@ -61,14 +140,15 @@ function buildMessage({
   contributors,
   recentCommits,
 }) {
-  const shortSha = commitSha?.slice(0, 7) ?? ''
-  const commitLine = commitMessage
-    ? `\n<b>Latest commit</b>\n<code>${escapeHtml(commitMessage)}</code>${shortSha ? ` (${shortSha})` : ''}`
-    : ''
-
   if (status === 'release_failed') {
     return truncate(
-      `<b>❌ Asset Melt — release failed</b>\n\nThe semantic-release job did not complete.${commitLine}\n\n${link(workflowUrl, 'View workflow run')}`,
+      [
+        `<b>❌ Asset Melt — release failed</b>`,
+        '',
+        `The semantic-release job did not complete. No tag was created.`,
+        '',
+        link(workflowUrl, 'View workflow run'),
+      ].join('\n'),
     )
   }
 
@@ -77,11 +157,12 @@ function buildMessage({
       [
         `<b>⚠️ Asset Melt v${escapeHtml(version)} — deploy failed</b>`,
         '',
-        `Tag <code>${escapeHtml(tag)}</code> was published, but the Vercel deploy job failed.`,
-        releaseUrl ? `\n${link(releaseUrl, 'GitHub Release')}` : '',
-        commitLine,
+        `Tag <code>${escapeHtml(tag)}</code> was created but the Vercel deploy job failed.`,
         '',
-        link(workflowUrl, 'View workflow run'),
+        [
+          releaseUrl ? link(releaseUrl, 'GitHub Release') : null,
+          link(workflowUrl, 'View workflow run'),
+        ].filter(Boolean).join(' · '),
       ].join('\n'),
     )
   }
@@ -93,7 +174,7 @@ function buildMessage({
         : ''
 
     const notesBlock = releaseNotes
-      ? `\n<b>Release notes</b>\n<pre>${escapeHtml(releaseNotes.trim())}</pre>`
+      ? `\n${markdownToTelegramHtml(releaseNotes)}`
       : ''
 
     const links = [
@@ -106,12 +187,9 @@ function buildMessage({
 
     return truncate(
       [
-        `<b>🚀 Asset Melt v${escapeHtml(version)}</b>`,
-        '',
-        `Released and deployed to production.`,
+        `<b>🚀 Asset Melt v${escapeHtml(version)} is live</b>`,
         notesBlock,
         contributorBlock,
-        commitLine,
         '',
         links,
       ].join('\n'),
@@ -121,7 +199,7 @@ function buildMessage({
   // no_release
   const commitsBlock =
     recentCommits.length > 0
-      ? `\n<b>Recent commits</b> (not releasable)\n${recentCommits.map((subject) => `• <code>${escapeHtml(subject)}</code>`).join('\n')}`
+      ? `\n<b>Commits</b>\n${recentCommits.map((subject) => `• <code>${escapeHtml(subject)}</code>`).join('\n')}`
       : ''
 
   const since =
@@ -133,11 +211,8 @@ function buildMessage({
     [
       `<b>ℹ️ Asset Melt — no release</b>`,
       '',
-      `No new version ${since}.`,
-      'Commits did not include a releasable <code>feat</code>, <code>fix</code>, or <code>perf</code>.',
-      'Build and deploy were skipped.',
+      `No new version ${since}. Deploy skipped.`,
       commitsBlock,
-      commitLine,
       '',
       link(workflowUrl, 'View workflow run'),
     ].join('\n'),
