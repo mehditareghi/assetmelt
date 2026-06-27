@@ -1,23 +1,12 @@
 import { Link } from '@tanstack/react-router'
 import { createFileRoute } from '@tanstack/react-router'
-import { Cookie, Eye, HardDrive, Lock, Mail, Server, Shield } from 'lucide-react'
-import { TrustHighlight, TrustPageShell, TrustToc } from '@/components/trust/trust-page-shell'
+import { Cookie, Eye, HardDrive, Lock, Mail, Server, Shield, UserX } from 'lucide-react'
+import { TrustHighlight, TrustPageShell } from '@/components/trust/trust-page-shell'
 import { buildTrustPageHead } from '@/lib/trust-pages/seo'
 import { SITE_AUTHOR, SITE_CONTACT_EMAIL, SITE_NAME, SITE_URL } from '@/lib/site'
 
 const LAST_UPDATED = 'June 11, 2026'
 
-const TOC = [
-  { id: 'summary', label: 'Summary' },
-  { id: 'images', label: 'Your images' },
-  { id: 'analytics', label: 'Analytics' },
-  { id: 'local-storage', label: 'Local storage & PWA' },
-  { id: 'third-parties', label: 'Third-party services' },
-  { id: 'rights', label: 'Your choices' },
-  { id: 'children', label: 'Children' },
-  { id: 'changes', label: 'Policy changes' },
-  { id: 'contact', label: 'Contact' },
-] as const
 
 export const Route = createFileRoute('/privacy')({
   head: () => buildTrustPageHead('/privacy'),
@@ -33,21 +22,24 @@ function PrivacyPage() {
       titleAccent="your images never leave your device"
       description="Asset Melt is built around a simple promise: I don't want your files. This page explains what I do — and don't — collect when you use the site."
       lastUpdated={LAST_UPDATED}
-      aside={<TrustToc items={TOC} />}
     >
-      <TrustHighlight title="The short version">
-        <ul className="mt-2 list-disc space-y-1 pl-4">
-          <li>
-            <strong className="text-foreground">Images are processed entirely in your browser.</strong>{' '}
-            Nothing is uploaded to any server.
-          </li>
-          <li>
-            I use optional, privacy-oriented analytics to understand how the site is used — not
-            what you compress.
-          </li>
-          <li>No accounts, no paywalls, no selling of personal data.</li>
-        </ul>
-      </TrustHighlight>
+      <div className="not-prose my-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {[
+          { icon: Lock, title: 'No uploads', body: 'Your images never leave your device — ever.' },
+          { icon: Eye, title: 'No image access', body: 'I cannot see, store, or access your files.' },
+          { icon: UserX, title: 'No account', body: 'No sign-up, no login, no profile to track.' },
+          { icon: Server, title: 'No backend', body: 'There is no server receiving your data.' },
+        ].map((item) => (
+          <div
+            key={item.title}
+            className="glass-surface flex flex-col gap-2 rounded-xl border border-border/50 p-4"
+          >
+            <item.icon className="size-4 text-primary" aria-hidden="true" />
+            <p className="font-display text-sm font-semibold text-foreground">{item.title}</p>
+            <p className="text-xs leading-relaxed text-muted-foreground">{item.body}</p>
+          </div>
+        ))}
+      </div>
 
       <h2 id="summary">Who runs {SITE_NAME}</h2>
       <p>

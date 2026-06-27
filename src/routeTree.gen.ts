@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StudioRouteImport } from './routes/studio'
 import { Route as SquooshAlternativeRouteImport } from './routes/squoosh-alternative'
+import { Route as PrivacyFirstImageCompressionRouteImport } from './routes/privacy-first-image-compression'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as AuthorRouteImport } from './routes/author'
 import { Route as AboutRouteImport } from './routes/about'
@@ -32,6 +33,12 @@ const SquooshAlternativeRoute = SquooshAlternativeRouteImport.update({
   path: '/squoosh-alternative',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyFirstImageCompressionRoute =
+  PrivacyFirstImageCompressionRouteImport.update({
+    id: '/privacy-first-image-compression',
+    path: '/privacy-first-image-compression',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
@@ -90,6 +97,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/author': typeof AuthorRoute
   '/privacy': typeof PrivacyRoute
+  '/privacy-first-image-compression': typeof PrivacyFirstImageCompressionRoute
   '/squoosh-alternative': typeof SquooshAlternativeRoute
   '/studio': typeof StudioRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -104,6 +112,7 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/author': typeof AuthorRoute
   '/privacy': typeof PrivacyRoute
+  '/privacy-first-image-compression': typeof PrivacyFirstImageCompressionRoute
   '/squoosh-alternative': typeof SquooshAlternativeRoute
   '/studio': typeof StudioRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -119,6 +128,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/author': typeof AuthorRoute
   '/privacy': typeof PrivacyRoute
+  '/privacy-first-image-compression': typeof PrivacyFirstImageCompressionRoute
   '/squoosh-alternative': typeof SquooshAlternativeRoute
   '/studio': typeof StudioRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -135,6 +145,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/author'
     | '/privacy'
+    | '/privacy-first-image-compression'
     | '/squoosh-alternative'
     | '/studio'
     | '/blog/$slug'
@@ -149,6 +160,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/author'
     | '/privacy'
+    | '/privacy-first-image-compression'
     | '/squoosh-alternative'
     | '/studio'
     | '/blog/$slug'
@@ -163,6 +175,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/author'
     | '/privacy'
+    | '/privacy-first-image-compression'
     | '/squoosh-alternative'
     | '/studio'
     | '/blog/$slug'
@@ -178,6 +191,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   AuthorRoute: typeof AuthorRoute
   PrivacyRoute: typeof PrivacyRoute
+  PrivacyFirstImageCompressionRoute: typeof PrivacyFirstImageCompressionRoute
   SquooshAlternativeRoute: typeof SquooshAlternativeRoute
   StudioRoute: typeof StudioRoute
   BlogSlugRoute: typeof BlogSlugRoute
@@ -201,6 +215,13 @@ declare module '@tanstack/react-router' {
       path: '/squoosh-alternative'
       fullPath: '/squoosh-alternative'
       preLoaderRoute: typeof SquooshAlternativeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy-first-image-compression': {
+      id: '/privacy-first-image-compression'
+      path: '/privacy-first-image-compression'
+      fullPath: '/privacy-first-image-compression'
+      preLoaderRoute: typeof PrivacyFirstImageCompressionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/privacy': {
@@ -282,6 +303,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   AuthorRoute: AuthorRoute,
   PrivacyRoute: PrivacyRoute,
+  PrivacyFirstImageCompressionRoute: PrivacyFirstImageCompressionRoute,
   SquooshAlternativeRoute: SquooshAlternativeRoute,
   StudioRoute: StudioRoute,
   BlogSlugRoute: BlogSlugRoute,

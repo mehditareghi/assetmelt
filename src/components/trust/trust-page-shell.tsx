@@ -1,23 +1,23 @@
-import { Link } from '@tanstack/react-router'
-import type { LucideIcon } from 'lucide-react'
-import { ChevronRight } from 'lucide-react'
-import type { ReactNode } from 'react'
-import { Badge } from '@/components/ui/badge'
-import { cn } from '@/lib/utils'
+import { Link } from "@tanstack/react-router";
+import type { LucideIcon } from "lucide-react";
+import { ChevronRight } from "lucide-react";
+import type { ReactNode } from "react";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 interface TrustPageShellProps {
-  eyebrow: string
-  icon: LucideIcon
-  title: string
-  titleAccent?: string
-  description: string
-  lastUpdated?: string
-  children: ReactNode
-  aside?: ReactNode
+  eyebrow: string;
+  icon: LucideIcon;
+  title: string;
+  titleAccent?: string;
+  description: string;
+  lastUpdated?: string;
+  children: ReactNode;
+  aside?: ReactNode;
 }
 
 const PROSE_CLASS =
-  'prose prose-neutral max-w-none prose-headings:font-display prose-headings:text-foreground prose-p:text-muted-foreground prose-li:text-muted-foreground prose-strong:text-foreground prose-a:text-primary prose-a:no-underline hover:prose-a:underline dark:prose-invert'
+  "prose prose-neutral max-w-none prose-headings:font-display prose-headings:text-foreground prose-p:text-muted-foreground prose-li:text-muted-foreground prose-strong:text-foreground prose-a:text-primary prose-a:no-underline hover:prose-a:underline dark:prose-invert";
 
 export function TrustPageShell({
   eyebrow,
@@ -52,7 +52,10 @@ export function TrustPageShell({
           </nav>
 
           <div className="text-center">
-            <Badge variant="glass" className="mb-5 gap-1.5 px-3 py-1 font-mono text-xs">
+            <Badge
+              variant="glass"
+              className="mb-5 gap-1.5 px-3 py-1 font-mono text-xs"
+            >
               <Icon className="size-3" aria-hidden="true" />
               {eyebrow}
             </Badge>
@@ -80,7 +83,13 @@ export function TrustPageShell({
       </section>
 
       <section className="mx-auto max-w-3xl px-4 pb-20 sm:px-6 lg:px-8">
-        <div className={cn(aside ? 'grid gap-10 lg:grid-cols-[1fr_240px] lg:items-start' : undefined)}>
+        <div
+          className={cn(
+            aside
+              ? "grid gap-10 lg:grid-cols-[1fr_240px] lg:items-start"
+              : undefined,
+          )}
+        >
           <div className={PROSE_CLASS}>{children}</div>
           {aside ? (
             <aside className="lg:sticky lg:top-24">{aside}</aside>
@@ -88,25 +97,33 @@ export function TrustPageShell({
         </div>
       </section>
     </main>
-  )
+  );
 }
 
 interface TrustHighlightProps {
-  title: string
-  children: ReactNode
+  title: string;
+  children: ReactNode;
 }
 
 export function TrustHighlight({ title, children }: TrustHighlightProps) {
   return (
     <div className="not-prose my-8 rounded-2xl border border-primary/20 bg-primary/5 p-5 sm:p-6">
-      <p className="font-display text-sm font-semibold text-foreground">{title}</p>
-      <div className="mt-2 text-sm leading-relaxed text-muted-foreground">{children}</div>
+      <p className="font-display text-sm font-semibold text-foreground">
+        {title}
+      </p>
+      <div className="mt-2 text-sm leading-relaxed text-muted-foreground">
+        {children}
+      </div>
     </div>
-  )
+  );
 }
 
 interface TrustCardGridProps {
-  items: ReadonlyArray<{ icon: LucideIcon; title: string; description: string }>
+  items: ReadonlyArray<{
+    icon: LucideIcon;
+    title: string;
+    description: string;
+  }>;
 }
 
 export function TrustCardGrid({ items }: TrustCardGridProps) {
@@ -118,36 +135,14 @@ export function TrustCardGrid({ items }: TrustCardGridProps) {
           className="glass-surface rounded-xl border border-border/50 p-5 transition-colors hover:border-primary/30"
         >
           <item.icon className="mb-3 size-5 text-primary" aria-hidden="true" />
-          <p className="font-display text-sm font-semibold text-foreground">{item.title}</p>
-          <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{item.description}</p>
+          <p className="font-display text-sm font-semibold text-foreground">
+            {item.title}
+          </p>
+          <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+            {item.description}
+          </p>
         </div>
       ))}
     </div>
-  )
-}
-
-interface TrustTocProps {
-  items: ReadonlyArray<{ id: string; label: string }>
-}
-
-export function TrustToc({ items }: TrustTocProps) {
-  return (
-    <nav aria-label="On this page" className="glass-surface rounded-xl border border-border/50 p-4">
-      <p className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-        On this page
-      </p>
-      <ol className="mt-3 space-y-2">
-        {items.map((item) => (
-          <li key={item.id}>
-            <a
-              href={`#${item.id}`}
-              className="block font-mono text-xs text-muted-foreground transition-colors hover:text-primary"
-            >
-              {item.label}
-            </a>
-          </li>
-        ))}
-      </ol>
-    </nav>
-  )
+  );
 }

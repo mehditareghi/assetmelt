@@ -13,6 +13,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
+import { HardDriveDownload, Lock, ServerOff, UserX } from 'lucide-react'
 import {
   Accordion,
   AccordionContent,
@@ -164,6 +165,8 @@ function Studio() {
           <StudioToolbar />
         </div>
 
+        <StudioPrivacyStrip />
+
         {files.length === 0 ? (
           <>
             <DropZone className="min-h-[55vh]" />
@@ -229,6 +232,26 @@ function Studio() {
       </main>
     </>
   );
+}
+
+const PRIVACY_BADGES = [
+  { icon: ServerOff, label: 'Files never uploaded' },
+  { icon: HardDriveDownload, label: 'Processed in your browser' },
+  { icon: UserX, label: 'No account needed' },
+  { icon: Lock, label: 'Nothing stored or shared' },
+] as const
+
+function StudioPrivacyStrip() {
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+      {PRIVACY_BADGES.map(({ icon: Icon, label }) => (
+        <span key={label} className="flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground">
+          <Icon className="size-3 shrink-0 text-primary" aria-hidden="true" />
+          {label}
+        </span>
+      ))}
+    </div>
+  )
 }
 
 function StudioSeoSection() {

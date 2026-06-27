@@ -3,12 +3,14 @@ export type ToolPageId =
   | 'heic-to-jpg'
   | 'batch-image-compressor'
   | 'avif-compressor'
+  | 'privacy-first-image-compression'
 
 export type ToolPagePath =
   | '/squoosh-alternative'
   | '/convert/heic-to-jpg'
   | '/tools/batch-image-compressor'
   | '/compress/avif'
+  | '/privacy-first-image-compression'
 
 export type ToolPageIcon =
   | 'shield'

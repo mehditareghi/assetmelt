@@ -410,6 +410,131 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
       'compress avif, avif compressor, avif optimizer, convert to avif, avif compression online, free avif tool',
     breadcrumbLabel: 'AVIF Compressor',
   },
+
+  'privacy-first-image-compression': {
+    id: 'privacy-first-image-compression',
+    path: '/privacy-first-image-compression',
+    title: 'Privacy-First Image Compression — No Upload, No Server | Asset Melt',
+    metaDescription:
+      'Compress and convert images without uploading them anywhere. Asset Melt processes everything in your browser using WebAssembly — your files never leave your device.',
+    eyebrow: 'Privacy-first',
+    heroBadge: 'Zero uploads · 100% local',
+    h1: 'Image compression that respects your privacy',
+    h1Accent: 'your files never leave your device',
+    heroDescription:
+      'Most online image tools upload your files to a server. Asset Melt is different — compression, conversion, resizing, and cropping all run locally in your browser using WebAssembly. No upload. No server. No account. Just results.',
+    benefits: [
+      {
+        icon: 'lock',
+        title: 'No upload — ever',
+        description:
+          'There is no server endpoint that receives your images. The app has no upload mechanism by design, not policy.',
+      },
+      {
+        icon: 'shield',
+        title: 'Processed on your device',
+        description:
+          'WebAssembly codec modules run in your browser\'s Web Workers. Your CPU does the work — locally, privately, offline if needed.',
+      },
+      {
+        icon: 'globe',
+        title: 'No account required',
+        description:
+          'No email, no sign-up, no login. Open the Studio and start compressing immediately. There is nothing to register for.',
+      },
+      {
+        icon: 'zap',
+        title: 'Professional-grade codecs',
+        description:
+          'MozJPEG, AVIF (rav1e), WebP, Oxipng, and JXL — the same @jsquash WASM engines that powered Google Squoosh.',
+      },
+    ],
+    steps: [
+      {
+        title: 'Open the Studio',
+        description:
+          'Go to assetmelt.com/studio — no install, no account, no permission to access your camera roll. Works in any modern browser.',
+      },
+      {
+        title: 'Drop your images',
+        description:
+          'Add files by drag-and-drop, click-to-browse, or paste from clipboard. Nothing is sent anywhere at this step or any step.',
+      },
+      {
+        title: 'Compress and download',
+        description:
+          'Choose your format and quality, preview the result, and download directly to your device. The browser never contacts a remote server for image data.',
+      },
+    ],
+    contentSections: [
+      {
+        heading: 'Why most image compressors are a privacy risk',
+        paragraphs: [
+          'Upload-based tools are convenient, but they create a problem: your images pass through infrastructure you do not control. Even "reputable" services retain files for minutes or hours, may log filenames and metadata, and are subject to data breaches, government requests, or unexpected policy changes.',
+          'For personal photos, design mockups, client documents, or any image containing sensitive information, that trade-off is not worth it — especially when a browser-based alternative exists that delivers the same quality.',
+        ],
+      },
+      {
+        heading: 'How browser-based compression protects you',
+        paragraphs: [
+          'Asset Melt is a static web application. When you open it, your browser downloads the app code and WebAssembly codec modules from a CDN — the same way it downloads any website. After that, everything runs locally.',
+          'When you add an image, it is decoded in a Web Worker on your CPU. Resizing, colour-space conversion, and re-encoding all happen in the same sandboxed thread. The output file is generated in memory and downloaded directly to your device. At no point does the image data travel over the network.',
+          'This is not a soft privacy policy — it is a technical constraint. The app has no upload endpoint. If you inspect the network requests in your browser\'s DevTools while processing images, you will see none related to your files.',
+        ],
+      },
+      {
+        heading: 'Who needs privacy-first image compression',
+        paragraphs: [
+          'Medical and legal professionals handling sensitive document scans. Designers working under NDA. Photographers protecting client work before delivery. Developers compressing internal screenshots. Anyone who has ever paused before clicking "upload" and wondered where their file actually goes.',
+          'Asset Melt is also practical for everyday use: it supports batch processing, HEIC conversion, AVIF and WebP output, size-budget encoding, and platform presets — not just a privacy checkbox, but a fully-featured studio that happens to keep your files private.',
+        ],
+      },
+    ],
+    comparison: {
+      competitorName: 'Upload-based tools',
+      rows: [
+        { feature: 'Images stay on your device', assetMelt: 'Yes — always', competitor: 'No — server upload' },
+        { feature: 'Works offline', assetMelt: 'Yes (PWA install)', competitor: 'No' },
+        { feature: 'Account required', assetMelt: 'No', competitor: 'Often yes' },
+        { feature: 'File size limits', assetMelt: 'None', competitor: 'Usually yes' },
+        { feature: 'Batch processing', assetMelt: 'Yes + ZIP export', competitor: 'Varies' },
+        { feature: 'Professional codecs', assetMelt: 'MozJPEG, AVIF, WebP', competitor: 'Varies' },
+        { feature: 'Free', assetMelt: 'Yes, no paywalls', competitor: 'Freemium tiers' },
+      ],
+    },
+    faq: [
+      {
+        question: 'How can I verify that my images are not being uploaded?',
+        answer:
+          'Open your browser\'s DevTools (F12), go to the Network tab, and filter by "Fetch/XHR" or "Img". Add an image to Asset Melt Studio and process it. You will see no outbound requests carrying your image data — only the initial load of app code and codec bundles.',
+      },
+      {
+        question: 'Does "no upload" mean the tool works offline?',
+        answer:
+          'Yes. Once the app and codec modules are cached in your browser, Asset Melt Studio works with no internet connection. You can install it as a PWA for a dedicated offline experience.',
+      },
+      {
+        question: 'What formats does the privacy-first studio support?',
+        answer:
+          'Input: JPEG, PNG, WebP, AVIF, HEIC/HEIF, GIF, TIFF, BMP, SVG, JXL, QOI. Output: JPEG (MozJPEG), PNG (Oxipng), WebP, AVIF, JXL, QOI. All conversions happen locally.',
+      },
+      {
+        question: 'Is there any analytics or tracking?',
+        answer:
+          'The site uses privacy-oriented analytics to measure aggregate page usage (page views, format choices, export counts) — not the contents, filenames, or pixels of your images. Your images are never included in any analytics event.',
+      },
+      {
+        question: 'Can I use this for confidential or sensitive images?',
+        answer:
+          'Yes. Because nothing is uploaded, Asset Melt is suitable for medical scans, legal documents, client work under NDA, or any image you would not want on a third-party server.',
+      },
+    ],
+    relatedTools: ['squoosh-alternative', 'batch-image-compressor', 'heic-to-jpg'],
+    keywords:
+      'privacy-first image compression, compress images without uploading, private image compressor, no upload image tool, client-side image compression',
+    breadcrumbLabel: 'Privacy-First Compression',
+    ctaLabel: 'Try it — no upload, no account',
+  },
 }
 
 export const TOOL_PAGE_LIST = Object.values(TOOL_PAGES)

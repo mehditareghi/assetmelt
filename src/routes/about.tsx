@@ -1,10 +1,11 @@
 import { Link } from '@tanstack/react-router'
 import { createFileRoute } from '@tanstack/react-router'
-import { Cpu, Heart, Layers, Shield, Sparkles, Zap } from 'lucide-react'
+import { Cpu, ExternalLink, Heart, Layers, Shield, Sparkles, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { GitHubIcon, LinkedInIcon } from '@/components/icons/brand-icons'
 import { TrustCardGrid, TrustHighlight, TrustPageShell } from '@/components/trust/trust-page-shell'
 import { buildTrustPageHead } from '@/lib/trust-pages/seo'
-import { SITE_AUTHOR, SITE_NAME } from '@/lib/site'
+import { SITE_AUTHOR, SITE_NAME, SITE_SOCIAL } from '@/lib/site'
 
 export const Route = createFileRoute('/about')({
   head: () => buildTrustPageHead('/about'),
@@ -107,14 +108,34 @@ function AboutPage() {
 
       <h2>Who builds it</h2>
       <p>
-        {SITE_NAME} is designed, built, and maintained by{' '}
-        <Link to="/author" className="font-medium text-primary hover:underline">
-          {SITE_AUTHOR}
-        </Link>
-        , a software engineer. I write the blog, tune the presets, and ship updates. It is an indie
-        project — not a venture-backed startup — which means decisions favor users over growth
-        metrics.
+        I&apos;m <strong className="text-foreground">{SITE_AUTHOR}</strong>, a software engineer
+        based in Iran. I write the code, author the blog, tune the presets, and respond to every
+        piece of feedback. {SITE_NAME} is an indie project — not a venture-backed startup — which
+        means decisions favor users over growth metrics.
       </p>
+      <p>
+        I built this because I needed it. Every time I reached for an online image tool, I had to
+        hand my files to a server I knew nothing about. That bothered me enough to build an
+        alternative. The fact that other people find it useful too is the best part.
+      </p>
+
+      <div className="not-prose my-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+        <Button variant="outline" size="sm" asChild className="justify-start gap-2 font-mono text-xs">
+          <a href={SITE_SOCIAL.github} rel="noopener noreferrer" target="_blank">
+            <GitHubIcon />
+            GitHub
+            <ExternalLink className="ml-auto size-3 opacity-50" aria-hidden="true" />
+          </a>
+        </Button>
+        <Button variant="outline" size="sm" asChild className="justify-start gap-2 font-mono text-xs">
+          <a href={SITE_SOCIAL.linkedin} rel="noopener noreferrer" target="_blank">
+            <LinkedInIcon />
+            LinkedIn
+            <ExternalLink className="ml-auto size-3 opacity-50" aria-hidden="true" />
+          </a>
+        </Button>
+      </div>
+
       <p>
         If you want to understand exactly what data the site collects (spoiler: not your images),
         read the <Link to="/privacy">privacy policy</Link>.
