@@ -14,6 +14,12 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
+import {
   filesFromClipboardEvent,
   isEditablePasteTarget,
 } from '@/lib/image/clipboard-paste'
@@ -115,7 +121,13 @@ function Studio() {
         </div>
 
         {files.length === 0 ? (
-          <DropZone />
+          <>
+            <DropZone className="min-h-[55vh]" />
+            <p className="text-center text-sm text-muted-foreground">
+              Or pick a preset and start — defaults to Web Optimized (WebP, max
+              1920px)
+            </p>
+          </>
         ) : (
           <>
             <div className="lg:hidden">
@@ -169,13 +181,96 @@ function Studio() {
           </>
         )}
 
-        {files.length === 0 && (
-          <p className="text-center text-sm text-muted-foreground">
-            Or pick a preset and start — defaults to Web Optimized (WebP, max
-            1920px)
-          </p>
-        )}
+        <StudioSeoSection />
       </main>
     </>
   );
+}
+
+const STUDIO_FAQ = [
+  {
+    question: 'Does Asset Melt upload my images to a server?',
+    answer:
+      'No. Every operation — compression, conversion, resizing, and cropping — runs entirely inside your browser using WebAssembly. Your files never leave your device.',
+  },
+  {
+    question: 'Which image formats does the Studio support?',
+    answer:
+      'You can open JPEG, PNG, WebP, AVIF, GIF, TIFF, BMP, and HEIC/HEIF files. For output you can choose JPEG, PNG, WebP, or AVIF — the modern formats that deliver the smallest file sizes.',
+  },
+  {
+    question: 'Can I compress multiple images at once?',
+    answer:
+      'Yes. Drag and drop as many files as you like (or paste from clipboard) and the Studio processes them all in parallel. You can download each result individually or grab a ZIP of everything.',
+  },
+  {
+    question: 'What is "size budget" encoding?',
+    answer:
+      'Size budget lets you set a target file size (e.g. 100 KB) and the Studio automatically finds the highest quality that still fits within that limit. Useful when an upload form has a strict size cap.',
+  },
+  {
+    question: 'How does Asset Melt compare to Squoosh?',
+    answer:
+      'Asset Melt uses the same Squoosh-grade codecs (libavif, MozJPEG, WebP) but adds batch processing, platform presets, size-budget encoding, and a non-destructive crop — features that Squoosh lacks.',
+  },
+  {
+    question: 'Is Asset Melt Studio free?',
+    answer:
+      'Completely free, with no account required. There are no watermarks, no file-count limits, and no premium tier — the full feature set is available to everyone.',
+  },
+  {
+    question: 'Can I use the Studio offline?',
+    answer:
+      'Yes. After your first visit the Studio installs as a Progressive Web App. You can add it to your home screen or desktop and open it with no internet connection.',
+  },
+]
+
+function StudioSeoSection() {
+  return (
+    <section className="mx-auto w-full max-w-3xl space-y-12 py-8">
+      <div className="glass-surface rounded-2xl p-6 sm:p-8">
+        <h2 className="font-display text-xl font-bold tracking-tight sm:text-2xl">
+          Free image compressor & converter — right in your browser
+        </h2>
+        <div className="mt-4 space-y-3 text-sm leading-relaxed text-muted-foreground">
+          <p>
+            Asset Melt Studio is a client-side image processing tool that runs entirely in your
+            browser. There are no uploads, no accounts, and no file-size limits imposed by a server
+            — just drag in your images and get optimised results in seconds.
+          </p>
+          <p>
+            The Studio supports all common formats including JPEG, PNG, WebP, AVIF, and HEIC. You
+            can compress images to a specific quality level or target file size, convert between
+            formats, resize to exact pixel dimensions, and crop non-destructively. Batch processing
+            means you can handle dozens of images in a single session.
+          </p>
+          <p>
+            Under the hood the Studio uses the same codec libraries as Google's Squoosh — MozJPEG,
+            libavif, and the official WebP encoder — compiled to WebAssembly so they run at near-native
+            speed without any server involvement. Your files stay on your device at all times.
+          </p>
+        </div>
+      </div>
+
+      <div id="faq" className="scroll-mt-24">
+        <h2 className="mb-6 font-display text-xl font-bold tracking-tight sm:text-2xl">
+          Frequently asked questions
+        </h2>
+        <div className="glass-surface rounded-2xl px-5 sm:px-6">
+          <Accordion type="single" collapsible className="w-full">
+            {STUDIO_FAQ.map((item, i) => (
+              <AccordionItem key={item.question} value={`faq-${i}`}>
+                <AccordionTrigger className="font-display text-base font-semibold hover:no-underline">
+                  {item.question}
+                </AccordionTrigger>
+                <AccordionContent className="text-muted-foreground">
+                  {item.answer}
+                </AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
+      </div>
+    </section>
+  )
 }

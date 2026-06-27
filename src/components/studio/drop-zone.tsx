@@ -3,7 +3,7 @@ import { Upload } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useStudioStore } from '@/stores/studio-store'
 
-export function DropZone() {
+export function DropZone({ className }: { className?: string }) {
   const addFiles = useStudioStore((s) => s.addFiles)
   const [isDragging, setIsDragging] = useState(false)
 
@@ -32,6 +32,7 @@ export function DropZone() {
     <label
       className={cn(
         'glass-surface flex cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed p-10 transition-colors',
+        className,
         isDragging
           ? 'border-primary/50 bg-primary/10'
           : 'border-primary/15 hover:border-primary/30 hover:bg-background/30 dark:border-primary/20 dark:hover:border-primary/35',
