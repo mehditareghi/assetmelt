@@ -8,10 +8,13 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion'
 import { Button } from '@/components/ui/button'
+import { BlogClusterRelated } from '@/components/blog/blog-cluster-related'
 import { getRelatedToolPages } from '@/lib/tool-pages'
+import { BLOG_POSTS, getClusterSiblingPosts } from '@/lib/blog'
 import type { BlogPostMeta } from '@/lib/blog/types'
 import { SITE_AUTHOR } from '@/lib/site'
 import { ResponsivePicture } from '@/components/blog/responsive-picture'
+import { BLOG_CLUSTER_BY_ID } from '@/lib/blog/clusters'
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', {
@@ -28,6 +31,7 @@ interface BlogPostPageProps {
 
 export function BlogPostPage({ post, Content }: BlogPostPageProps) {
   const relatedTools = getRelatedToolPages(post.relatedTools)
+  const clusterSiblings = getClusterSiblingPosts(post, BLOG_POSTS, 5)
 
   return (
     <main className="flex-1">
@@ -53,12 +57,40 @@ export function BlogPostPage({ post, Content }: BlogPostPageProps) {
               <li aria-hidden="true">
                 <ChevronRight className="size-3" />
               </li>
+              {post.cluster ? (
+                <>
+                  <li>
+                    <Link
+                      to="/blog/$slug"
+                      params={{ slug: post.cluster }}
+                      className="transition-colors hover:text-primary"
+                    >
+                      {BLOG_CLUSTER_BY_ID[post.cluster].title}
+                    </Link>
+                  </li>
+                  <li aria-hidden="true">
+                    <ChevronRight className="size-3" />
+                  </li>
+                </>
+              ) : null}
               <li className="line-clamp-1 text-foreground">{post.title}</li>
             </ol>
           </nav>
 
           <div>
             <div className="mb-4 flex flex-wrap items-center gap-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+              {post.cluster ? (
+                <>
+                  <Link
+                    to="/blog/$slug"
+                    params={{ slug: post.cluster }}
+                    className="transition-colors hover:text-primary"
+                  >
+                    {BLOG_CLUSTER_BY_ID[post.cluster].title}
+                  </Link>
+                  <span aria-hidden="true">·</span>
+                </>
+              ) : null}
               <Link to="/author" className="transition-colors hover:text-primary">
                 {SITE_AUTHOR}
               </Link>
@@ -138,6 +170,8 @@ export function BlogPostPage({ post, Content }: BlogPostPageProps) {
             </div>
           </section>
         ) : null}
+
+        <BlogClusterRelated post={post} siblings={clusterSiblings} />
 
         <section className="border-t border-border/40 px-4 py-12 sm:px-6 lg:px-8">
           <div className="mx-auto flex max-w-3xl flex-col items-center gap-4 text-center">

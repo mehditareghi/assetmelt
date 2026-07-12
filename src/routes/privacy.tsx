@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router'
 import { createFileRoute } from '@tanstack/react-router'
 import { Cookie, Eye, HardDrive, Lock, Mail, Server, Shield, UserX } from 'lucide-react'
-import { TrustHighlight, TrustPageShell } from '@/components/trust/trust-page-shell'
+import { TrustPageShell } from '@/components/trust/trust-page-shell'
 import { buildTrustPageHead } from '@/lib/trust-pages/seo'
 import { SITE_AUTHOR, SITE_CONTACT_EMAIL, SITE_NAME, SITE_URL } from '@/lib/site'
 

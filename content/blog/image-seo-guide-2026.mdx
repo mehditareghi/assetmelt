@@ -13,6 +13,7 @@ keywords:
   - AVIF WebP SEO
   - image sitemap
   - accessible alt text
+cluster: performance-seo
 heroImage: hero
 heroImageAlt: "Illustration of image SEO concepts including alt text, responsive breakpoints, and modern image formats"
 relatedTools:
@@ -37,7 +38,22 @@ faq:
 
 **Image SEO in 2026** is not a single checkbox. It is a pipeline: name files so crawlers understand them, write alt text so humans and screen readers get equal access, ship modern formats so pages load fast on slow connections, and mark up responsive variants so phones do not download desktop-sized heroes.
 
-Most teams still upload 4 MB camera JPEGs and hope a CMS plugin fixes everything later. That approach fails on three fronts — search discovery, accessibility law and best practice, and Core Web Vitals. This guide walks through a **local prep workflow** you can run before any upload: the same privacy-first compression Asset Melt uses for performance work, applied to the SEO layer too.
+Most teams still upload 4 MB camera JPEGs and hope a CMS plugin fixes everything later. That approach fails on three fronts — search discovery, accessibility law and best practice, and Core Web Vitals. This guide is the **pillar for the Performance & SEO topic cluster** — a complete local prep workflow you can run before any upload, with links to deeper guides on LCP, responsive images, sitemaps, and social previews.
+
+## What this guide covers
+
+| Step | Topic | Section |
+| --- | --- | --- |
+| 1 | Filenames for crawlers | [Name files](#step-1-name-files-for-humans-and-crawlers) |
+| 2 | Inclusive alt text | [Write alt text](#step-2-write-alt-text-everyone-can-use) |
+| 3 | Modern formats | [Choose formats](#step-3-choose-formats-that-search-engines-and-browsers-agree-on) |
+| 4 | Responsive delivery | [Ship srcset](#step-4-ship-responsive-images-not-one-size-fits-all) |
+| 5 | Privacy hygiene | [Strip EXIF](#step-5-strip-exif-and-publish-clean-bytes) |
+| 6 | Structured data | [Sitemaps & JSON-LD](#step-6-structured-data-and-image-sitemaps) |
+| 7 | CMS workflows | [WordPress, Shopify, static](#step-7-platform-specific-workflows) |
+| — | Deep dives | [Guides in this topic](#guides-in-this-topic) |
+| — | By site type | [Ecommerce, blog, SaaS](#image-seo-by-site-type) |
+| — | Google Images | [Visual search traffic](#optimizing-for-google-images) |
 
 ## Why image SEO matters more in 2026
 
@@ -50,7 +66,7 @@ Three forces converged:
 The good news: you do not need an enterprise DAM or a $500/month CDN to get 90% of the benefit. You need a repeatable checklist and a local tool for the bytes.
 
 <Callout title="Performance SEO is a sibling discipline" variant="info">
-For LCP-specific tuning — hero priority, fetchpriority, lazy-loading rules — read our [Core Web Vitals image guide](/blog/optimize-images-core-web-vitals-lcp). This article focuses on discoverability, accessibility, and the prep work that feeds both.
+For LCP-specific tuning — hero priority, fetchpriority, lazy-loading rules — read our [Core Web Vitals image guide](/blog/performance-seo/optimize-images-core-web-vitals-lcp). This article focuses on discoverability, accessibility, and the prep work that feeds both.
 </Callout>
 
 ## The three pillars of image SEO
@@ -64,6 +80,72 @@ Think of every image as serving three audiences at once:
 | **Performance** | Everyone on slow networks | Format, dimensions, srcset, compression, metadata stripping |
 
 Neglect any pillar and the others suffer. A perfectly compressed AVIF with `alt=""` on an informative chart fails accessibility audits. Beautiful alt text on a 3 MB PNG still hurts LCP.
+
+Use our [image SEO checklist](/blog/performance-seo/image-seo-checklist) as a printable audit once you understand the pipeline below — it distills these three pillars into a pre-publish gate you can run on every template.
+
+## Image SEO by site type
+
+The pipeline is the same everywhere. The **priorities** shift by business model.
+
+### Ecommerce
+
+Images are the product for many shoppers. Prioritize:
+
+- **Unique alt text per variant angle** — "Blue running shoe side view" not "product image" × 12
+- **Descriptive filenames before Shopify upload** — filenames become URL segments
+- **Consistent thumbnail dimensions** — CLS on collection grids kills trust
+- **Image sitemaps** when you have thousands of SKUs — see [image sitemap guide](/blog/performance-seo/image-sitemap-guide)
+- **Pre-upload compression** — [Shopify workflow](/blog/image-compression/compress-images-for-shopify)
+
+Google Shopping and Google Images both consume alt text, filenames, and page context. Treat every product photo as a discoverability asset, not only a conversion asset.
+
+### Blogs and editorial
+
+Most blog image SEO wins come from:
+
+- **Featured image + OG export** at 1200×630 — [social size guide](/blog/performance-seo/best-image-sizes-open-graph-social-media)
+- **Inline figures** with accurate alt, not keyword-stuffed captions
+- **Responsive srcset** so mobile readers do not download desktop heroes — [responsive images guide](/blog/performance-seo/responsive-images-guide)
+- **One decorative hero per post** — skip image sitemaps unless images are the primary content
+
+Editorial sites rarely need image sitemaps. They always need fast LCP on post templates.
+
+### SaaS and documentation
+
+Documentation sites mix **screenshots** (PNG, lossless WebP) and **marketing photos** (AVIF/WebP). The common failure mode is treating them the same:
+
+- Screenshots need text-readable alt describing the UI state, not "dashboard screenshot"
+- Marketing heroes need byte budgets and `fetchpriority="high"`
+- Do not AVIF-compress annotated screenshots — small text becomes illegible
+
+### Portfolios and visual businesses
+
+Photographers, agencies, and studios should assume **Google Images is a primary channel**:
+
+- Filename and alt text describe the work, client industry (when permitted), and subject
+- Image sitemaps help when each page showcases distinct visual work
+- Strip GPS from location shoots before publish — EXIF leaks are a reputational risk in creative industries
+
+## Optimizing for Google Images
+
+Google Images is not separate from web SEO — it reads the same signals with different weighting.
+
+What helps images appear in visual search:
+
+1. **Descriptive filenames and alt text** aligned with page topic
+2. **Surrounding copy** that contextually supports the image subject
+3. **Page quality** — thin pages with stock photos rarely rank in either web or image search
+4. **Structured data** (`ImageObject`) when the image is central to the page intent
+5. **Image sitemaps** for large catalogs — optional for text-first blogs
+
+What does not help:
+
+- Keyword-stuffed alt text
+- Hidden text near images
+- Identical alt across a gallery
+- Uploading 4000px files and relying on Google to resize
+
+Track performance in **Google Search Console → Performance → filter by Image search appearance**. Flat impressions with good web rankings usually means filename/alt/context gaps — not format choice alone.
 
 ## Step 1: Name files for humans and crawlers
 
@@ -150,7 +232,7 @@ Format choice affects **crawl efficiency** (smaller downloads), **LCP**, and **c
 
 Google's crawler indexes the resolved image URL — typically what non-supporting browsers would fetch, or the `img src` fallback. Ensure that fallback is **high quality**, not a blurry thumbnail.
 
-Open the <ToolLink tool="avif-compressor">AVIF compressor</ToolLink> for hero images, or the <ToolLink tool="batch-image-compressor">batch compressor</ToolLink> when a catalog refresh ships dozens of files. For a deeper format comparison, see [AVIF vs WebP in 2026](/blog/avif-vs-webp-2026).
+Open the <ToolLink tool="avif-compressor">AVIF compressor</ToolLink> for hero images, or the <ToolLink tool="batch-image-compressor">batch compressor</ToolLink> when a catalog refresh ships dozens of files. For a deeper format comparison, see [AVIF vs WebP in 2026](/blog/format-conversion/avif-vs-webp-2026).
 
 ## Step 4: Ship responsive images (not one size fits all)
 
@@ -192,6 +274,20 @@ Major browsers now support `sizes="auto"` for **lazy-loaded** images. The browse
 - **Do not** use it on your LCP hero — above-the-fold images need explicit `sizes` and `fetchpriority="high"`.
 - Always set `width` and `height` (or CSS `aspect-ratio`) to prevent CLS.
 
+For art direction — different crops at different breakpoints — see the dedicated [responsive images guide](/blog/performance-seo/responsive-images-guide). The planner above covers the common single-aspect-ratio case.
+
+### LCP images deserve special treatment
+
+Your largest contentful paint element is often an image. Above-the-fold heroes need:
+
+- Explicit `sizes`, not `sizes="auto"`
+- `fetchpriority="high"` on the LCP `<img>`
+- **No** `loading="lazy"` on the LCP candidate
+- Preload in `<head>` when the hero is consistent across templates
+- Smallest viable file after format + resize — [how images affect LCP](/blog/performance-seo/how-images-affect-lcp)
+
+If PageSpeed flags "Properly size images" or "LCP image lazy loaded", start with [fix large image LCP issues](/blog/performance-seo/fix-large-image-lcp).
+
 ## Step 5: Strip EXIF and publish clean bytes
 
 Every smartphone JPEG carries **EXIF metadata**: GPS coordinates, capture time, camera model, lens data, sometimes serial numbers. When you upload to a blog, marketplace listing, or client preview site, you may expose more than the visible pixels.
@@ -208,7 +304,7 @@ Every smartphone JPEG carries **EXIF metadata**: GPS coordinates, capture time, 
 
 Major social platforms often strip GPS on upload — but **Discord, email attachments, forums, and direct file links frequently do not**. iMessage can send originals with full EXIF. The safe default: **strip before you publish**, regardless of platform.
 
-In Asset Melt, enable **Strip metadata** in the studio settings (on by default in the Web Optimized preset). Re-encoding to AVIF or WebP produces a fresh file with pixels only — the same privacy property that makes [browser compression](/blog/compress-images-in-browser) trustworthy for NDA client work.
+In Asset Melt, enable **Strip metadata** in the studio settings (on by default in the Web Optimized preset). Re-encoding to AVIF or WebP produces a fresh file with pixels only — the same privacy property that makes [browser compression](/blog/image-compression/compress-images-in-browser) trustworthy for NDA client work.
 
 <Callout title="Verify with Network tab" variant="tip">
 Open DevTools → Network while processing in Asset Melt. Legitimate client-side tools show **zero** image upload requests. If bytes leave your machine, metadata leaves with them.
@@ -248,7 +344,7 @@ For image-heavy sites, extend your sitemap:
 </url>
 ```
 
-Skip this if you run a text-first blog with one decorative header per post — standard URL sitemaps are enough.
+Skip this if you run a text-first blog with one decorative header per post — standard URL sitemaps are enough. When you do need them, the [image sitemap guide](/blog/performance-seo/image-sitemap-guide) walks through XML structure, CMS plugins, and static generation.
 
 ## Step 7: Platform-specific workflows
 
@@ -280,6 +376,24 @@ The SEO prep is the same everywhere. The upload step changes.
 
 - **Email** — JPEG or PNG only; many clients ignore WebP. Keep heroes under 200 KB.
 - **Open Graph** — exactly **1200×630**, under 200 KB, meaningful alt in the meta `og:image:alt` tag where supported.
+
+## Team workflow and governance
+
+Image SEO fails at scale when every publisher improvises. A lightweight governance model beats a 40-page policy nobody reads:
+
+### Minimum viable image policy
+
+1. **Filename convention** — lowercase, hyphens, subject-first (document with one example per asset type)
+2. **Alt text standard** — one sentence describing what the image communicates; link to the framework in Step 2 above
+3. **Export presets** — hero, inline, thumbnail, OG — with format and max width documented
+4. **Pre-publish checklist** — use the [image SEO checklist](/blog/performance-seo/image-seo-checklist) for every new template or landing page
+5. **Quarterly audit** — top 20 URLs in PageSpeed Insights + Search Console image appearance
+
+### Collaboration tips
+
+- Maintain a shared spreadsheet column for alt text during content review — easier to fix before upload than after
+- Designers export web-ready formats; developers own `srcset` markup — split responsibility clearly
+- Never let CMS plugins re-compress already-optimized uploads without testing — double compression hurts quality and confuses debugging
 
 ## The local prep checklist (copy this)
 
@@ -333,7 +447,23 @@ It is tempting to treat "privacy" and "SEO" as separate tickets. They are the sa
 - **Local processing** → no third-party retention policy for client work
 - **Consistent naming** → cleaner repos and CDN caches
 
-Asset Melt exists at that intersection — the same WASM codecs Google shipped in Squoosh, with batch export, metadata stripping, and offline support. See the [Squoosh alternative guide](/blog/squoosh-alternative-guide) if you are migrating from Google's deprecated tool.
+Asset Melt exists at that intersection — the same WASM codecs Google shipped in Squoosh, with batch export, metadata stripping, and offline support. See the [Squoosh alternative guide](/blog/image-compression/squoosh-alternative-guide) if you are migrating from Google's deprecated tool.
+
+## Guides in this topic
+
+This pillar covers the full image SEO pipeline. Each guide below goes deeper on one slice:
+
+| Guide | Best for |
+| --- | --- |
+| [Image SEO checklist](/blog/performance-seo/image-seo-checklist) | Printable pre-publish audit you can run on every page |
+| [How images affect LCP](/blog/performance-seo/how-images-affect-lcp) | Why image weight dominates Largest Contentful Paint |
+| [Fix large image LCP issues](/blog/performance-seo/fix-large-image-lcp) | Debugging and fixing slow hero delivery |
+| [Optimize images for Core Web Vitals](/blog/performance-seo/optimize-images-core-web-vitals-lcp) | LCP, CLS, and INP tuning beyond alt text |
+| [Responsive images guide](/blog/performance-seo/responsive-images-guide) | `srcset`, `sizes`, and art direction in depth |
+| [Image sitemap guide](/blog/performance-seo/image-sitemap-guide) | When and how to add image entries to your sitemap |
+| [Best image sizes for Open Graph and social](/blog/performance-seo/best-image-sizes-open-graph-social-media) | OG dimensions, crops, and preview file budgets |
+
+Start here for the complete workflow. Jump to the guide that matches your audit finding — PageSpeed flag, accessibility gap, or Google Images traffic — and return when the next template ships.
 
 ## Getting started today
 
@@ -345,4 +475,4 @@ Asset Melt exists at that intersection — the same WASM codecs Google shipped i
 
 <StudioCta label="Prep your images for SEO in the studio" />
 
-**Related reading:** [Optimize images for Core Web Vitals](/blog/optimize-images-core-web-vitals-lcp) · [Compress images in the browser](/blog/compress-images-in-browser) · [HEIC to JPG without uploading](/blog/heic-to-jpg-browser-guide) · [AVIF vs WebP](/blog/avif-vs-webp-2026)
+**Related reading:** [Optimize images for Core Web Vitals](/blog/performance-seo/optimize-images-core-web-vitals-lcp) · [Compress images in the browser](/blog/image-compression/compress-images-in-browser) · [HEIC to JPG without uploading](/blog/format-conversion/heic-to-jpg-browser-guide) · [AVIF vs WebP](/blog/format-conversion/avif-vs-webp-2026)

@@ -1,0 +1,105 @@
+---
+title: "How to Reduce Image Size Under 100KB"
+description: "A step-by-step recipe for getting images under 100KB using resize, WebP, AVIF, metadata stripping, and size-budget encoding."
+slug: reduce-image-size-under-100kb
+publishedAt: 2026-06-24
+keywords:
+  - reduce image size under 100KB
+  - compress image to 100KB
+  - image size budget
+  - make image smaller
+  - compress photo under 100KB
+cluster: image-compression
+heroImage: hero
+heroImageAlt: "Tiny glowing optimized image tile emerging from a larger image card"
+relatedTools:
+  - batch-image-compressor
+  - avif-compressor
+faq:
+  - question: "Can every image be compressed under 100KB?"
+    answer: "No. Large, detailed photos may need visible quality loss or smaller dimensions to fit under 100KB. Simple graphics and thumbnails are much easier."
+  - question: "What format is best for under 100KB?"
+    answer: "AVIF is often best for photos, WebP is a reliable default, and PNG should be reserved for simple graphics or transparency."
+  - question: "Should I resize before targeting 100KB?"
+    answer: "Yes. Resize first, then compress. Dimension reduction usually saves more bytes than lowering quality alone."
+---
+
+A 100KB image budget is strict but realistic for thumbnails, inline blog images, small ecommerce cards, and lightweight landing pages. The goal is to reduce dimensions and encode efficiently before quality gets ugly.
+
+## The 100KB recipe
+
+1. Start from the original, not a recompressed copy.
+2. Resize to the real display size.
+3. Strip metadata.
+4. Try WebP at quality 78.
+5. If still too large, try AVIF at quality 50–58.
+6. If still too large, reduce dimensions by 10–20%.
+7. Compare against the original at the final rendered size.
+
+The <ToolLink tool="batch-image-compressor">batch image compressor</ToolLink> can run this as a repeatable local workflow. For photos, the <ToolLink tool="avif-compressor">AVIF compressor</ToolLink> is often the best path to a hard byte target.
+
+## Dimension targets
+
+| Placement | Suggested max width |
+| --- | --- |
+| Blog inline image | 900–1200px |
+| Card thumbnail | 480–800px |
+| Product grid image | 800–1200px |
+| Avatar or logo | Exact display size plus DPR |
+
+Trying to force a 2400px photo under 100KB will usually damage quality. Resize first.
+
+## Format targets
+
+| Format | Starting setting |
+| --- | --- |
+| AVIF | Quality 48–56 |
+| WebP | Quality 74–80 |
+| JPEG | Quality 72–82 |
+| PNG | Use only for simple images |
+
+## When 100KB is the wrong target
+
+Do not force every LCP hero under 100KB if it makes the brand image look broken. A crisp 180KB AVIF hero can be better than a visibly damaged 95KB file. Use 100KB where it helps: content images, thumbnails, and repeated assets.
+
+## What usually gets you under the line
+
+If you are stuck at 140–180KB, the solution is rarely “drag the quality slider lower forever.” Try these in order:
+
+1. Reduce the long edge by 10%.
+2. Strip metadata.
+3. Switch JPEG to WebP.
+4. Switch WebP to AVIF for photos.
+5. Crop empty background if the composition allows it.
+6. Remove unnecessary transparency.
+7. Use fewer responsive candidates for tiny placements.
+
+Dimensions are the quiet hero here. A 1400px image may need too much quality loss to fit under 100KB, while a 1000px version can look nearly identical in the page and fit comfortably.
+
+## Realistic examples
+
+| Image | Likely path under 100KB |
+| --- | --- |
+| Blog inline photo | 1000–1200px WebP at 76–80 |
+| Product grid thumbnail | 800–1000px WebP at 78–84 |
+| Soft hero background | 1200–1600px AVIF at 48–55 |
+| UI screenshot | Crop tightly, PNG or lossless WebP |
+| Logo | SVG or optimized PNG |
+
+The harder cases are noisy photos, detailed food shots, fabric textures, and screenshots with lots of text. Those images contain real detail, and real detail costs bytes.
+
+## How to keep quality acceptable
+
+Review the final image in context. A thumbnail should be judged at thumbnail size. A product detail image should be judged at the zoom level shoppers will use. A social preview should be tested in an actual preview card, not only as a standalone file.
+
+If the image needs to persuade someone, do not chase 100KB blindly. Use the target as a prompt to optimize, then stop before the image stops doing its job.
+
+## Size-budget workflow
+
+A good size-budget workflow searches for the highest quality that fits your target. That is better than manually exporting ten files and guessing. In Asset Melt, set your target, keep resizing reasonable, and compare the output before publishing.
+
+For repeated work, save the settings as a preset: “Article image under 100KB,” “Product grid under 100KB,” or “Social preview under 200KB.” Named presets turn a stressful one-off into a repeatable publishing habit.
+
+For social previews, see [best image sizes for Open Graph and social media](/blog/performance-seo/best-image-sizes-open-graph-social-media). For general settings, read [best image compression settings for web](/blog/image-compression/best-image-compression-settings-for-web).
+
+<StudioCta label="Target a smaller image size" />

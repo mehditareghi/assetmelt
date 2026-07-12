@@ -10,6 +10,11 @@ const TOOL_CONTENT = join(ROOT, 'src/lib/tool-pages/content.ts')
 const SITE_MODULE = join(ROOT, 'src/lib/site.ts')
 const SITEMAP_PATH = join(ROOT, 'public/sitemap.xml')
 const RSS_PATH = join(ROOT, 'public/rss.xml')
+const BLOG_CLUSTERS = [
+  { id: 'image-compression', path: '/blog/image-compression' },
+  { id: 'format-conversion', path: '/blog/format-conversion' },
+  { id: 'performance-seo', path: '/blog/performance-seo' },
+]
 
 function readBlogMeta() {
   if (!existsSync(GENERATED_META)) return []
@@ -65,6 +70,14 @@ function generateSitemap() {
   const blogLastmods = blogPosts.map((post) =>
     resolveLastmod(join(ROOT, post.sourceFile), post.updatedAt ?? post.publishedAt),
   )
+  const clusterLastmods = new Map(
+    BLOG_CLUSTERS.map((cluster) => {
+      const dates = blogPosts
+        .filter((post) => post.cluster === cluster.id)
+        .map((post) => resolveLastmod(join(ROOT, post.sourceFile), post.updatedAt ?? post.publishedAt))
+      return [cluster.id, maxDate(dates)]
+    }),
+  )
 
   const entries = [
     {
@@ -85,6 +98,12 @@ function generateSitemap() {
       changefreq: 'weekly',
       priority: '0.8',
     },
+    ...BLOG_CLUSTERS.map((cluster) => ({
+      loc: `${SITE_URL}${cluster.path}`,
+      lastmod: clusterLastmods.get(cluster.id),
+      changefreq: 'weekly',
+      priority: '0.75',
+    })),
     ...toolPaths.map((path) => ({
       loc: `${SITE_URL}${path}`,
       lastmod: resolveLastmod(TOOL_CONTENT),

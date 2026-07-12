@@ -103,9 +103,9 @@ function AuthorPage() {
           <ul>
             {recentPosts.map((post) => (
               <li key={post.slug}>
-                <Link to="/blog/$slug" params={{ slug: post.slug }} className="font-medium">
+                <a href={post.path} className="font-medium">
                   {post.title}
-                </Link>
+                </a>
                 <span className="text-muted-foreground"> — {post.readingTimeMinutes} min read</span>
               </li>
             ))}

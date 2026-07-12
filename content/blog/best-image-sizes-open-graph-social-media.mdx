@@ -1,0 +1,118 @@
+---
+title: "Best Image Sizes for Open Graph and Social Media"
+description: "Use the right image dimensions, file sizes, formats, and safe areas for Open Graph, Twitter/X cards, LinkedIn, Slack, Discord, and social previews."
+slug: best-image-sizes-open-graph-social-media
+publishedAt: 2026-06-22
+keywords:
+  - Open Graph image size
+  - social media image sizes
+  - OG image dimensions
+  - Twitter card image size
+  - social preview image optimization
+cluster: performance-seo
+heroImage: hero
+heroImageAlt: "Glowing social preview image frame with small preview cards around it"
+relatedTools:
+  - batch-image-compressor
+  - avif-compressor
+faq:
+  - question: "What is the best Open Graph image size?"
+    answer: "1200×630 is the safest default for large link previews across many platforms."
+  - question: "What file size should OG images be?"
+    answer: "Aim for under 200KB when possible, while keeping text and focal details readable at thumbnail size."
+  - question: "Should OG images be AVIF?"
+    answer: "Use JPG or PNG for maximum social crawler compatibility. Keep AVIF/WebP for page images unless you have tested the target platform."
+---
+
+Open Graph images are tiny billboards for your URLs. They appear in Slack, Discord, LinkedIn, messaging apps, and social feeds. The safest default is still **1200×630** with the important content centered.
+
+## Recommended sizes
+
+| Use | Size |
+| --- | --- |
+| Open Graph default | 1200×630 |
+| Square fallback | 1200×1200 |
+| Twitter/X summary large image | 1200×675 or 1200×628 |
+| LinkedIn link preview | 1200×627 |
+| App icon/avatar preview | 512×512 or higher |
+
+Use the <ToolLink tool="batch-image-compressor">batch image compressor</ToolLink> to export exact dimensions and keep file size under control.
+
+## Format guidance
+
+For social previews, choose compatibility over novelty:
+
+- JPG for photographic previews
+- PNG when sharp text or transparency is necessary
+- WebP only after testing the specific platform
+- Avoid AVIF for OG metadata unless you are certain crawlers support it
+
+Use the <ToolLink tool="avif-compressor">AVIF compressor</ToolLink> for the on-page hero, then export a JPG/PNG social preview separately.
+
+## Design safe area
+
+Keep key visuals and any text away from edges. Some apps crop previews, round corners, or overlay UI. Test the preview in the platforms that matter to your audience.
+
+## Performance target
+
+Aim for:
+
+- 1200×630 dimensions
+- Under 200KB when possible
+- Descriptive filename
+- Stable absolute URL
+- Matching `og:image:width` and `og:image:height`
+
+## Why 1200×630 remains the safest default
+
+Many platforms have slightly different preview crops, but 1200×630 is a reliable compromise for large link cards. It gives enough resolution for high-density displays while preserving the classic 1.91:1 Open Graph ratio. If you create only one social preview size, make it this one.
+
+Square images are useful as fallbacks for profiles, app directories, and platforms that crop aggressively. They are not a replacement for a proper wide link preview when the URL is the main thing being shared.
+
+## Safe-area rules
+
+Keep the subject and any important text away from the outer 10–15% of the image. Messaging apps may round corners, overlay controls, crop slightly, or display previews in compact cards. A centered composition survives more platforms.
+
+If you include text, keep it large and minimal. Tiny slogans become unreadable in Slack, Discord, and mobile notifications. For Asset Melt-style previews, a strong abstract visual without text is often cleaner and more robust.
+
+## Metadata tags to include
+
+```html
+<meta property="og:image" content="https://example.com/og.jpg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+```
+
+Use absolute URLs. Social crawlers do not behave like browsers browsing your local page. They need reachable, stable image URLs with correct status codes and reasonable file sizes.
+
+## Format choices for crawlers
+
+JPG remains the safest all-around Open Graph format. PNG is useful for sharp graphics or text-heavy previews, but it can get large. WebP support is better than it used to be, but crawler compatibility varies. AVIF is excellent for page images but still not the safest social metadata choice unless you have tested the target platform.
+
+## Testing workflow
+
+After publishing, test previews using the platforms that matter to you. Clear cache or force a re-scrape when you change the image. Social platforms cache aggressively, so a fixed image may not appear immediately.
+
+For sites that publish often, create a reusable OG export preset: 1200×630, centered focal area, JPG/WebP export, under 200KB target, no tiny text. That preset saves time and keeps previews visually consistent.
+
+## Page-specific preview strategy
+
+Not every page needs a custom social image. Your homepage, major landing pages, product pages, and high-effort articles deserve custom previews. Utility pages, legal pages, and thin support pages can use a brand-level default.
+
+For blog posts, use a consistent visual system so the feed feels intentional. For products, show the product clearly instead of a decorative abstract background. For tools or apps, show the interface or the output state when possible. The preview should help someone decide whether the link is worth opening.
+
+## Common preview problems
+
+- Image URL is relative instead of absolute.
+- File is too large and crawler fetch times out.
+- Preview uses AVIF where crawler support is uncertain.
+- Text is too small after the card is scaled down.
+- The image changed but the platform cache still shows the old one.
+- The important subject sits too close to the edge and gets cropped.
+
+Build a small QA habit around these. One minute of preview testing can prevent weeks of ugly shared links.
+
+For a hard byte budget, read [how to reduce image size under 100KB](/blog/image-compression/reduce-image-size-under-100kb). For broader SEO prep, read [image SEO checklist](/blog/performance-seo/image-seo-checklist).
+
+<StudioCta label="Create social preview images" />

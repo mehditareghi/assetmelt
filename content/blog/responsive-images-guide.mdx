@@ -1,0 +1,146 @@
+---
+title: "Responsive Images Guide"
+description: "Learn how srcset, sizes, picture, width, height, lazy loading, and format fallbacks work together for fast responsive images."
+slug: responsive-images-guide
+publishedAt: 2026-06-24
+keywords:
+  - responsive images guide
+  - srcset sizes guide
+  - picture element guide
+  - responsive image SEO
+  - web image breakpoints
+cluster: performance-seo
+heroImage: hero
+heroImageAlt: "One glowing source image branching into several responsive image cards"
+relatedTools:
+  - batch-image-compressor
+  - avif-compressor
+faq:
+  - question: "What is srcset?"
+    answer: "srcset gives the browser a list of image candidates with widths or pixel-density descriptors so it can choose the best file."
+  - question: "What does sizes do?"
+    answer: "sizes tells the browser how wide the image will render in the layout. Without it, the browser may assume the wrong width."
+  - question: "Do responsive images help SEO?"
+    answer: "They help performance and user experience, which supports SEO. They also reduce wasted crawling and bandwidth."
+---
+
+Responsive images prevent phones from downloading desktop-sized files. They are one of the highest-leverage image performance improvements because they match bytes to the actual layout.
+
+## The core idea
+
+- `srcset` lists available image widths.
+- `sizes` describes rendered layout width.
+- The browser chooses the best candidate for viewport and device pixel ratio.
+
+Generate those widths with the <ToolLink tool="batch-image-compressor">batch image compressor</ToolLink>, then wire them into your templates.
+
+## Basic example
+
+```html
+<img
+  src="/article-960.webp"
+  srcset="/article-480.webp 480w, /article-960.webp 960w, /article-1440.webp 1440w"
+  sizes="(min-width: 900px) 720px, 92vw"
+  width="1440"
+  height="960"
+  alt="Descriptive alt text"
+  loading="lazy"
+/>
+```
+
+## Picture for formats
+
+Use `<picture>` when you need AVIF/WebP/JPEG fallbacks:
+
+```html
+<picture>
+  <source srcset="/hero-960.avif 960w, /hero-1600.avif 1600w" type="image/avif" />
+  <source srcset="/hero-960.webp 960w, /hero-1600.webp 1600w" type="image/webp" />
+  <img src="/hero-1600.jpg" alt="Descriptive alt text" width="1600" height="900" />
+</picture>
+```
+
+## Breakpoint guidance
+
+| Layout | Width candidates |
+| --- | --- |
+| Article column | 480, 960, 1440 |
+| Full-width hero | 960, 1600, 2200 |
+| Product card | 320, 640, 960 |
+| Gallery image | 640, 1200, 1800 |
+
+Use fewer candidates if your site is small. The goal is practical coverage, not infinite variants.
+
+## The `sizes` attribute is where most mistakes happen
+
+`srcset` gives the browser options. `sizes` tells it which option makes sense. If `sizes` is missing or wrong, the browser may assume the image renders at the full viewport width and download a larger file than necessary.
+
+For an article column, this is often enough:
+
+```html
+sizes="(min-width: 900px) 720px, 92vw"
+```
+
+That says: on wider screens, the image renders around 720px; otherwise it takes most of the viewport. The browser can then choose a source close to the real rendered size.
+
+## Density descriptors vs width descriptors
+
+Use width descriptors (`480w`, `960w`, `1440w`) for responsive layouts where the image width changes with the viewport. Use density descriptors (`1x`, `2x`) for fixed-size assets like icons or avatars.
+
+For content images, width descriptors are usually better because they let the browser account for viewport, DPR, and layout width together.
+
+## Responsive images and art direction
+
+Responsive images are not only about smaller files. Sometimes mobile needs a different crop. A desktop hero may be wide and cinematic, while mobile needs a tighter crop around the subject. Use `<picture>` with `media` conditions for art direction.
+
+```html
+<picture>
+  <source media="(max-width: 700px)" srcset="/hero-mobile.webp" type="image/webp" />
+  <source srcset="/hero-desktop.webp" type="image/webp" />
+  <img src="/hero-desktop.jpg" alt="Descriptive alt text" width="1600" height="900" />
+</picture>
+```
+
+## Lazy loading rules
+
+Lazy-load below-the-fold images. Do not lazy-load the LCP image. For long articles and product grids, lazy loading can save bandwidth and reduce initial work. For the first hero image, it delays the most important visual.
+
+## Workflow for generating variants
+
+1. Decide the largest rendered width.
+2. Pick 2–4 candidate widths.
+3. Export each width in the needed formats.
+4. Add dimensions to the fallback `img`.
+5. Test in DevTools which candidate is selected.
+6. Adjust `sizes` if the selected file is too large.
+
+This is also a good place to avoid asset bloat. If two widths are almost identical in byte size or visual use, remove one.
+
+## SEO and accessibility notes
+
+Responsive images do not replace alt text, captions, filenames, or structured data. They support SEO by improving performance and user experience. Keep the fallback `img` meaningful, with stable URLs and accessible text.
+
+## Debugging responsive images
+
+Use DevTools to confirm which file the browser actually downloaded. Open the Network panel, reload the page, and inspect the image request. Compare the downloaded candidate with the rendered size shown in the Elements panel. If the browser downloads a 1600px image for a 420px slot, your `sizes` value is probably wrong.
+
+Also test at different DPR values. A 2x device may correctly choose a larger candidate than your desktop monitor. The goal is not always the smallest file; it is the smallest file that still looks sharp for that device and layout.
+
+## Framework notes
+
+Framework image components can help, but they do not remove the need to understand the basics. Next.js, Astro, Nuxt, and other tools can generate variants, yet you still need accurate layout intent, sensible source images, and good alt text. If a framework component asks for `sizes`, take that field seriously.
+
+## A sane minimum setup
+
+If this feels like a lot, start with three widths and one modern format:
+
+- 480px for small mobile/card use.
+- 960px for common article images.
+- 1440px for high-density or wider slots.
+- WebP as the default output.
+
+Add AVIF and art-directed crops later for high-impact pages. Responsive images should become a habit, not a giant migration that blocks publishing.
+
+For SEO context, read [Image SEO in 2026](/blog/performance-seo/image-seo-guide-2026). For LCP, read [how images affect LCP](/blog/performance-seo/how-images-affect-lcp).
+
+<StudioCta label="Export responsive widths" />

@@ -7,46 +7,144 @@
     <language>en-us</language>
     <atom:link href="https://assetmelt.com/rss.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>HEIC vs JPG: Which Format Should You Use?</title>
+      <link>https://assetmelt.com/blog/format-conversion/heic-vs-jpg</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/format-conversion/heic-vs-jpg</guid>
+      <description>Understand the tradeoffs between HEIC and JPG for iPhone photos, compatibility, quality, file size, privacy, and web publishing.</description>
+      <pubDate>Sat, 27 Jun 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>How to Compress Images Without Losing Quality</title>
+      <link>https://assetmelt.com/blog/image-compression/how-to-compress-images-without-losing-quality</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/image-compression/how-to-compress-images-without-losing-quality</guid>
+      <description>The complete guide to visually lossless image compression — resize first, choose the right format, tune quality carefully, hit byte budgets, and verify results before publishing to WordPress, Shopify, or the open web.</description>
+      <pubDate>Sat, 27 Jun 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Image SEO Checklist</title>
+      <link>https://assetmelt.com/blog/performance-seo/image-seo-checklist</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/performance-seo/image-seo-checklist</guid>
+      <description>A concise image SEO checklist covering filenames, alt text, dimensions, formats, metadata, responsive images, sitemaps, and social previews.</description>
+      <pubDate>Sat, 27 Jun 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>How Images Affect LCP</title>
+      <link>https://assetmelt.com/blog/performance-seo/how-images-affect-lcp</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/performance-seo/how-images-affect-lcp</guid>
+      <description>Learn why hero images often become the Largest Contentful Paint element and how file size, dimensions, priority, format, and responsive markup affect LCP.</description>
+      <pubDate>Fri, 26 Jun 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>JPEG vs PNG vs WebP vs AVIF: Which Image Format Should You Use?</title>
+      <link>https://assetmelt.com/blog/image-compression/jpeg-vs-png-vs-webp-vs-avif</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/image-compression/jpeg-vs-png-vs-webp-vs-avif</guid>
+      <description>Compare JPEG, PNG, WebP, and AVIF for web images, ecommerce, screenshots, transparency, fallbacks, and Core Web Vitals.</description>
+      <pubDate>Fri, 26 Jun 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>WebP vs JPG: Which Is Better for Web Images?</title>
+      <link>https://assetmelt.com/blog/format-conversion/webp-vs-jpg</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/format-conversion/webp-vs-jpg</guid>
+      <description>Compare WebP and JPG for websites, CMS uploads, ecommerce, email, compatibility, image quality, and Core Web Vitals.</description>
+      <pubDate>Fri, 26 Jun 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Best Format for Website Images in 2026</title>
+      <link>https://assetmelt.com/blog/format-conversion/best-format-for-website-images</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/format-conversion/best-format-for-website-images</guid>
+      <description>The complete decision guide for choosing AVIF, WebP, JPG, PNG, SVG, or HEIC for website images — heroes, product photos, screenshots, social previews, and iPhone exports, with fallbacks and publishing workflows.</description>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Best Image Compression Settings for Web</title>
+      <link>https://assetmelt.com/blog/image-compression/best-image-compression-settings-for-web</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/image-compression/best-image-compression-settings-for-web</guid>
+      <description>Recommended JPEG, WebP, AVIF, resize, metadata, and size-budget settings for fast web images without ugly artifacts.</description>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>How to Fix Large Image LCP</title>
+      <link>https://assetmelt.com/blog/performance-seo/fix-large-image-lcp</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/performance-seo/fix-large-image-lcp</guid>
+      <description>Diagnose and fix a large image Largest Contentful Paint problem with better dimensions, compression, format choices, preload strategy, and responsive markup.</description>
+      <pubDate>Thu, 25 Jun 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>How to Reduce Image Size Under 100KB</title>
+      <link>https://assetmelt.com/blog/image-compression/reduce-image-size-under-100kb</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/image-compression/reduce-image-size-under-100kb</guid>
+      <description>A step-by-step recipe for getting images under 100KB using resize, WebP, AVIF, metadata stripping, and size-budget encoding.</description>
+      <pubDate>Wed, 24 Jun 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Responsive Images Guide</title>
+      <link>https://assetmelt.com/blog/performance-seo/responsive-images-guide</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/performance-seo/responsive-images-guide</guid>
+      <description>Learn how srcset, sizes, picture, width, height, lazy loading, and format fallbacks work together for fast responsive images.</description>
+      <pubDate>Wed, 24 Jun 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Should You Use AVIF in 2026?</title>
+      <link>https://assetmelt.com/blog/format-conversion/should-you-use-avif-in-2026</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/format-conversion/should-you-use-avif-in-2026</guid>
+      <description>Decide when AVIF is worth using for website images, when WebP is enough, and how to ship AVIF safely with fallbacks.</description>
+      <pubDate>Wed, 24 Jun 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>How to Compress Images for WordPress</title>
+      <link>https://assetmelt.com/blog/image-compression/compress-images-for-wordpress</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/image-compression/compress-images-for-wordpress</guid>
+      <description>Prepare WordPress images before upload with local resizing, WebP or AVIF exports, safe JPEG fallbacks, metadata stripping, and repeatable size budgets.</description>
+      <pubDate>Tue, 23 Jun 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Image Sitemap Guide</title>
+      <link>https://assetmelt.com/blog/performance-seo/image-sitemap-guide</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/performance-seo/image-sitemap-guide</guid>
+      <description>Learn when image sitemaps matter, what image URLs to include, and how they fit alongside alt text, structured data, and responsive images.</description>
+      <pubDate>Tue, 23 Jun 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Best Image Sizes for Open Graph and Social Media</title>
+      <link>https://assetmelt.com/blog/performance-seo/best-image-sizes-open-graph-social-media</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/performance-seo/best-image-sizes-open-graph-social-media</guid>
+      <description>Use the right image dimensions, file sizes, formats, and safe areas for Open Graph, Twitter/X cards, LinkedIn, Slack, Discord, and social previews.</description>
+      <pubDate>Mon, 22 Jun 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>How to Compress Images for Shopify</title>
+      <link>https://assetmelt.com/blog/image-compression/compress-images-for-shopify</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/image-compression/compress-images-for-shopify</guid>
+      <description>Optimize Shopify product photos, collection images, banners, and social previews before upload with private local compression.</description>
+      <pubDate>Mon, 22 Jun 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
       <title>Image SEO in 2026: Alt Text, Filenames, Formats, and a Local Prep Workflow</title>
-      <link>https://assetmelt.com/blog/image-seo-guide-2026</link>
-      <guid isPermaLink="true">https://assetmelt.com/blog/image-seo-guide-2026</guid>
+      <link>https://assetmelt.com/blog/performance-seo/image-seo-guide-2026</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/performance-seo/image-seo-guide-2026</guid>
       <description>A complete image SEO guide for 2026 — write inclusive alt text, name files for crawlers, ship AVIF and WebP with responsive srcset, strip EXIF metadata, and prep assets locally before WordPress, Shopify, or static deploys.</description>
       <pubDate>Fri, 19 Jun 2026 00:00:00 GMT</pubDate>
     </item>
     <item>
       <title>How to Optimize Images for Core Web Vitals and LCP in 2026</title>
-      <link>https://assetmelt.com/blog/optimize-images-core-web-vitals-lcp</link>
-      <guid isPermaLink="true">https://assetmelt.com/blog/optimize-images-core-web-vitals-lcp</guid>
+      <link>https://assetmelt.com/blog/performance-seo/optimize-images-core-web-vitals-lcp</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/performance-seo/optimize-images-core-web-vitals-lcp</guid>
       <description>A practical guide to fixing image-related Core Web Vitals — shrink LCP hero images, prevent CLS, and serve AVIF and WebP locally before deploy without uploading originals to a cloud optimizer.</description>
       <pubDate>Tue, 09 Jun 2026 00:00:00 GMT</pubDate>
     </item>
     <item>
       <title>Asset Melt vs Squoosh: A Privacy-First Alternative After Google's Shutdown</title>
-      <link>https://assetmelt.com/blog/squoosh-alternative-guide</link>
-      <guid isPermaLink="true">https://assetmelt.com/blog/squoosh-alternative-guide</guid>
+      <link>https://assetmelt.com/blog/image-compression/squoosh-alternative-guide</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/image-compression/squoosh-alternative-guide</guid>
       <description>Google shut down Squoosh.app — here's how Asset Melt compares as a client-side image compressor with batch processing, size budgets, HEIC support, and the same WASM codecs.</description>
       <pubDate>Mon, 01 Jun 2026 00:00:00 GMT</pubDate>
     </item>
     <item>
       <title>AVIF vs WebP in 2026: Which Format Should You Use?</title>
-      <link>https://assetmelt.com/blog/avif-vs-webp-2026</link>
-      <guid isPermaLink="true">https://assetmelt.com/blog/avif-vs-webp-2026</guid>
+      <link>https://assetmelt.com/blog/format-conversion/avif-vs-webp-2026</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/format-conversion/avif-vs-webp-2026</guid>
       <description>AVIF vs WebP compared for web delivery — compression efficiency, browser support, encoding speed, and when to use each in your picture element fallback chain.</description>
       <pubDate>Thu, 28 May 2026 00:00:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>HEIC to JPG in the Browser: Convert iPhone Photos Without Uploading</title>
-      <link>https://assetmelt.com/blog/heic-to-jpg-browser-guide</link>
-      <guid isPermaLink="true">https://assetmelt.com/blog/heic-to-jpg-browser-guide</guid>
-      <description>Learn how to convert HEIC and HEIF iPhone photos to JPG entirely in your browser — private, batch-friendly, and powered by local WASM decoders. No cloud upload required.</description>
-      <pubDate>Fri, 22 May 2026 00:00:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>How to Compress Images in the Browser Without Uploading Them</title>
-      <link>https://assetmelt.com/blog/compress-images-in-browser</link>
-      <guid isPermaLink="true">https://assetmelt.com/blog/compress-images-in-browser</guid>
-      <description>A practical guide to client-side image compression — why browser-based workflows beat cloud tools for privacy, speed, and control, and how to get smaller JPEG, PNG, WebP, and AVIF files locally.</description>
-      <pubDate>Fri, 15 May 2026 00:00:00 GMT</pubDate>
     </item>
   </channel>
 </rss>

@@ -22,6 +22,7 @@ import { Route as ToolsBatchImageCompressorRouteImport } from './routes/tools/ba
 import { Route as ConvertHeicToJpgRouteImport } from './routes/convert/heic-to-jpg'
 import { Route as CompressAvifRouteImport } from './routes/compress/avif'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
+import { Route as BlogClusterIdSlugRouteImport } from './routes/blog/$clusterId/$slug'
 
 const StudioRoute = StudioRouteImport.update({
   id: '/studio',
@@ -90,6 +91,11 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   path: '/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogClusterIdSlugRoute = BlogClusterIdSlugRouteImport.update({
+  id: '/blog/$clusterId/$slug',
+  path: '/blog/$clusterId/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -105,6 +111,7 @@ export interface FileRoutesByFullPath {
   '/convert/heic-to-jpg': typeof ConvertHeicToJpgRoute
   '/tools/batch-image-compressor': typeof ToolsBatchImageCompressorRoute
   '/blog/': typeof BlogIndexRoute
+  '/blog/$clusterId/$slug': typeof BlogClusterIdSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -120,6 +127,7 @@ export interface FileRoutesByTo {
   '/convert/heic-to-jpg': typeof ConvertHeicToJpgRoute
   '/tools/batch-image-compressor': typeof ToolsBatchImageCompressorRoute
   '/blog': typeof BlogIndexRoute
+  '/blog/$clusterId/$slug': typeof BlogClusterIdSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -136,6 +144,7 @@ export interface FileRoutesById {
   '/convert/heic-to-jpg': typeof ConvertHeicToJpgRoute
   '/tools/batch-image-compressor': typeof ToolsBatchImageCompressorRoute
   '/blog/': typeof BlogIndexRoute
+  '/blog/$clusterId/$slug': typeof BlogClusterIdSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -153,6 +162,7 @@ export interface FileRouteTypes {
     | '/convert/heic-to-jpg'
     | '/tools/batch-image-compressor'
     | '/blog/'
+    | '/blog/$clusterId/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -168,6 +178,7 @@ export interface FileRouteTypes {
     | '/convert/heic-to-jpg'
     | '/tools/batch-image-compressor'
     | '/blog'
+    | '/blog/$clusterId/$slug'
   id:
     | '__root__'
     | '/'
@@ -183,6 +194,7 @@ export interface FileRouteTypes {
     | '/convert/heic-to-jpg'
     | '/tools/batch-image-compressor'
     | '/blog/'
+    | '/blog/$clusterId/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -199,6 +211,7 @@ export interface RootRouteChildren {
   ConvertHeicToJpgRoute: typeof ConvertHeicToJpgRoute
   ToolsBatchImageCompressorRoute: typeof ToolsBatchImageCompressorRoute
   BlogIndexRoute: typeof BlogIndexRoute
+  BlogClusterIdSlugRoute: typeof BlogClusterIdSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -294,6 +307,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog/$clusterId/$slug': {
+      id: '/blog/$clusterId/$slug'
+      path: '/blog/$clusterId/$slug'
+      fullPath: '/blog/$clusterId/$slug'
+      preLoaderRoute: typeof BlogClusterIdSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -311,6 +331,7 @@ const rootRouteChildren: RootRouteChildren = {
   ConvertHeicToJpgRoute: ConvertHeicToJpgRoute,
   ToolsBatchImageCompressorRoute: ToolsBatchImageCompressorRoute,
   BlogIndexRoute: BlogIndexRoute,
+  BlogClusterIdSlugRoute: BlogClusterIdSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

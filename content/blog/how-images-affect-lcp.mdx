@@ -1,0 +1,105 @@
+---
+title: "How Images Affect LCP"
+description: "Learn why hero images often become the Largest Contentful Paint element and how file size, dimensions, priority, format, and responsive markup affect LCP."
+slug: how-images-affect-lcp
+publishedAt: 2026-06-26
+keywords:
+  - how images affect LCP
+  - image LCP
+  - Largest Contentful Paint images
+  - hero image performance
+  - Core Web Vitals images
+cluster: performance-seo
+heroImage: hero
+heroImageAlt: "Minimal performance gauge connected to a glowing hero image card"
+relatedTools:
+  - batch-image-compressor
+  - avif-compressor
+faq:
+  - question: "Why are images often the LCP element?"
+    answer: "The largest visible element above the fold is often a hero image, product image, or background-like visual. If it loads slowly, LCP gets worse."
+  - question: "Does compressing images improve LCP?"
+    answer: "Often yes, especially when the LCP element is an oversized hero image. Compression must be paired with correct dimensions and priority."
+  - question: "Should I lazy-load the LCP image?"
+    answer: "No. Above-the-fold LCP images should load eagerly and be discoverable early."
+---
+
+Largest Contentful Paint measures when the main visible content appears. On modern pages, that content is often an image: a hero, product photo, article cover, or large promo card. If that image is heavy or discovered late, LCP suffers.
+
+## Why images slow LCP
+
+Image LCP problems usually come from five causes:
+
+1. The file is too large.
+2. The dimensions are far bigger than the display size.
+3. The browser discovers the image too late.
+4. The image is lazy-loaded even though it is above the fold.
+5. The responsive markup makes the browser choose the wrong candidate.
+
+The <ToolLink tool="batch-image-compressor">batch image compressor</ToolLink> helps with the first two. Your template handles discovery and priority.
+
+## What a good LCP image needs
+
+| Requirement | Why it matters |
+| --- | --- |
+| Modern format | Reduces transfer size |
+| Correct dimensions | Avoids wasted bytes |
+| `width` and `height` | Prevents layout shift |
+| Accurate `sizes` | Helps browser choose the right source |
+| Eager loading | Prevents delayed discovery |
+| Priority hint | Tells browser the image matters |
+
+For photo heroes, test AVIF in the <ToolLink tool="avif-compressor">AVIF compressor</ToolLink> and keep WebP fallback.
+
+## Good hero markup
+
+```html
+<img
+  src="/hero.webp"
+  srcset="/hero-960.webp 960w, /hero-1600.webp 1600w"
+  sizes="100vw"
+  width="1600"
+  height="900"
+  alt="Descriptive alt text"
+  fetchpriority="high"
+/>
+```
+
+## The LCP timeline in plain English
+
+For an image to become visible, the browser has to discover the URL, request it, download the bytes, decode the image, and paint it. A delay at any point can hurt LCP. That is why image optimization is not only about compression.
+
+If the image URL is hidden inside late JavaScript, discovery is late. If the file is a 2MB JPEG, download is slow. If the dimensions are missing, layout may shift. If the image is lazy-loaded, the browser may intentionally wait before requesting the most important visual on the page.
+
+## Background images are a common trap
+
+CSS background images can be fine for decorative art, but they are often worse for LCP heroes because the browser discovers them after CSS arrives and is parsed. If the image is meaningful content, prefer an actual `<img>` or `<picture>`. It gives you alt text, dimensions, priority hints, and responsive candidates.
+
+If design requires a background-like treatment, you can still use an absolutely positioned image element behind content. That keeps the performance benefits while preserving the visual layout.
+
+## Compression is only the first fix
+
+A smaller image helps most when the image was transfer-bound. But sometimes the real problem is server delay, render-blocking CSS, a late client-side render, or a wrong `sizes` attribute that makes the browser download a huge candidate. Fixing LCP means reading the waterfall, not guessing.
+
+Use this sequence:
+
+1. Confirm the LCP element.
+2. Check when the image request starts.
+3. Check file size and dimensions.
+4. Check whether the chosen `srcset` candidate is reasonable.
+5. Check cache and CDN behavior.
+6. Retest on mobile.
+
+## What “good enough” looks like
+
+For many pages, the LCP image should be discovered in the initial HTML, requested early, sized close to the rendered need, and delivered in a modern format. It should not wait for a carousel script, an animation library, or a client-only component to mount.
+
+The exact file size depends on design. A simple hero can be under 150KB. A rich product image may justify more. The important thing is that every byte has a visual reason to exist.
+
+## Related image metrics
+
+LCP gets the headline, but images also affect CLS and INP. Missing dimensions can cause layout shift. Huge images can consume decode time and compete with main-thread work. Overloaded galleries can make interaction feel sluggish on mid-range phones. Image performance is part of the whole page, not a single Lighthouse row.
+
+For a repair workflow, read [how to fix large image LCP](/blog/performance-seo/fix-large-image-lcp). For a broader Core Web Vitals guide, read [how to optimize images for Core Web Vitals and LCP](/blog/performance-seo/optimize-images-core-web-vitals-lcp).
+
+<StudioCta label="Shrink an LCP image locally" />

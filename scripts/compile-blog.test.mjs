@@ -47,5 +47,5 @@ test('generate-sitemap writes blog urls', () => {
 
   const rss = readFileSync('public/rss.xml', 'utf8')
   assert.match(rss, /<rss version="2.0"/)
-  assert.match(rss, /compress-images-in-browser/)
+  assert.match(rss, /image-seo-checklist/)
 })

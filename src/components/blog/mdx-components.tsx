@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router'
 import type { MDXComponents } from '@/lib/blog/mdx-types'
-import type { ReactNode } from 'react'
+import { isValidElement, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { getToolPage } from '@/lib/tool-pages'
 import type { ToolPageId } from '@/lib/tool-pages/types'
@@ -90,10 +90,33 @@ export function ToolLink({
   )
 }
 
+function getTextContent(node: ReactNode): string {
+  if (typeof node === 'string' || typeof node === 'number') return String(node)
+  if (Array.isArray(node)) return node.map(getTextContent).join('')
+  if (isValidElement<{ children?: ReactNode }>(node)) {
+    return getTextContent(node.props.children)
+  }
+  return ''
+}
+
+function slugifyHeading(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+}
+
+function headingId(id: string | undefined, children: ReactNode): string | undefined {
+  if (id) return id
+  const slug = slugifyHeading(getTextContent(children))
+  return slug || undefined
+}
+
 const defaultComponents: MDXComponents = {
   h2: ({ children, id, ...props }: { children?: ReactNode; id?: string }) => (
     <h2
-      id={id}
+      id={headingId(id, children)}
       className="mt-12 scroll-mt-24 font-display text-2xl font-bold tracking-tight text-foreground first:mt-0 sm:text-3xl"
       {...props}
     >
@@ -102,7 +125,7 @@ const defaultComponents: MDXComponents = {
   ),
   h3: ({ children, id, ...props }: { children?: ReactNode; id?: string }) => (
     <h3
-      id={id}
+      id={headingId(id, children)}
       className="mt-8 scroll-mt-24 font-display text-xl font-semibold tracking-tight text-foreground"
       {...props}
     >

@@ -1,0 +1,106 @@
+---
+title: "How to Fix Large Image LCP"
+description: "Diagnose and fix a large image Largest Contentful Paint problem with better dimensions, compression, format choices, preload strategy, and responsive markup."
+slug: fix-large-image-lcp
+publishedAt: 2026-06-25
+keywords:
+  - fix large image LCP
+  - reduce LCP image size
+  - hero image LCP fix
+  - improve Largest Contentful Paint image
+  - Core Web Vitals image fix
+cluster: performance-seo
+heroImage: hero
+heroImageAlt: "Glowing compressed hero image connected to a small performance gauge"
+relatedTools:
+  - batch-image-compressor
+  - avif-compressor
+faq:
+  - question: "What is a large image LCP issue?"
+    answer: "It means the element counted as LCP is an image that loads too slowly because of file size, dimensions, discovery, server delay, or priority."
+  - question: "What file size should an LCP image be?"
+    answer: "There is no universal number, but many mobile pages benefit when the LCP image is a few hundred kilobytes or less and correctly sized."
+  - question: "Can AVIF fix LCP by itself?"
+    answer: "AVIF can reduce bytes, but LCP also needs early discovery, correct dimensions, caching, and responsive markup."
+---
+
+If Lighthouse or Search Console points at a large image LCP problem, fix it in order. Do not start by sprinkling performance hints around a 4MB hero. Make the image smaller and easier for the browser to find.
+
+## Step 1: Identify the LCP image
+
+Use Lighthouse, PageSpeed Insights, or DevTools Performance. Confirm which element is counted as LCP on mobile and desktop. It may be a hero image, product image, background image, or poster frame.
+
+## Step 2: Resize and compress
+
+Export the image at the largest real display width, not the camera width. Then compress it locally with the <ToolLink tool="batch-image-compressor">batch image compressor</ToolLink>.
+
+For photographic heroes, try the <ToolLink tool="avif-compressor">AVIF compressor</ToolLink> plus WebP fallback.
+
+## Step 3: Fix markup
+
+- Use real `<img>` or `<picture>` where possible.
+- Add `width` and `height`.
+- Use accurate `srcset` and `sizes`.
+- Do not lazy-load the LCP image.
+- Add `fetchpriority="high"` for the main hero.
+- Avoid hiding the real image behind late JavaScript.
+
+## Step 4: Check delivery
+
+Compression will not help much if the server is slow. Confirm caching headers, CDN behavior, redirects, and whether the image URL is discovered in the first HTML response.
+
+## Step 5: Retest on mobile
+
+LCP is often worse on mobile because the network and CPU budget are smaller. Test a throttled mobile profile and compare before/after.
+
+## Diagnose before changing code
+
+Large image LCP issues are easy to mis-fix. A developer may add preload, a designer may lower quality, and a marketer may swap the hero, but none of those are guaranteed to solve the real bottleneck. Start with evidence.
+
+In DevTools or PageSpeed Insights, look for:
+
+- LCP element type and URL.
+- Rendered dimensions versus intrinsic dimensions.
+- Transfer size.
+- Request start time.
+- Time to first byte.
+- Whether the image came from cache.
+- Whether the chosen responsive candidate was too large.
+
+If the request starts late, fix discovery. If the request starts early but downloads forever, fix bytes and caching. If the chosen candidate is oversized, fix `sizes`. If the image is a CSS background, consider moving it into HTML.
+
+## Fix patterns by cause
+
+| Cause | Fix |
+| --- | --- |
+| Oversized dimensions | Resize source and generate responsive widths |
+| Heavy format | Try AVIF/WebP with fallback |
+| Late discovery | Put image in initial HTML |
+| Lazy-loaded hero | Remove lazy loading from LCP image |
+| Wrong candidate | Correct `sizes` |
+| Slow origin | Add CDN/cache headers |
+| Render-blocked hero | Reduce blocking CSS/JS around above-the-fold layout |
+
+## Preload carefully
+
+Preloading can help when the browser cannot discover the image early enough, but it is not a substitute for good markup. Preload the exact image candidate you expect to be used. Preloading the wrong file can waste bandwidth and make performance worse.
+
+For many pages, `fetchpriority="high"` on the LCP image is simpler and safer than a manual preload. Use both only when you have measured the need.
+
+## Art direction and mobile crops
+
+Sometimes the desktop hero is not the right mobile hero. A wide 2200px banner may compress poorly and crop awkwardly on phones. Use `<picture>` with media queries when the mobile composition should be different. A smaller, better-cropped mobile image can improve both LCP and visual clarity.
+
+## Regressions to watch
+
+After fixing LCP, make sure you did not create a new problem:
+
+- The image still has useful alt text.
+- CLS did not increase.
+- Social preview images still use crawler-friendly formats.
+- The design still looks good on high-density screens.
+- Cache busting works when the image changes.
+
+For background concepts, read [how images affect LCP](/blog/performance-seo/how-images-affect-lcp) and [responsive images guide](/blog/performance-seo/responsive-images-guide).
+
+<StudioCta label="Fix a large LCP image" />

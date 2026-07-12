@@ -1,0 +1,110 @@
+---
+title: "Image SEO Checklist"
+description: "A concise image SEO checklist covering filenames, alt text, dimensions, formats, metadata, responsive images, sitemaps, and social previews."
+slug: image-seo-checklist
+publishedAt: 2026-06-27
+keywords:
+  - image SEO checklist
+  - image optimization checklist
+  - SEO image checklist
+  - alt text checklist
+  - image performance checklist
+cluster: performance-seo
+heroImage: hero
+heroImageAlt: "Minimal glowing checklist-like image cards without readable text"
+relatedTools:
+  - batch-image-compressor
+  - avif-compressor
+faq:
+  - question: "What is the most important image SEO task?"
+    answer: "Start with useful images, descriptive alt text where needed, correctly sized files, modern formats, and explicit width and height attributes."
+  - question: "Does image SEO require an image sitemap?"
+    answer: "Not always. Image sitemaps are most useful when images are central to discovery, such as ecommerce, real estate, recipes, portfolios, or stock libraries."
+  - question: "Can compression help image SEO?"
+    answer: "Yes indirectly. Smaller, correctly sized images improve load experience and Core Web Vitals, which supports SEO performance."
+---
+
+Use this checklist before publishing any page with important images.
+
+## Content and accessibility
+
+- Filename describes the subject with lowercase hyphens.
+- Informative images have useful alt text.
+- Decorative images use `alt=""`.
+- Captions explain context when the image needs more detail.
+- Text inside images is repeated in real page text when important.
+
+## Format and compression
+
+- Photos use AVIF or WebP where supported.
+- JPG or PNG fallback exists when needed.
+- Logos and icons use SVG when possible.
+- Images are resized to real layout needs.
+- Metadata is stripped for public assets.
+- Quality is checked visually after export.
+
+Open the <ToolLink tool="batch-image-compressor">batch image compressor</ToolLink> for page-level prep, or the <ToolLink tool="avif-compressor">AVIF compressor</ToolLink> for high-impact heroes.
+
+## HTML and performance
+
+- `width` and `height` attributes are present.
+- Responsive images use `srcset` and accurate `sizes`.
+- The LCP image is not lazy-loaded.
+- The LCP image uses appropriate priority hints.
+- Below-the-fold images are lazy-loaded.
+- Placeholder dimensions prevent layout shift.
+
+## Discovery
+
+- Important images appear in crawlable HTML.
+- Product or article images are included in structured data where relevant.
+- Image URLs are stable.
+- Image sitemap is used for image-heavy sites.
+- Open Graph and social images are exported at the right dimensions.
+
+## Final pass
+
+Run Lighthouse or your preferred performance audit, then inspect the page manually on mobile. Automated tools catch missing attributes; your eyes catch ugly crops, unreadable thumbnails, and compression artifacts.
+
+## Use the checklist by page type
+
+Not every page needs the same image SEO effort. A plain legal page with one decorative image does not need an image sitemap. A product category page with 80 product thumbnails does. Apply the checklist with judgment.
+
+For blog posts, focus on descriptive filenames, alt text for meaningful images, responsive widths, and a strong social preview. For ecommerce, add product structured data, consistent product image naming, and image sitemap coverage. For portfolios, captions and image uniqueness matter more because the images are the content.
+
+## Alt text review
+
+Alt text should answer: what information does this image provide that the reader would miss? For a product, mention the product and relevant visible attributes. For a chart, summarize the takeaway. For a decorative glow or background shape, use empty alt text.
+
+Bad alt text tries to rank. Good alt text helps someone understand the page. Search engines benefit because accessible descriptions are usually clearer and less spammy.
+
+## Performance review
+
+Image SEO and performance are now inseparable. A perfectly described image still hurts the page if it ships as a 3MB file. Check the rendered dimensions, transfer size, and whether the browser is downloading the right responsive candidate.
+
+For the LCP image, verify:
+
+- It is not lazy-loaded.
+- It is discoverable in initial HTML.
+- It uses an efficient format.
+- It has explicit dimensions.
+- It is not much larger than the rendered need.
+
+## Content quality review
+
+Images should earn their place. Stock-like visuals that do not explain, prove, or demonstrate anything can make a page feel thinner. Use images to clarify steps, show examples, compare outputs, or build trust. If an image is only decoration, optimize it aggressively or remove it.
+
+## Team workflow
+
+Turn this checklist into a publishing habit:
+
+1. Writer names files and writes alt text.
+2. Designer exports correct crops and social previews.
+3. Developer confirms responsive markup.
+4. SEO/performance pass checks sitemap, structured data, and LCP.
+
+Small teams may have one person do all four jobs. The point is that image SEO spans content, design, and engineering.
+
+For the full guide, read [Image SEO in 2026](/blog/performance-seo/image-seo-guide-2026). For LCP tuning, read [how images affect LCP](/blog/performance-seo/how-images-affect-lcp).
+
+<StudioCta label="Prep images for SEO" />

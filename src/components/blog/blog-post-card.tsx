@@ -1,9 +1,10 @@
-import { Link } from '@tanstack/react-router'
 import { motion } from 'motion/react'
 import { ArrowRight, Clock } from 'lucide-react'
 import type { BlogPostMeta } from '@/lib/blog/types'
 import { ResponsivePicture } from '@/components/blog/responsive-picture'
+import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
+import { BLOG_CLUSTER_BY_ID, isPillarPost } from '@/lib/blog/clusters'
 
 interface BlogPostCardProps {
   post: BlogPostMeta
@@ -20,6 +21,8 @@ function formatDate(iso: string) {
 }
 
 export function BlogPostCard({ post, featured = false, className }: BlogPostCardProps) {
+  const pillar = isPillarPost(post)
+
   return (
     <motion.article
       initial={{ opacity: 0, y: 16 }}
@@ -28,9 +31,8 @@ export function BlogPostCard({ post, featured = false, className }: BlogPostCard
       transition={{ duration: 0.4 }}
       className={cn('group', className)}
     >
-      <Link
-        to="/blog/$slug"
-        params={{ slug: post.slug }}
+      <a
+        href={post.path}
         className="glass-surface flex h-full flex-col overflow-hidden rounded-2xl border border-border/50 transition-colors hover:border-primary/30"
       >
         {post.heroJpeg && post.heroWebp ? (
@@ -47,13 +49,26 @@ export function BlogPostCard({ post, featured = false, className }: BlogPostCard
         ) : null}
 
         <div className={cn('flex flex-1 flex-col p-5 sm:p-6', featured && 'lg:p-7')}>
-          <div className="mb-3 flex flex-wrap items-center gap-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            {pillar ? (
+              <Badge variant="glass" className="font-mono text-[10px] uppercase tracking-wider">
+                Start here
+              </Badge>
+            ) : null}
+            <div className="flex flex-wrap items-center gap-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+            {post.cluster ? (
+              <>
+                <span>{BLOG_CLUSTER_BY_ID[post.cluster].title}</span>
+                <span aria-hidden="true">·</span>
+              </>
+            ) : null}
             <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
             <span aria-hidden="true">·</span>
             <span className="inline-flex items-center gap-1">
               <Clock className="size-3" aria-hidden="true" />
               {post.readingTimeMinutes} min read
             </span>
+            </div>
           </div>
 
           <h2
@@ -74,7 +89,7 @@ export function BlogPostCard({ post, featured = false, className }: BlogPostCard
             <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
           </span>
         </div>
-      </Link>
+      </a>
     </motion.article>
   )
 }

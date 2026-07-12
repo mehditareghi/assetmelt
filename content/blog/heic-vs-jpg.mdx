@@ -1,0 +1,86 @@
+---
+title: "HEIC vs JPG: Which Format Should You Use?"
+description: "Understand the tradeoffs between HEIC and JPG for iPhone photos, compatibility, quality, file size, privacy, and web publishing."
+slug: heic-vs-jpg
+publishedAt: 2026-06-27
+keywords:
+  - HEIC vs JPG
+  - HEIC or JPEG
+  - iPhone photo format
+  - convert HEIC to JPG
+  - HEIF vs JPG
+cluster: format-conversion
+heroImage: hero
+heroImageAlt: "Two glowing photo file cards showing HEIC to JPG format conversion"
+relatedTools:
+  - heic-to-jpg
+  - batch-image-compressor
+faq:
+  - question: "Is HEIC better than JPG?"
+    answer: "HEIC is usually more efficient for storage, while JPG is more compatible. Use HEIC on your iPhone if storage matters, and convert to JPG when the destination requires it."
+  - question: "Does converting HEIC to JPG reduce quality?"
+    answer: "Yes, if you export to lossy JPEG. Use high quality settings for sharing or choose WebP/AVIF for web publishing."
+  - question: "Can I convert HEIC without uploading?"
+    answer: "Yes. Asset Melt decodes HEIC locally in the browser and exports JPG, WebP, AVIF, or PNG without sending photos to a server."
+---
+
+HEIC and JPG solve different problems. **HEIC** is efficient storage for modern phones. **JPG** is universal compatibility for websites, email, forms, and older software.
+
+## HEIC vs JPG at a glance
+
+| Factor | HEIC | JPG |
+| --- | --- | --- |
+| File size | Usually smaller | Usually larger |
+| Compatibility | Mixed outside Apple workflows | Excellent |
+| Web upload support | Inconsistent | Excellent |
+| Quality per byte | Strong | Good but older |
+| Transparency | Not typical | No |
+| Best use | Phone storage, originals | Sharing, forms, legacy systems |
+
+If your photos stay inside Apple Photos and iCloud, HEIC is convenient. If you need to upload images to a CMS, send files to a client, or attach photos to a strict form, JPG is safer.
+
+## When to keep HEIC
+
+Keep HEIC when you are archiving phone photos, saving device storage, or editing in apps that handle HEIC well. It is also a good source format before exporting to modern web formats.
+
+## When to convert to JPG
+
+Convert HEIC to JPG when a website rejects `.heic`, a recipient cannot open the file, or a print/email workflow expects JPEG. Use the <ToolLink tool="heic-to-jpg">HEIC to JPG converter</ToolLink> to do it locally without uploading personal photos.
+
+## Web publishing tip
+
+For websites, you do not have to stop at JPG. Decode HEIC locally, then export WebP or AVIF for smaller web files. The <ToolLink tool="batch-image-compressor">batch compressor</ToolLink> can process mixed HEIC and JPG folders in one queue.
+
+## iPhone settings: which should you choose?
+
+On iPhone, Apple gives you two practical camera choices: High Efficiency and Most Compatible. High Efficiency usually means HEIC/HEIF. Most Compatible means JPEG. If you mostly keep photos inside Apple Photos and iCloud, High Efficiency is sensible because it saves storage. If your daily workflow involves web forms, clients, older Windows machines, or nontechnical recipients, Most Compatible saves friction.
+
+There is no need to make this decision permanent. Many people keep HEIC enabled for everyday storage and convert only the photos they need to deliver. That preserves the storage benefit while avoiding compatibility surprises.
+
+## Quality when converting
+
+HEIC is already compressed. When you convert HEIC to JPG, the image is decoded and encoded again. That second lossy step can reduce quality if the JPEG quality is too low. For personal sharing, quality 85–90 is usually safe. For client delivery, start around 90–92. For web publishing, you may get better results by converting HEIC directly to WebP or AVIF after resizing.
+
+If the output JPG is larger than the original HEIC, that is normal. HEIC is more efficient than JPEG. The point of JPG conversion is compatibility, not always smaller files.
+
+## Privacy angle
+
+HEIC photos can contain the same sensitive metadata as other camera images: location, timestamp, device model, and orientation details. Before publishing, strip metadata unless you intentionally need it. Local conversion is especially useful for family photos, ID photos, client assets, and unreleased product shots because the image never has to pass through a third-party converter.
+
+## Batch scenarios
+
+A single HEIC file is easy. The pain starts when you have a folder from AirDrop or iCloud. In that case, convert in batches:
+
+1. Put the HEIC files in one folder.
+2. Drop the folder into the studio.
+3. Choose JPG for compatibility or WebP/AVIF for web.
+4. Set a max width if full resolution is unnecessary.
+5. Export a ZIP and keep the originals archived.
+
+## Troubleshooting
+
+If a converted photo looks rotated, the source probably relied on EXIF orientation. A good pipeline normalizes orientation during decode. If colors look slightly different, the source may use wide-gamut color and the browser may map it to sRGB. For critical print or retouching work, compare against Apple's Preview export before delivering.
+
+For a step-by-step conversion workflow, read [HEIC to JPG in the browser](/blog/format-conversion/heic-to-jpg-browser-guide). For website formats, read [best format for website images](/blog/format-conversion/best-format-for-website-images).
+
+<StudioCta label="Convert HEIC photos privately" />

@@ -1,27 +1,28 @@
-import { createFileRoute, notFound } from '@tanstack/react-router'
-import { BlogPostPage } from '@/components/blog/blog-post-page'
-import { buildBlogPostHead } from '@/lib/blog/seo'
-import { getBlogPost, getBlogPostContent } from '@/lib/blog'
+import { createFileRoute, notFound, redirect } from '@tanstack/react-router'
+import { BlogClusterPage } from '@/components/blog/blog-cluster-page'
+import { buildBlogClusterHead } from '@/lib/blog/seo'
+import { BLOG_POSTS, getBlogCluster, getBlogClusterPosts, getBlogPost } from '@/lib/blog'
 
 export const Route = createFileRoute('/blog/$slug')({
   loader: ({ params }) => {
+    const cluster = getBlogCluster(params.slug)
+    if (cluster) {
+      const posts = getBlogClusterPosts(BLOG_POSTS, cluster.id)
+      return { cluster, posts }
+    }
+
     const post = getBlogPost(params.slug)
     if (!post) throw notFound()
-
-    if (!getBlogPostContent(params.slug)) throw notFound()
-
-    return { post }
+    throw redirect({ href: post.path, replace: true })
   },
   head: ({ loaderData }) => {
-    if (!loaderData?.post) return {}
-    return buildBlogPostHead(loaderData.post)
+    if (!loaderData?.cluster) return {}
+    return buildBlogClusterHead(loaderData.cluster, loaderData.posts)
   },
-  component: BlogPostRoute,
+  component: BlogClusterRoute,
 })
 
-function BlogPostRoute() {
-  const { post } = Route.useLoaderData()
-  const Content = getBlogPostContent(post.slug)
-  if (!Content) throw notFound()
-  return <BlogPostPage post={post} Content={Content} />
+function BlogClusterRoute() {
+  const { cluster, posts } = Route.useLoaderData()
+  return <BlogClusterPage cluster={cluster} posts={posts} />
 }

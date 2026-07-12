@@ -29,6 +29,22 @@ const VALID_TOOL_IDS = new Set([
   'avif-compressor',
 ])
 
+const VALID_CLUSTER_IDS = new Set([
+  'image-compression',
+  'format-conversion',
+  'performance-seo',
+])
+
+const BLOG_CLUSTER_PATHS = [
+  '/blog/image-compression',
+  '/blog/format-conversion',
+  '/blog/performance-seo',
+]
+
+function canonicalBlogPath(slug, cluster) {
+  return cluster ? `/blog/${cluster}/${slug}` : `/blog/${slug}`
+}
+
 function slugify(value) {
   return String(value)
     .toLowerCase()
@@ -143,6 +159,7 @@ function validateFrontmatter(data, fileName) {
     publishedAt,
     updatedAt: data.updatedAt ? String(data.updatedAt).trim() : undefined,
     keywords,
+    cluster: VALID_CLUSTER_IDS.has(data.cluster) ? data.cluster : null,
     heroImage: String(data.heroImage ?? 'hero').trim(),
     heroImageAlt: String(data.heroImageAlt ?? title).trim(),
     readingTimeMinutes:
@@ -228,7 +245,8 @@ async function main() {
 
     posts.push({
       ...meta,
-      path: `/blog/${meta.slug}`,
+      path: canonicalBlogPath(meta.slug, meta.cluster),
+      legacyPath: `/blog/${meta.slug}`,
       excerpt,
       readingTimeMinutes,
       heroAvif: heroPaths?.avif ?? null,
@@ -289,6 +307,7 @@ export function getLatestBlogPosts(limit = 3): BlogPostMeta[] {
           description: post.description,
           publishedAt: post.publishedAt,
           updatedAt: post.updatedAt,
+          cluster: post.cluster,
           sourceFile: post.sourceFile,
         })),
       },
@@ -299,7 +318,7 @@ export function getLatestBlogPosts(limit = 3): BlogPostMeta[] {
 
   writeFileSync(
     GENERATED_PATHS,
-    `${JSON.stringify(posts.map((post) => post.path))}\n`,
+    `${JSON.stringify([...BLOG_CLUSTER_PATHS, ...posts.map((post) => post.path)])}\n`,
   )
 
   console.log(`Compiled ${posts.length} blog posts → src/generated/blog/`)

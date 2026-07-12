@@ -1,0 +1,112 @@
+---
+title: "How to Compress Images for WordPress"
+description: "Prepare WordPress images before upload with local resizing, WebP or AVIF exports, safe JPEG fallbacks, metadata stripping, and repeatable size budgets."
+slug: compress-images-for-wordpress
+publishedAt: 2026-06-23
+keywords:
+  - compress images for WordPress
+  - WordPress image optimization
+  - WebP WordPress images
+  - WordPress image size
+  - optimize images before upload
+cluster: image-compression
+heroImage: hero
+heroImageAlt: "Glowing browser-like content card with optimized image assets for a CMS"
+relatedTools:
+  - batch-image-compressor
+  - avif-compressor
+faq:
+  - question: "Should I compress images before uploading to WordPress?"
+    answer: "Yes. WordPress and plugins can generate variants, but uploading smaller, correctly sized originals gives the whole pipeline better source material."
+  - question: "What size should WordPress images be?"
+    answer: "For most themes, 1600–1920px wide is enough for full-width images. Inline article images can often be 1200px or less."
+  - question: "Should WordPress use WebP or AVIF?"
+    answer: "Use WebP as a reliable modern default. Add AVIF when your theme, plugin, CDN, and analytics support it well."
+---
+
+WordPress can create thumbnails, but it cannot magically fix a bloated original. If you upload a 6MB camera JPEG, every generated variant starts from an oversized file. Compressing before upload gives WordPress cleaner, smaller input.
+
+## WordPress pre-upload workflow
+
+1. Export from your camera or design tool at full quality.
+2. Resize full-width images to 1600–1920px.
+3. Resize inline article images to 1000–1400px.
+4. Convert photos to WebP, or AVIF where your stack supports it.
+5. Keep JPEG fallbacks for plugins/themes that need them.
+6. Strip EXIF metadata for privacy.
+7. Upload optimized files to the Media Library.
+
+Run this in the <ToolLink tool="batch-image-compressor">batch image compressor</ToolLink> before opening WordPress. Your files stay local until you intentionally upload the finished assets.
+
+## Recommended settings
+
+| Asset | Format | Max width | Quality |
+| --- | --- | --- | --- |
+| Blog hero | WebP or AVIF | 1600–1920px | WebP 82 / AVIF 55 |
+| Inline image | WebP | 1000–1400px | 78–82 |
+| Product/gallery | WebP + JPEG fallback | 1600–2048px | 82–88 |
+| Screenshot | PNG or lossless WebP | Exact display size | Lossless |
+
+## Plugin or local compression?
+
+Use both when useful. Local compression controls your source assets and protects privacy before upload. WordPress plugins can then generate responsive variants and CDN-friendly URLs. The important part is not relying on a plugin to guess your editorial intent.
+
+## Theme realities
+
+WordPress themes vary wildly. Some display featured images at full viewport width. Others constrain article images to a narrow column. Some page builders create multiple hidden image placements for sliders, mobile sections, and cards. Before choosing settings, inspect where your images actually appear.
+
+For most editorial sites, a 1600–1920px featured image is plenty. For a photography portfolio or product zoom feature, you may need larger originals. For a simple blog with a 720px content column, uploading 4000px camera files is usually waste.
+
+## Featured images, inline images, and media library hygiene
+
+Treat featured images separately from inline images. Featured images may appear in social previews, archive cards, related-post widgets, and the article header. Inline images usually need less width and can be compressed more aggressively.
+
+Use descriptive filenames before upload:
+
+```text
+image-compression-settings-wordpress.webp
+shopify-product-photo-before-after.webp
+avif-webp-fallback-example.jpg
+```
+
+This makes the Media Library easier to search and gives crawlers useful context. It also prevents a long-term library full of `IMG_4832-final-final.jpg`.
+
+## WooCommerce note
+
+WooCommerce stores need a slightly different balance. Product detail images must hold up when shoppers inspect texture, finish, and color. Compress collection thumbnails more aggressively, but keep product detail images cleaner. If returns or trust depend on visual accuracy, quality is part of conversion rate optimization.
+
+## Avoid double compression
+
+WordPress plugins, CDNs, and image services may recompress uploads. If you upload a low-quality JPEG and the plugin compresses it again, artifacts stack. Upload a clean, reasonably optimized source, then let the delivery layer create variants. Do not feed it a damaged file.
+
+## Pre-publish checklist
+
+- Featured image exported at the theme's real maximum width.
+- Inline images resized to the content column.
+- Filenames are descriptive and lowercase.
+- Metadata stripped when privacy matters.
+- Alt text written in WordPress after upload.
+- Social preview image checked separately.
+- Plugin/CDN settings reviewed for duplicate compression.
+
+## Gutenberg and page builder tip
+
+If you use Gutenberg blocks, patterns, or a page builder, preview the page at mobile and desktop widths before batch-processing the whole media set. Some blocks display the same image at different sizes depending on layout. A cover block, media-text block, and gallery block may each need different export assumptions.
+
+For reusable templates, document the expected image dimensions right in your editorial workflow. “Featured image: 1600×900 WebP” is much easier for a writer to follow than “optimize images.”
+
+## Migration plan for an existing WordPress site
+
+Do not start by recompressing the entire media library. Start with:
+
+1. Homepage and top landing pages.
+2. Posts with the most organic traffic.
+3. Large featured images above the fold.
+4. Product or conversion pages.
+5. Repeated thumbnails and archive pages.
+
+This approach gives you the biggest performance return first and avoids breaking old media references unnecessarily.
+
+For broader CMS decisions, read [best format for website images](/blog/format-conversion/best-format-for-website-images) and [how to compress images without losing quality](/blog/image-compression/how-to-compress-images-without-losing-quality).
+
+<StudioCta label="Prepare WordPress images locally" />

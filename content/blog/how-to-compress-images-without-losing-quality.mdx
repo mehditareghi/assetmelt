@@ -1,0 +1,451 @@
+---
+title: "How to Compress Images Without Losing Quality"
+description: "The complete guide to visually lossless image compression — resize first, choose the right format, tune quality carefully, hit byte budgets, and verify results before publishing to WordPress, Shopify, or the open web."
+slug: how-to-compress-images-without-losing-quality
+publishedAt: 2026-06-27
+keywords:
+  - compress images without losing quality
+  - lossless image compression
+  - image quality settings
+  - reduce image file size
+  - visual image optimization
+cluster: image-compression
+heroImage: hero
+heroImageAlt: "Glowing image card dissolving into smaller pixels while preserving visual detail"
+relatedTools:
+  - batch-image-compressor
+  - avif-compressor
+faq:
+  - question: "Can you compress images with no quality loss?"
+    answer: "Yes for PNG and some WebP workflows with lossless compression, but most photo savings come from visually lossless lossy compression. The goal is no visible difference at the rendered size, not mathematically identical pixels."
+  - question: "What quality setting is visually lossless for JPEG?"
+    answer: "For web photos, JPEG quality 82–88 is often visually safe after resizing. Detailed product photos may need 88–92. Always compare at the final display size."
+  - question: "Is AVIF better for preserving quality?"
+    answer: "AVIF often keeps gradients and photo detail at smaller byte sizes, but it encodes slower. Use it for final web assets, with WebP or JPEG fallbacks when needed."
+  - question: "Should I compress before uploading to WordPress or Shopify?"
+    answer: "Yes. CMS platforms generate variants from what you upload. Starting with correctly sized, well-encoded originals gives every downstream size a better source — and prevents plugins from stacking compression on top of bloated files."
+  - question: "What is the fastest way to ruin image quality during compression?"
+    answer: "Repeated lossy export. Always keep an archived original and re-encode from that source, not from an already-compressed copy."
+  - question: "How much can I compress a photo before quality drops?"
+    answer: "After resizing to display dimensions, most web photos tolerate WebP quality 78–84 or AVIF quality 48–62 with no visible change at normal viewing distance. The limit depends on subject matter — faces and fine texture need higher settings than soft backgrounds."
+  - question: "Should I strip metadata when compressing for the web?"
+    answer: "Yes for public assets. EXIF metadata adds bytes and can leak GPS coordinates, device info, and capture timestamps. Re-encoding with metadata stripping is standard practice for anything indexed or shared online."
+---
+
+Compressing images without losing quality is really about **removing bytes people cannot see**. Camera originals include oversized dimensions, metadata, and more precision than a web layout can display. A 4032px iPhone photo shown in a 760px article column can lose 70–90% of its bytes before anyone notices — and still look identical to the original in that column.
+
+This guide is the **pillar for the Image Compression topic cluster**. It is designed to stand alone: read it start to finish and you will understand the full workflow. It also maps every supporting guide in the cluster so you can go deeper on settings, byte budgets, CMS workflows, format comparisons, and privacy-first browser compression when a specific problem needs more detail.
+
+## What this guide covers
+
+| Section | What you will learn |
+| --- | --- |
+| [Why compression matters](#why-image-compression-matters-for-the-web) | Performance, UX, and SEO connections |
+| [What makes files large](#what-actually-makes-an-image-file-large) | Dimensions, metadata, format, bit depth |
+| [Dimensions first](#start-with-dimensions-not-quality) | Why resize beats quality sliders |
+| [Format choice](#pick-the-right-format) | AVIF, WebP, JPEG, PNG by image role |
+| [Quality settings](#quality-settings-that-usually-work) | Starting points that survive visual review |
+| [Metadata and color](#metadata-color-profiles-and-display-safety) | EXIF, sRGB, and export hygiene |
+| [Repeatable workflow](#a-repeatable-workflow) | A checklist you can run on every batch |
+| [Perceptual quality](#what-without-losing-quality-really-means) | Lossless vs visually lossless |
+| [Inspection checklist](#how-to-inspect-compressed-images) | What to look for before you publish |
+| [Byte budgets](#when-you-need-a-hard-byte-budget) | Thumbnails, heroes, and strict caps |
+| [Platform workflows](#compress-for-wordpress-shopify-and-beyond) | WordPress, Shopify, and static sites |
+| [Privacy-first compression](#compress-locally-without-uploading) | Browser tools and why they matter |
+| [Troubleshooting](#troubleshooting-common-compression-problems) | Artifacts, wrong colors, soft output |
+| [Cluster guides](#guides-in-this-topic) | Every deep dive in this topic |
+
+The safest workflow is simple: resize first, choose the right output format, tune quality in small steps, strip metadata, then compare the result against the original at the size users will actually see it.
+
+## Why image compression matters for the web
+
+Images are not a cosmetic detail on modern websites. HTTP Archive data consistently shows images accounting for **45–55% of median page weight**. That weight shows up everywhere users feel it:
+
+- **Load time** — a 3 MB hero on a 4G connection can add seconds before the page feels usable.
+- **Core Web Vitals** — LCP is often an image element. Bloated heroes directly hurt the page experience signals Google uses.
+- **Bandwidth costs** — CDN bills, mobile data plans, and international users on slow connections all scale with image bytes.
+- **CMS friction** — upload limits, backup sizes, and sync times grow with unoptimized originals.
+
+Compression is how you keep visual quality while removing waste. Done well, nobody notices you compressed at all. Done poorly — or skipped entirely — users see blur, banding, and slow pages.
+
+<Callout title="Compression and SEO share a pipeline" variant="info">
+Smaller images load faster. Faster pages retain users longer. That is the indirect SEO connection — not a magic ranking boost from JPEG quality 85 specifically. Pair compression with alt text, responsive markup, and clean filenames: see our [image SEO guide](/blog/performance-seo/image-seo-guide-2026).
+</Callout>
+
+## What actually makes an image file large
+
+Before you touch a quality slider, understand what you are fighting. File size comes from four levers:
+
+| Lever | What it is | Typical savings |
+| --- | --- | --- |
+| **Dimensions** | Pixel width × height | Often 50–80% when oversized |
+| **Format / encoding** | JPEG vs WebP vs AVIF vs PNG | 25–50% at equal visual quality |
+| **Quality setting** | Lossy compression aggressiveness | 20–40% within safe ranges |
+| **Metadata** | EXIF, IPTC, color profiles | 5–50 KB; sometimes much more |
+
+Most beginners start with quality. Professionals start with dimensions. The difference shows up immediately in batch workflows where every file came from the same camera at 4000px wide.
+
+### A realistic before-and-after
+
+Consider a blog hero exported from a mirrorless camera:
+
+| Stage | Dimensions | Format | Quality | Approx. size |
+| --- | --- | --- | --- | --- |
+| Camera original | 6000 × 4000 | JPEG | 95 | 8.2 MB |
+| After resize | 1800 × 1200 | JPEG | 95 | 680 KB |
+| After WebP export | 1800 × 1200 | WebP | 82 | 210 KB |
+| After AVIF export | 1800 × 1200 | AVIF | 55 | 140 KB |
+| After metadata strip | 1800 × 1200 | AVIF | 55 | 135 KB |
+
+The resize step did more than any quality reduction on the original. The format change did the rest. At 1800px in a 1200px layout column, all three compressed versions look identical to most viewers.
+
+## Start with dimensions, not quality
+
+Resizing usually saves more than aggressive compression. If your hero renders at 1200 CSS pixels on desktop, export a 1600–1800px wide source for high-density screens. If an inline image renders at 720px, a 1200px export is plenty — you do not need 2× for every inline figure unless detail is critical.
+
+Use the <ToolLink tool="batch-image-compressor">batch image compressor</ToolLink> to set a max width before you touch quality. This avoids the common mistake of keeping a giant source and crushing it with low quality settings.
+
+### Quick dimension reference
+
+| Image role | Typical max width | Retina note |
+| --- | --- | --- |
+| Full-width hero | 1600–1920px | 1.5–2× the CSS width is enough |
+| Inline blog image | 960–1400px | Match column max, not viewport |
+| Product thumbnail | 600–800px | Consistency across catalog matters |
+| Product detail / zoom | 1600–2048px | Theme-dependent; check your zoom behavior |
+| Open Graph / social | 1200px wide | Fixed 1200×630 crop |
+| Email hero | 600px wide | Many clients scale down anyway |
+| Avatar / icon | 128–256px | SVG preferred for icons |
+
+### How to find your layout's real need
+
+Do not guess from the camera resolution. Measure in the browser:
+
+1. Open the page template where the image will appear.
+2. Inspect the image container in DevTools.
+3. Note the rendered CSS width at desktop and mobile breakpoints.
+4. Export at **1.5–2× that width** for retina, not 3× or full camera resolution.
+
+Oversized dimensions are the silent killer of "visually lossless" work. You can run quality 95 on a 4000px photo and still ship a file larger than an AVIF at quality 55 after a sensible resize.
+
+## Pick the right format
+
+Format choice determines how much room you have before artifacts appear. The wrong format forces you to choose between ugly compression and bloated files.
+
+| Image type | Best starting point | Why |
+| --- | --- | --- |
+| Photos and hero images | AVIF or WebP | Smaller files with strong visual quality |
+| UI screenshots with text | PNG or lossless WebP | Keeps edges crisp |
+| Product photos for broad CMS support | WebP plus JPEG fallback | Good balance of quality and compatibility |
+| Logos and icons | SVG or PNG | Avoid lossy artifacts on edges |
+| Simple graphics with flat color | PNG or WebP lossless | JPEG banding on gradients looks worse |
+| iPhone exports | Convert to WebP/AVIF/JPEG first | HEIC is storage-efficient, not web-native |
+
+For modern pages, try the <ToolLink tool="avif-compressor">AVIF compressor</ToolLink> for large photographic assets and WebP for everyday batches.
+
+### Format choice by priority
+
+When you are unsure, ask in order:
+
+1. **Does the image contain small text or sharp UI edges?** → PNG or lossless WebP.
+2. **Is it a large photo that affects LCP?** → AVIF with WebP/JPEG fallback.
+3. **Is it a general web photo with broad CMS support needs?** → WebP with JPEG fallback.
+4. **Is it a logo or icon?** → SVG first, PNG second.
+5. **Did it come from an iPhone as HEIC?** → Convert before any other step.
+
+Need a format decision framework beyond compression? Read [JPEG vs PNG vs WebP vs AVIF](/blog/image-compression/jpeg-vs-png-vs-webp-vs-avif) for a side-by-side comparison, or the broader [best format for website images](/blog/format-conversion/best-format-for-website-images) guide in our Format Conversion cluster.
+
+## Quality settings that usually work
+
+Use these as starting points — then adjust by eye. Exact numbers vary by encoder, subject matter, and display size.
+
+| Format | Safe range | Notes |
+| --- | --- | --- |
+| JPEG | 82–88 | Great for photos; 90+ for client delivery |
+| WebP | 78–84 | Often smaller than JPEG at similar appearance |
+| AVIF | 48–62 | Lower numbers can still look excellent |
+| PNG | Lossless | Reduce palette or switch formats for big savings |
+| WebP lossless | — | Good middle ground for screenshots |
+
+### Adjust by subject matter
+
+Not all photos tolerate the same settings:
+
+| Subject | Watch for | Tendency |
+| --- | --- | --- |
+| Portraits / skin | Blocky skin tones, plastic faces | Needs higher quality |
+| Landscapes / skies | Banding in gradients | AVIF handles well; JPEG needs care |
+| Product on white | Edge halos, fringe artifacts | Moderate quality + clean resize |
+| Screenshots | Fuzzy text | Avoid lossy; use PNG or lossless WebP |
+| Flat illustrations | Color banding | PNG or high-quality WebP |
+
+Inspect faces, gradients, flat backgrounds, and text edges. Those areas reveal compression damage first.
+
+For role-specific presets — heroes vs thumbnails vs screenshots — see [best image compression settings for web](/blog/image-compression/best-image-compression-settings-for-web). That guide goes deeper on metadata stripping, sRGB handling, and per-format tuning.
+
+## Metadata, color profiles, and display safety
+
+Compression is not only about pixels. What surrounds them affects size, privacy, and how colors render on screens.
+
+### EXIF and metadata
+
+Smartphone and camera files often carry:
+
+- GPS coordinates (accurate to meters)
+- Capture date and time
+- Camera model, lens, serial numbers
+- Orientation and thumbnail previews
+
+Stripping metadata before web publish removes privacy risk and typically saves kilobytes. Enable **Strip metadata** in Asset Melt before batch export. Re-encoding to AVIF or WebP produces a clean file with pixels only.
+
+### Color profiles
+
+Photos shot in Adobe RGB or Display P3 can look washed out or oversaturated when converted without care. For web delivery:
+
+- **Convert to sRGB** for predictable display across devices.
+- Keep wide-gamut masters archived separately if you also print.
+- Do not assume "save for web" in every tool handles this correctly — spot-check on a calibrated monitor if color accuracy is part of your brand.
+
+## A repeatable workflow
+
+Every successful compression batch follows the same sequence:
+
+1. **Keep the original file archived** — never overwrite your only master.
+2. **Rename with a descriptive slug** — `team-offsite-2026.webp`, not `IMG_4832.jpg`.
+3. **Resize to the largest real display need** — not the camera default.
+4. **Choose format by image role** — see table above.
+5. **Export WebP or AVIF first**, JPEG only when required.
+6. **Strip metadata** for public web assets.
+7. **Compare before and after** at 100% and at rendered size.
+8. **Re-run only from the original**, not from an already compressed export.
+
+<Callout title="Visual quality beats numeric quality" variant="tip">
+Quality 85 in one encoder is not the same as quality 85 in another. MozJPEG, libwebp, and rav1e behave differently. Judge the image, not the slider number.
+</Callout>
+
+### Batch workflow tips
+
+When you have dozens of files — a blog migration, catalog refresh, or client delivery — consistency beats perfection on any single image:
+
+- Group files by role (hero, inline, thumbnail) before processing.
+- Apply one preset per group, then spot-check three representative files.
+- Fix outliers individually rather than changing the whole batch preset.
+- Export to a clean folder; never write optimized files back into your archive directory.
+- Keep a simple log: filename, preset used, final size, notes on exceptions.
+
+The <ToolLink tool="batch-image-compressor">batch image compressor</ToolLink> handles queue-based processing with shared settings. For a single hero where AVIF savings matter most, switch to the <ToolLink tool="avif-compressor">AVIF compressor</ToolLink>.
+
+### One-image workflow (quick path)
+
+For a single blog figure or social preview:
+
+1. Open the studio, drop one file.
+2. Set max width to your layout need.
+3. Pick WebP at quality 82 (or AVIF at 55 for photos).
+4. Enable metadata stripping.
+5. Export, upload, verify on the live page.
+
+## What "without losing quality" really means
+
+There are two meanings of quality loss. The first is **mathematical**: the output pixels differ from the source pixels. The second is **perceptual**: a real user can see that the image looks worse. Web optimization usually cares about the second one.
+
+Lossless compression preserves the original pixels, but it often cannot shrink photos enough. Visually lossless compression changes the pixels but keeps the image looking the same in context. That is the practical sweet spot for most websites.
+
+### When lossless actually matters
+
+- Logos and brand marks with sharp edges
+- UI screenshots where small text must stay readable
+- Product photos with fine fabric texture on a luxury storefront
+- Any image where banding in flat color regions would look unprofessional
+- Medical, legal, or archival contexts where pixel fidelity is contractual
+
+When lossless files are still too large, the answer is usually **smaller dimensions** or a **better lossy format** (WebP or AVIF), not PNG at full camera resolution.
+
+## How to inspect compressed images
+
+Do not trust the file size alone. Run a short visual audit before every publish batch:
+
+### At rendered size (most important)
+
+1. Place the optimized image in the actual template — blog column, product grid, hero slot.
+2. View at 100% browser zoom on desktop and mobile.
+3. Compare side-by-side with the original if quality is critical.
+4. Ask: would a customer or reader notice without zooming?
+
+### At pixel level (secondary)
+
+Zoom to 100% image pixels and check:
+
+- **Faces** — skin tones, eyes, hair detail
+- **Edges** — product cutouts, text in screenshots, logo boundaries
+- **Gradients** — skies, shadows, soft backgrounds (banding appears here first)
+- **Flat color** — solid brand color fields (JPEG creates blotchy patches)
+- **Dark regions** — crushed shadows, noise amplification
+
+If the optimized version only looks different when zoomed far beyond the rendered size, the savings are probably worth it.
+
+## Compare in context
+
+A product image should be reviewed on the product page. A blog image should be reviewed in the article column. A social preview should be reviewed as a small preview card. Full-screen inspection is useful, but it can make you overvalue details users will never see.
+
+Thumbnail grids are especially deceptive. An image that looks soft at fullscreen may look perfect at 400px wide in a card layout — and that is the only size that matters for collection pages.
+
+## Avoid generation loss
+
+The fastest way to damage images is repeated lossy export. Downloading a JPG from a CMS, recompressing it, uploading it to another tool, and then letting a plugin compress it again stacks artifacts. Always go back to the best available source.
+
+Common generation-loss traps:
+
+- Editing a JPEG in a design tool, exporting JPEG again, then running through a CMS optimizer
+- Resizing an already-compressed WhatsApp or Slack image
+- Using "Save for Web" on a file that was previously "Save for Web"
+- Letting WordPress plugins re-compress uploads that were already optimized
+
+If you inherit a folder of already-compressed images, be gentler. Resize when dimensions are too large, but avoid aggressive quality reduction. You cannot recover detail that is already gone.
+
+## Special cases
+
+**Screenshots** often need different treatment from photos. Lossy compression can make text fuzzy, even when the file size looks attractive. Try PNG or lossless WebP first. If the screenshot is mostly photographic content, lossy WebP at quality 90+ may be fine.
+
+**Logos and icons** should usually be SVG. If you must use raster, keep them lossless and sized exactly. A blurry logo is one of the fastest ways to make a polished page feel careless.
+
+**Transparent PNGs** exported from design tools can be enormous. Before reaching for quality sliders, check whether WebP lossless or a trimmed palette PNG would suffice. Flat icons with few colors compress dramatically when palette-reduced.
+
+**Animated GIFs** are rarely the right web format in 2026. Convert to video (WebM/MP4) or static WebP/AVIF for large animation — GIF compression is inefficient and quality-poor for photos.
+
+**Panoramas and ultra-wide assets** need explicit width caps. A 12000px stitched panorama resized to 1920px wide will still look excellent on web and save megabytes.
+
+## When you need a hard byte budget
+
+Some contexts demand a ceiling — not a preference. Email clients choke on multi-megabyte heroes. Mobile landing pages with metered users need discipline. CMS upload limits force tradeoffs.
+
+Common targets:
+
+| Context | Typical budget | Strategy |
+| --- | --- | --- |
+| Inline blog image | Under 150 KB | Resize + WebP 78–82 |
+| Thumbnail / card | Under 100 KB | Smaller dimensions + AVIF |
+| Hero (marketing page) | Under 250 KB | AVIF 55 + responsive srcset |
+| Open Graph image | Under 200 KB | Fixed 1200×630 crop + WebP/JPEG |
+| Email hero | Under 200 KB | 600px wide JPEG |
+| Favicon / app icon | Under 50 KB | PNG at exact display size |
+
+When 100 KB is non-negotiable, follow the step-by-step recipe in [how to reduce image size under 100KB](/blog/image-compression/reduce-image-size-under-100kb). That guide walks through dimension reduction, format escalation (WebP → AVIF), and when to accept that some photos cannot fit the budget without visible compromise.
+
+## Compress for WordPress, Shopify, and beyond
+
+The compression principles are identical everywhere. What changes is **display size conventions** and **what your platform generates after upload**.
+
+### WordPress
+
+WordPress creates thumbnails from whatever you upload. A 6 MB original produces bloated variants at every registered size — thumbnail, medium, large, and whatever your theme registers. Compress and resize **before** the Media Library sees your files.
+
+Typical targets:
+
+- Full-width images: 1600–1920px max width
+- Inline article figures: 1000–1400px
+- Featured images: match theme spec (often 1200×630 or 1920×1080)
+- Format: WebP or AVIF where your theme supports it; JPEG fallback for older plugins
+
+WordPress also stores the original upload. Smaller uploads mean faster backups, cheaper hosting, and less pain on migration day.
+
+Full workflow: [how to compress images for WordPress](/blog/image-compression/compress-images-for-wordpress).
+
+### Shopify
+
+Product imagery drives conversion, but oversized files slow collection pages and mobile checkout. Keep high-quality masters archived separately; upload web-ready exports at 1600–2048px for most themes.
+
+Shopify-specific considerations:
+
+- **Collection thumbnails** should be consistent dimensions — batch resize before upload.
+- **Product zoom** may need larger sources than grid thumbnails — export two sizes, not one giant file for both.
+- **Alt text and filenames** survive upload — prep both before compressing.
+
+Full workflow: [how to compress images for Shopify](/blog/image-compression/compress-images-for-shopify).
+
+### Static sites and hand-coded pages
+
+You control the entire pipeline. Commit optimized assets, generate `srcset` at build time, and preload only the LCP candidate. No plugin will rescue a 4 MB hero you committed to git.
+
+Static site advantages:
+
+- No CMS re-compression surprises
+- Build-time image pipelines (Astro, Next.js Image) can generate widths automatically
+- Git LFS costs scale with file size — optimize before commit
+
+Pair compression with responsive markup — see our [image SEO guide](/blog/performance-seo/image-seo-guide-2026) for `srcset`, `sizes`, and dimension attributes.
+
+### Design handoff (Figma, Sketch, export folders)
+
+Design tools export PNG by default — often at 2× or 3× resolution with unnecessary alpha channels. Before publishing:
+
+1. Export at 1× layout size unless retina assets are explicitly needed.
+2. Convert photographic exports to WebP or AVIF.
+3. Keep SVG for icons and simple vectors.
+4. Do not upload 4 MB PNG heroes because "that is what Figma exported."
+
+## Compress locally without uploading
+
+Cloud compressors work, but they send your bytes to someone else's server. For client work, unreleased product shots, medical previews, and everyday personal photos, **browser-based compression** keeps files on your device.
+
+Modern browser tools use the same WASM codecs as Google Squoosh — MozJPEG, libwebp, rav1e AVIF — with batch queues and metadata stripping built in. Processing runs in Web Workers so the UI stays responsive.
+
+Why local compression matters:
+
+| Concern | Cloud tool | Browser tool |
+| --- | --- | --- |
+| Privacy | Files uploaded to third party | Files stay on device |
+| NDA client work | Risky without enterprise contract | Safe by architecture |
+| Offline | Requires connection | Works offline after load |
+| Batch speed | Upload/download latency | CPU-bound only |
+| Metadata | May retain on server logs | You control export |
+
+- **Full browser workflow:** [compress images in the browser](/blog/image-compression/compress-images-in-browser)
+- **Migrating from Squoosh:** [Squoosh alternative guide](/blog/image-compression/squoosh-alternative-guide)
+
+<Callout title="Verify with DevTools" variant="tip">
+Open the Network tab while processing in Asset Melt. Legitimate client-side tools show zero image upload requests. If bytes leave your machine, so does any private EXIF metadata embedded in them.
+</Callout>
+
+## Troubleshooting common compression problems
+
+| Problem | Likely cause | Fix |
+| --- | --- | --- |
+| Text looks fuzzy | Lossy compression on screenshot | PNG or lossless WebP |
+| Colors look dull | Wrong color profile | Convert to sRGB |
+| File still huge | Dimensions too large | Resize before compressing |
+| Banding in sky | JPEG on gradient | AVIF or higher WebP quality |
+| Halo around subject | Over-sharpened + low quality | Reduce sharpening; raise quality |
+| Worse after CMS upload | Plugin re-compressed | Optimize before upload; disable double compression |
+| HEIC won't upload | Platform doesn't accept HEIC | Convert to WebP/JPEG first |
+
+## A good default preset
+
+For a mixed marketing site, start with:
+
+- **Photos:** WebP quality 82, max width 1600–1920px
+- **Important heroes:** AVIF quality 55 plus WebP fallback
+- **Screenshots:** PNG or lossless WebP
+- **Social previews:** 1200×630 JPG/WebP under 200 KB
+- **Metadata:** strip for public assets
+- **Color:** sRGB for all web exports
+
+Then adjust by image role. The preset gets you close; visual review gets you the last 10%. Document your house presets in a one-page style guide so the whole team exports consistently.
+
+## Guides in this topic
+
+This pillar introduces the cluster. Each guide below goes deep on one slice of the workflow:
+
+| Guide | Best for |
+| --- | --- |
+| [Best image compression settings for web](/blog/image-compression/best-image-compression-settings-for-web) | JPEG, WebP, and AVIF presets by image role |
+| [Reduce image size under 100KB](/blog/image-compression/reduce-image-size-under-100kb) | Hard byte caps for thumbnails and cards |
+| [JPEG vs PNG vs WebP vs AVIF](/blog/image-compression/jpeg-vs-png-vs-webp-vs-avif) | Format comparison when quality tradeoffs confuse you |
+| [Compress images for WordPress](/blog/image-compression/compress-images-for-wordpress) | Pre-upload workflow for WP Media Library |
+| [Compress images for Shopify](/blog/image-compression/compress-images-for-shopify) | Product photos, banners, and collection images |
+| [Compress images in the browser](/blog/image-compression/compress-images-in-browser) | Privacy-first, client-side compression |
+| [Squoosh alternative guide](/blog/image-compression/squoosh-alternative-guide) | Migrating from Google's deprecated tool |
+
+Start here for principles. Jump to the guide that matches your immediate problem. Come back when your next batch needs a different preset.
+
+<StudioCta label="Compress images without uploading" />

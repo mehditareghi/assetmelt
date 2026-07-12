@@ -10,9 +10,12 @@ keywords:
   - compress images without uploading
   - private image optimization
   - WASM image codecs
+cluster: image-compression
 heroImage: hero
 heroImageAlt: "Illustration of browser-based image compression with zero uploads"
-relatedTools: []
+relatedTools:
+  - batch-image-compressor
+  - squoosh-alternative
 faq:
   - question: "Is browser image compression as good as server-side tools?"
     answer: "For most web delivery use cases, yes. Modern browser tools use the same WASM codecs as Google Squoosh — MozJPEG, libwebp, rav1e AVIF, Oxipng — so quality and byte savings are comparable. The difference is where processing happens: on your device, not a remote server."
@@ -158,8 +161,8 @@ You should still follow your org's policies for where downloaded files are saved
 
 ## Getting started
 
-Open the studio, drop a folder of images, and run the Web Optimized preset. Inspect the byte savings column. If you need a specific target — say, under 200 KB for an Open Graph image — enable size-budget mode and let the encoder search for the best quality that fits.
+Open the studio, drop a folder of images, and run the Web Optimized preset. Inspect the byte savings column. If you need a specific target — say, under 200 KB for an Open Graph image — enable size-budget mode and let the encoder search for the best quality that fits. You can start from the <ToolLink tool="batch-image-compressor">batch image compressor</ToolLink> or compare the workflow against the <ToolLink tool="squoosh-alternative">Squoosh alternative</ToolLink> page.
 
 <StudioCta />
 
-For deeper dives, read our guides on [AVIF vs WebP](/blog/avif-vs-webp-2026) and [HEIC to JPG conversion in the browser](/blog/heic-to-jpg-browser-guide).
+For deeper dives, read our guides on [AVIF vs WebP](/blog/format-conversion/avif-vs-webp-2026) and [HEIC to JPG conversion in the browser](/blog/format-conversion/heic-to-jpg-browser-guide).

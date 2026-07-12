@@ -1,0 +1,121 @@
+---
+title: "Best Image Compression Settings for Web"
+description: "Recommended JPEG, WebP, AVIF, resize, metadata, and size-budget settings for fast web images without ugly artifacts."
+slug: best-image-compression-settings-for-web
+publishedAt: 2026-06-25
+keywords:
+  - best image compression settings
+  - web image quality settings
+  - JPEG quality for web
+  - WebP quality settings
+  - AVIF quality settings
+cluster: image-compression
+heroImage: hero
+heroImageAlt: "Minimal compression gauge beside a glowing optimized image card"
+relatedTools:
+  - batch-image-compressor
+  - avif-compressor
+faq:
+  - question: "What JPEG quality should I use for web images?"
+    answer: "Start around 82–85 for normal photos, 88–92 for premium product images, and lower only after visual review."
+  - question: "What WebP quality is best?"
+    answer: "WebP quality 78–84 is a strong default for web photos. Screenshots may need lossless WebP or PNG."
+  - question: "Should I strip metadata?"
+    answer: "Yes for public web assets unless you intentionally need camera metadata. It reduces file size and removes private EXIF data."
+---
+
+Good compression settings are boring in the best way: they produce small files that nobody notices. The trick is to set **dimensions, format, quality, and metadata** together instead of treating quality as the only control.
+
+## Default settings for most sites
+
+| Setting | Recommended default |
+| --- | --- |
+| Max width | 1600–1920px for full-width heroes |
+| Inline article images | 960–1400px max width |
+| JPEG quality | 82–85 |
+| WebP quality | 78–84 |
+| AVIF quality | 48–62 |
+| Metadata | Strip for public assets |
+| Color | Convert/keep display-safe sRGB |
+
+Start from these in the <ToolLink tool="batch-image-compressor">batch image compressor</ToolLink>, then adjust only when an image fails visual review.
+
+## Settings by use case
+
+| Use case | Format | Quality | Resize |
+| --- | --- | --- | --- |
+| Blog hero | AVIF + WebP fallback | AVIF 55, WebP 82 | 1600–1920px |
+| Product photo | WebP or AVIF | WebP 84, AVIF 58 | 1800–2048px |
+| Screenshot | PNG or lossless WebP | Lossless | Exact display width or 2x |
+| Open Graph | JPEG/WebP | 82–88 | 1200×630 |
+| Thumbnails | WebP | 72–80 | Exact grid size plus DPR |
+
+## Size budgets
+
+Use a size budget when the destination has a real limit:
+
+- Under 100 KB for small article images
+- Under 200 KB for Open Graph previews
+- Under 300 KB for important mobile heroes
+- Under 500 KB for rich product zoom images
+
+Size-budget encoding searches for the highest quality that fits the byte target. It is better than guessing quality numbers over and over.
+
+## What to avoid
+
+- Quality 100 for web delivery
+- Serving 4000px camera originals
+- Compressing an already compressed export repeatedly
+- Using PNG for large photos
+- Lazy-loading the LCP hero image
+
+## Build presets by content type
+
+The best teams do not choose settings from scratch for every upload. They create a few presets and use them consistently. That keeps image quality predictable and makes it much easier to train writers, merchants, or developers who are not image specialists.
+
+For a content site, you might use:
+
+| Preset | Output | Resize | Use |
+| --- | --- | --- | --- |
+| Article hero | AVIF + WebP | 1600–1920px | Above-the-fold feature images |
+| Article inline | WebP | 1000–1400px | In-body screenshots and photos |
+| Social preview | JPG/WebP | 1200×630 | Open Graph and share cards |
+| Thumbnail | WebP | 480–800px | Related posts and grids |
+
+For ecommerce, add product-specific presets: product zoom, product grid, collection banner, and marketplace export. Those images serve different jobs, so they deserve different settings.
+
+## How to tune without damaging quality
+
+Change one variable at a time. If an image is too large, reduce dimensions first. If it is still too large, switch format. If it is still too large, lower quality in small steps. Jumping from JPEG 92 to JPEG 60 may hit the byte target, but it also makes it hard to know what actually fixed the file size.
+
+Use visual review checkpoints:
+
+- Skin tones should not become waxy.
+- Product textures should remain believable.
+- Text in screenshots should stay crisp.
+- Gradients should not show banding.
+- Dark shadows should not turn into blocks.
+
+If only one image in a batch looks bad, override it. Presets are defaults, not handcuffs.
+
+## Metadata and privacy settings
+
+For public web images, strip metadata unless you have a specific reason not to. EXIF can include GPS coordinates, camera serials, timestamps, and editing software. Removing it usually saves a little file size and avoids accidental privacy leaks.
+
+Do keep orientation handling. A pipeline should rotate the image correctly before stripping metadata so the published image does not appear sideways in some browsers or CMS previews.
+
+## What about retina screens?
+
+High-density displays do not mean you should upload enormous originals. A 720px-wide image in an article column may need a 1440px candidate for sharpness on 2x screens, but it does not need the full 4032px camera file. Responsive images let you serve the right candidate without punishing every visitor.
+
+For important layouts, export a small set of widths: 480, 960, 1440 for article images; 960, 1600, 2200 for heroes. Then use `srcset` and `sizes` so the browser can choose intelligently.
+
+## When byte budgets matter
+
+Byte budgets are useful when you have a performance target, a CMS limit, or a social crawler that times out on huge images. They are less useful when they become arbitrary rules. A 280KB hero that looks excellent and loads early can be better than a 95KB hero that makes the brand look cheap.
+
+Use budgets as guardrails: under 100KB for small inline images, under 200KB for social previews, and a few hundred KB for major LCP images where quality matters.
+
+For format decisions, read [JPEG vs PNG vs WebP vs AVIF](/blog/image-compression/jpeg-vs-png-vs-webp-vs-avif). For LCP-specific tuning, read [how images affect LCP](/blog/performance-seo/how-images-affect-lcp).
+
+<StudioCta label="Apply web compression settings" />

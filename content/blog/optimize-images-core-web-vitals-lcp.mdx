@@ -10,6 +10,7 @@ keywords:
   - image optimization SEO 2026
   - compress hero images for web
   - responsive images srcset
+cluster: performance-seo
 heroImage: hero
 heroImageAlt: "Diagram showing image optimization improving Largest Contentful Paint and Core Web Vitals scores"
 relatedTools:
@@ -100,7 +101,7 @@ Always include `type` on each `<source>`. Without it, browsers may download the 
 
 Always set explicit `width` and `height` on the `<img>`. That reserves layout space and protects **CLS** — a separate Core Web Vitals metric that image-only LCP fixes do not address.
 
-For a deeper format comparison, read [AVIF vs WebP in 2026](/blog/avif-vs-webp-2026).
+For a deeper format comparison, read [AVIF vs WebP in 2026](/blog/format-conversion/avif-vs-webp-2026).
 
 ### Add responsive `srcset` when the layout changes
 
@@ -191,7 +192,7 @@ Image work primarily moves LCP and CLS. Expect proportional LCP gains when you h
 
 Performance teams sometimes route all images through cloud CDNs with on-the-fly transforms. That works at scale, but it is overkill for a marketing deploy or a blog post refresh — and it sends unreleased screenshots through a third party.
 
-**Browser-based compression** keeps the Core Web Vitals prep step aligned with privacy: NDA client work, unreleased product shots, and internal docs benefit from the same LCP byte savings without an upload step. Asset Melt uses the same WASM codec family as Google Squoosh — see our [Squoosh alternative guide](/blog/squoosh-alternative-guide) for the full comparison.
+**Browser-based compression** keeps the Core Web Vitals prep step aligned with privacy: NDA client work, unreleased product shots, and internal docs benefit from the same LCP byte savings without an upload step. Asset Melt uses the same WASM codec family as Google Squoosh — see our [Squoosh alternative guide](/blog/image-compression/squoosh-alternative-guide) for the full comparison.
 
 ## Getting started today
 
@@ -203,4 +204,4 @@ Performance teams sometimes route all images through cloud CDNs with on-the-fly 
 
 <StudioCta label="Optimize your LCP images in the studio" />
 
-Related reading: [How to compress images in the browser](/blog/compress-images-in-browser), [HEIC to JPG without uploading](/blog/heic-to-jpg-browser-guide), and [AVIF vs WebP in 2026](/blog/avif-vs-webp-2026).
+Related reading: [How to compress images in the browser](/blog/image-compression/compress-images-in-browser), [HEIC to JPG without uploading](/blog/format-conversion/heic-to-jpg-browser-guide), and [AVIF vs WebP in 2026](/blog/format-conversion/avif-vs-webp-2026).

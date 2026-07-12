@@ -1,0 +1,130 @@
+---
+title: "Image Sitemap Guide"
+description: "Learn when image sitemaps matter, what image URLs to include, and how they fit alongside alt text, structured data, and responsive images."
+slug: image-sitemap-guide
+publishedAt: 2026-06-23
+keywords:
+  - image sitemap guide
+  - image sitemap SEO
+  - Google image sitemap
+  - image indexing
+  - ecommerce image sitemap
+cluster: performance-seo
+heroImage: hero
+heroImageAlt: "Glowing image nodes connected like a sitemap on a dark background"
+relatedTools:
+  - batch-image-compressor
+faq:
+  - question: "Do all sites need an image sitemap?"
+    answer: "No. Image sitemaps are most useful for image-heavy sites where images themselves drive discovery or revenue."
+  - question: "What images should go in an image sitemap?"
+    answer: "Include important content images: product photos, portfolio images, recipes, real estate photos, and editorial images that deserve indexing."
+  - question: "Does an image sitemap replace alt text?"
+    answer: "No. Sitemaps help discovery; alt text and page context help understanding and accessibility."
+---
+
+An image sitemap helps search engines discover important images, especially when they are loaded through galleries, JavaScript, or complex CMS templates. It is not a replacement for good page markup.
+
+## When to use one
+
+Create an image sitemap if your site depends on image discovery:
+
+- Ecommerce catalogs
+- Real estate listings
+- Recipe sites
+- Photography portfolios
+- Stock image libraries
+- Travel and venue pages
+- Visual how-to content
+
+For a small SaaS blog, normal page sitemaps may be enough.
+
+## What to include
+
+Include canonical page URLs and the important image URLs on each page. Do not include every tiny icon, avatar, tracking pixel, or decorative background.
+
+Before adding images to a sitemap, prep them with the <ToolLink tool="batch-image-compressor">batch image compressor</ToolLink>: descriptive filenames, modern format exports, metadata stripping, and sensible dimensions.
+
+## Sitemap basics
+
+```xml
+<url>
+  <loc>https://example.com/products/oak-table</loc>
+  <image:image>
+    <image:loc>https://example.com/images/oak-table-front.webp</image:loc>
+  </image:image>
+</url>
+```
+
+## Image sitemap checklist
+
+- URLs are absolute and crawlable.
+- Images are not blocked by robots.txt.
+- Canonical pages return 200 status.
+- Image URLs are stable.
+- Important images also appear in page HTML.
+- Product images align with structured data where relevant.
+
+## What an image sitemap can and cannot do
+
+An image sitemap helps discovery. It does not make a low-quality image rank, and it does not fix missing alt text, slow loading, or thin page content. Think of it as a map, not a ranking button.
+
+If your images are already present in clean HTML on crawlable pages, Google can often find them without a separate image sitemap. The sitemap becomes more useful when images are loaded through JavaScript galleries, paginated collections, or complex CMS structures where important image URLs may be harder to discover.
+
+## Which image URL should you include?
+
+Include the canonical image you want indexed, not every responsive variant. If your page serves AVIF/WebP/JPG variants, pick the stable URL that best represents the image and is accessible to crawlers. For product pages, that is often the main product image. For galleries, include the images that carry unique value.
+
+Avoid listing tiny thumbnails if the full content image is available. Avoid decorative assets entirely.
+
+## Ecommerce example
+
+For a product page, include:
+
+- Main product image.
+- Important alternate angles.
+- Color variant images.
+- Lifestyle image if it helps search intent.
+
+Do not include:
+
+- Payment logos.
+- Theme icons.
+- Tracking pixels.
+- Repeated placeholder images.
+- Cropped thumbnails that duplicate a larger product image.
+
+## Keep sitemap data fresh
+
+Image sitemaps can become stale when products are removed, media URLs change, or a CDN migration rewrites paths. Stale image URLs waste crawl budget and create debugging noise. If your sitemap is generated, make sure it uses the same canonical data source as your pages.
+
+For static sites, regenerate the sitemap during build. For CMS sites, rely on a plugin or custom job that updates when content changes.
+
+## Pair with structured data
+
+For products, recipes, articles, and local business pages, structured data can reinforce which image belongs to which entity. The sitemap helps crawlers discover URLs; structured data helps connect the image to page meaning.
+
+Use both when images are core to the page's value. Use neither as an excuse to ignore the basics: descriptive page copy, accessible alt text, and fast image delivery.
+
+## How often should you submit it?
+
+You do not need to manually resubmit a sitemap every time one image changes. Keep the sitemap available at a stable URL, reference it in `robots.txt` or your sitemap index, and let search engines recrawl it. For large sites, make sure `lastmod` reflects meaningful content changes rather than changing on every build for no reason.
+
+If you migrate image URLs, monitor crawl errors after launch. Redirect old image URLs when possible, especially for images that already receive Google Images traffic.
+
+## Measuring whether it helped
+
+Use Search Console to watch image impressions, indexed pages, and crawl issues over time. Do not expect instant changes. Image discovery and ranking can take time, especially for new sites.
+
+Look for directional improvements:
+
+- More image impressions for relevant queries.
+- Fewer excluded or unreachable image URLs.
+- Better coverage of product or gallery pages.
+- Fewer stale image paths after content updates.
+
+If impressions do not move, revisit the page quality itself. A sitemap can expose images; it cannot make them useful or relevant.
+
+For the full optimization workflow, read [image SEO checklist](/blog/performance-seo/image-seo-checklist) and [Image SEO in 2026](/blog/performance-seo/image-seo-guide-2026).
+
+<StudioCta label="Prepare sitemap-ready images" />

@@ -1,0 +1,94 @@
+---
+title: "How to Compress Images for Shopify"
+description: "Optimize Shopify product photos, collection images, banners, and social previews before upload with private local compression."
+slug: compress-images-for-shopify
+publishedAt: 2026-06-22
+keywords:
+  - compress images for Shopify
+  - Shopify image optimization
+  - Shopify product image size
+  - ecommerce image compression
+  - optimize product photos
+cluster: image-compression
+heroImage: hero
+heroImageAlt: "Minimal ecommerce product image card with glowing optimized preview tiles"
+relatedTools:
+  - batch-image-compressor
+  - avif-compressor
+faq:
+  - question: "Should Shopify product images be compressed before upload?"
+    answer: "Yes. Shopify can serve optimized variants, but clean source files improve upload speed, storage, editing, and quality control."
+  - question: "What size should Shopify product images be?"
+    answer: "Keep high-quality masters archived, then upload web-ready product images around 1600–2048px wide unless your theme needs more for zoom."
+  - question: "Is WebP good for Shopify?"
+    answer: "WebP is a strong web delivery format. For uploads and app compatibility, keep high-quality JPEG or PNG fallbacks when your workflow requires them."
+---
+
+Shopify stores live or die by product imagery, but bigger files do not automatically mean better shopping experiences. Oversized photos slow collection pages, delay product media, and make mobile shoppers wait.
+
+## Shopify image workflow
+
+1. Keep original product photos archived.
+2. Crop consistently before compression.
+3. Resize product images to 1600–2048px for most themes.
+4. Use JPEG/WebP for photos and PNG only when transparency is needed.
+5. Strip private metadata.
+6. Compress banners and collection images separately from product zoom images.
+7. Upload and test on a real product page.
+
+The <ToolLink tool="batch-image-compressor">batch image compressor</ToolLink> is useful for catalog refreshes because every product photo can inherit the same resize and quality settings.
+
+## Suggested settings
+
+| Shopify asset | Format | Max size | Quality |
+| --- | --- | --- | --- |
+| Product photo | JPEG or WebP | 1600–2048px | 84–90 |
+| Collection tile | WebP | 1000–1400px | 78–84 |
+| Homepage banner | AVIF/WebP where supported | 1600–2200px | AVIF 55 / WebP 82 |
+| Logo/transparent mark | PNG or SVG | Exact need | Lossless |
+| Social share image | JPEG/WebP | 1200×630 | 82–88 |
+
+## Product zoom vs speed
+
+If your theme offers zoom, do not crush product photos too far. Shoppers need fabric texture, color, and finish detail. Instead, keep product zoom images moderately larger and optimize repeated thumbnails more aggressively.
+
+## Think in Shopify surfaces
+
+A Shopify image can appear in more places than the upload screen suggests: product gallery, collection grid, search results, homepage sections, recommendation blocks, cart drawers, and social previews. The same original may be transformed by the theme into many sizes. Your job before upload is to provide a clean, correctly cropped source that does not waste bytes.
+
+Product gallery images deserve the most care. Collection thumbnails can be smaller and more aggressively compressed. Homepage banners need art direction because mobile crops often differ from desktop crops.
+
+## Recommended product photo workflow
+
+1. Retouch and color-correct from the original source.
+2. Crop every product in the same aspect ratio when the theme expects consistency.
+3. Export a web-ready master around 1600–2048px.
+4. Use JPEG or WebP depending on your theme/app workflow.
+5. Strip metadata, but keep color looking natural.
+6. Upload a small test set before processing the whole catalog.
+
+The test set matters. Shopify themes can crop cards, zoom galleries, or use image focal points in ways that only show up in the actual storefront.
+
+## Banners and collection images
+
+Hero banners are often the worst offenders because they come from large design exports. Keep desktop and mobile crops separate when the composition demands it. A wide banner that looks good on desktop can become meaningless on a phone if the product is pushed to one edge.
+
+For banners, optimize two things: dimensions and focal area. Compression cannot fix a crop that hides the product or makes text unreadable.
+
+## Marketplace and app compatibility
+
+Some Shopify apps, feeds, and marketplaces prefer JPEG even if your storefront can serve WebP. Keep a compatibility export when you feed product images into external systems. This is especially important for merchant feeds, email tools, print-on-demand integrations, and social commerce workflows.
+
+## Quality control checklist
+
+- Product color still matches the real item.
+- Texture remains visible at zoom level.
+- Transparent products do not get jagged edges.
+- White backgrounds remain clean without blocky artifacts.
+- Collection cards crop consistently.
+- Mobile banners preserve the subject.
+- File names match product names or handles.
+
+For hard byte budgets, read [how to reduce image size under 100KB](/blog/image-compression/reduce-image-size-under-100kb). For modern format decisions, read [AVIF vs WebP in 2026](/blog/format-conversion/avif-vs-webp-2026).
+
+<StudioCta label="Compress Shopify images locally" />
