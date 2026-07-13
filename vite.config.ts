@@ -5,15 +5,23 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import { nitro } from "nitro/vite";
 import viteReact from "@vitejs/plugin-react";
 
+const isVercelBuild = Boolean(process.env.VERCEL);
+
 export default defineConfig({
   // Service worker is generated post-build via scripts/build-pwa.mjs (TanStack Start + Workbox).
   plugins: [
     tanstackStart({
       prerender: {
         enabled: true,
-        // Crawl blog post links from /blog/ and other prerendered pages.
-        crawlLinks: true,
+        crawlLinks: false,
         autoStaticPathsDiscovery: true,
+        // Never let concurrency drop to 0 — the prerender queue deadlocks.
+        concurrency: 4,
+        // Homepage prerender published a 0-byte index.html in production. Serve `/`
+        // via SSR on Vercel while still prerendering /studio (offline pack) and blog.
+        filter: isVercelBuild
+          ? (page) => page.path !== "/" && page.path !== ""
+          : undefined,
       },
     }),
     nitro({

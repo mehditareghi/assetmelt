@@ -59,18 +59,31 @@ const offlineManifestDest = join(publicDir, 'offline-manifest.json')
 
 console.log(`Building PWA for Nitro preset "${preset}" → ${publicDir}`)
 
-console.log('Generating studio offline manifest...')
-const offlineManifest = buildOfflineManifest(publicDir)
-const summary = summarizeOfflinePack(offlineManifest)
+const studioHtmlPath = join(publicDir, 'studio/index.html')
+if (!existsSync(studioHtmlPath)) {
+  if (preset === 'vercel') {
+    console.error(
+      'Error: studio/index.html is required for the offline pack on Vercel deploys.',
+    )
+    process.exit(1)
+  }
+  console.log(
+    'Skipping studio offline manifest — no prerendered studio shell.',
+  )
+} else {
+  console.log('Generating studio offline manifest...')
+  const offlineManifest = buildOfflineManifest(publicDir)
+  const summary = summarizeOfflinePack(offlineManifest)
 
-writeFileSync(offlineManifestDest, `${JSON.stringify(offlineManifest, null, 2)}\n`)
+  writeFileSync(offlineManifestDest, `${JSON.stringify(offlineManifest, null, 2)}\n`)
 
-console.log(
-  `Offline manifest: ${summary.assetCount} files, ${summary.totalMb} MB, pack ${offlineManifest.packVersion} → offline-manifest.json`,
-)
-console.log(
-  `  studio shell + ${summary.jsCount} JS + ${summary.wasmCount} WASM (marketing pages excluded)`,
-)
+  console.log(
+    `Offline manifest: ${summary.assetCount} files, ${summary.totalMb} MB, pack ${offlineManifest.packVersion} → offline-manifest.json`,
+  )
+  console.log(
+    `  studio shell + ${summary.jsCount} JS + ${summary.wasmCount} WASM (marketing pages excluded)`,
+  )
+}
 
 console.log('Transpiling service worker...')
 const result = await build({
