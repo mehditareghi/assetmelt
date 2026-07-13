@@ -61,7 +61,7 @@ function NotFound() {
             <code className="rounded-md border border-border/60 bg-muted/50 px-2 py-0.5 font-mono text-xs text-foreground sm:text-sm">
               {pathname || '/'}
             </code>
-            <span className="mt-2 block sm:mt-0 sm:inline sm:before:content-['\00a0']">
+            <span className="mt-2 block sm:mt-0 sm:inline sm:before:content-['\\00a0']">
               doesn&apos;t exist.
             </span>
           </p>

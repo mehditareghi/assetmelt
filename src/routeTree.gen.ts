@@ -22,6 +22,7 @@ import { Route as ToolsBatchImageCompressorRouteImport } from './routes/tools/ba
 import { Route as ConvertHeicToJpgRouteImport } from './routes/convert/heic-to-jpg'
 import { Route as CompressAvifRouteImport } from './routes/compress/avif'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
+import { Route as ApiSentryExampleRouteImport } from './routes/api/sentry-example'
 import { Route as BlogClusterIdSlugRouteImport } from './routes/blog/$clusterId/$slug'
 
 const StudioRoute = StudioRouteImport.update({
@@ -91,6 +92,11 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   path: '/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiSentryExampleRoute = ApiSentryExampleRouteImport.update({
+  id: '/api/sentry-example',
+  path: '/api/sentry-example',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BlogClusterIdSlugRoute = BlogClusterIdSlugRouteImport.update({
   id: '/blog/$clusterId/$slug',
   path: '/blog/$clusterId/$slug',
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/privacy-first-image-compression': typeof PrivacyFirstImageCompressionRoute
   '/squoosh-alternative': typeof SquooshAlternativeRoute
   '/studio': typeof StudioRoute
+  '/api/sentry-example': typeof ApiSentryExampleRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/compress/avif': typeof CompressAvifRoute
   '/convert/heic-to-jpg': typeof ConvertHeicToJpgRoute
@@ -122,6 +129,7 @@ export interface FileRoutesByTo {
   '/privacy-first-image-compression': typeof PrivacyFirstImageCompressionRoute
   '/squoosh-alternative': typeof SquooshAlternativeRoute
   '/studio': typeof StudioRoute
+  '/api/sentry-example': typeof ApiSentryExampleRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/compress/avif': typeof CompressAvifRoute
   '/convert/heic-to-jpg': typeof ConvertHeicToJpgRoute
@@ -139,6 +147,7 @@ export interface FileRoutesById {
   '/privacy-first-image-compression': typeof PrivacyFirstImageCompressionRoute
   '/squoosh-alternative': typeof SquooshAlternativeRoute
   '/studio': typeof StudioRoute
+  '/api/sentry-example': typeof ApiSentryExampleRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/compress/avif': typeof CompressAvifRoute
   '/convert/heic-to-jpg': typeof ConvertHeicToJpgRoute
@@ -157,6 +166,7 @@ export interface FileRouteTypes {
     | '/privacy-first-image-compression'
     | '/squoosh-alternative'
     | '/studio'
+    | '/api/sentry-example'
     | '/blog/$slug'
     | '/compress/avif'
     | '/convert/heic-to-jpg'
@@ -173,6 +183,7 @@ export interface FileRouteTypes {
     | '/privacy-first-image-compression'
     | '/squoosh-alternative'
     | '/studio'
+    | '/api/sentry-example'
     | '/blog/$slug'
     | '/compress/avif'
     | '/convert/heic-to-jpg'
@@ -189,6 +200,7 @@ export interface FileRouteTypes {
     | '/privacy-first-image-compression'
     | '/squoosh-alternative'
     | '/studio'
+    | '/api/sentry-example'
     | '/blog/$slug'
     | '/compress/avif'
     | '/convert/heic-to-jpg'
@@ -206,6 +218,7 @@ export interface RootRouteChildren {
   PrivacyFirstImageCompressionRoute: typeof PrivacyFirstImageCompressionRoute
   SquooshAlternativeRoute: typeof SquooshAlternativeRoute
   StudioRoute: typeof StudioRoute
+  ApiSentryExampleRoute: typeof ApiSentryExampleRoute
   BlogSlugRoute: typeof BlogSlugRoute
   CompressAvifRoute: typeof CompressAvifRoute
   ConvertHeicToJpgRoute: typeof ConvertHeicToJpgRoute
@@ -307,6 +320,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/sentry-example': {
+      id: '/api/sentry-example'
+      path: '/api/sentry-example'
+      fullPath: '/api/sentry-example'
+      preLoaderRoute: typeof ApiSentryExampleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/blog/$clusterId/$slug': {
       id: '/blog/$clusterId/$slug'
       path: '/blog/$clusterId/$slug'
@@ -326,6 +346,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyFirstImageCompressionRoute: PrivacyFirstImageCompressionRoute,
   SquooshAlternativeRoute: SquooshAlternativeRoute,
   StudioRoute: StudioRoute,
+  ApiSentryExampleRoute: ApiSentryExampleRoute,
   BlogSlugRoute: BlogSlugRoute,
   CompressAvifRoute: CompressAvifRoute,
   ConvertHeicToJpgRoute: ConvertHeicToJpgRoute,
@@ -338,10 +359,11 @@ export const routeTree = rootRouteImport
   ._addFileTypes<FileRouteTypes>()
 
 import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
+import type { startInstance } from './start.ts'
 declare module '@tanstack/react-start' {
   interface Register {
     ssr: true
     router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
   }
 }
