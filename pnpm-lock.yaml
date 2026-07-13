@@ -144,6 +144,9 @@ importers:
       '@semantic-release/release-notes-generator':
         specifier: ^14.0.3
         version: 14.1.1(semantic-release@24.2.9(typescript@6.0.3))
+      '@sentry/cli':
+        specifier: ^2.58.6
+        version: 2.58.6
       '@tailwindcss/typography':
         specifier: ^0.5.19
         version: 0.5.19(tailwindcss@4.3.0)
