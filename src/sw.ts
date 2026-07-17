@@ -38,7 +38,12 @@ function isHtmlResponse(response: Response): boolean {
 }
 
 function isStudioNavigation(pathname: string): boolean {
-  return pathname === '/studio' || pathname === '/studio/' || pathname === '/studio/index.html'
+  return (
+    pathname === '/studio' ||
+    pathname === '/studio/' ||
+    pathname === '/studio/index.html' ||
+    pathname.startsWith('/studio/')
+  )
 }
 
 function studioNavigationPaths(): string[] {

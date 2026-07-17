@@ -5,6 +5,7 @@ import { InstallAppLink } from '@/components/pwa/install-app-link'
 import { OfflinePrepRestoreLink } from '@/components/pwa/offline-prep-restore-link'
 import { Badge } from '@/components/ui/badge'
 import { TOOL_PAGE_LIST } from '@/lib/tool-pages'
+import { INDEXABLE_FORMAT_PAIRS, pairLinkLabel, studioLinkOptions } from '@/lib/studio-seo'
 import { SITE_AUTHOR, SITE_SOCIAL } from '@/lib/site'
 import { cn } from '@/lib/utils'
 import { useAppVersion } from '@/lib/version'
@@ -21,6 +22,19 @@ const LANDING_SECTION_LINKS = [
   { id: 'faq', label: 'FAQ' },
   { id: 'support', label: 'Support' },
 ] as const
+
+const FOOTER_CONVERSION_KEYS = new Set([
+  'png->webp',
+  'jpeg->webp',
+  'heic->jpeg',
+  'png->avif',
+  'jpeg->avif',
+  'webp->avif',
+])
+
+const FOOTER_CONVERSIONS = INDEXABLE_FORMAT_PAIRS.filter((pair) =>
+  FOOTER_CONVERSION_KEYS.has(`${pair.from}->${pair.to}`),
+)
 
 function FooterSection({
   title,
@@ -65,15 +79,17 @@ function FooterHashLink({ id, label }: { id: string; label: string }) {
 
 function FooterRouteLink({
   to,
+  search,
   children,
   className,
 }: {
   to: string
+  search?: Record<string, unknown>
   children: React.ReactNode
   className?: string
 }) {
   return (
-    <Link to={to} className={cn(FOOTER_LINK_CLASS, className)}>
+    <Link to={to} search={search} className={cn(FOOTER_LINK_CLASS, className)}>
       {children}
     </Link>
   )
@@ -88,7 +104,7 @@ export function SiteFooter() {
     <footer className="mt-auto border-t border-border/40">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-12 lg:gap-8">
-          <div className="flex flex-col gap-4 sm:col-span-2 lg:col-span-4">
+          <div className="flex flex-col gap-4 sm:col-span-2 lg:col-span-3">
             <Link to="/" className="font-display text-xl font-bold tracking-tight">
               Asset<span className="text-primary">Melt</span>
             </Link>
@@ -133,7 +149,9 @@ export function SiteFooter() {
           </div>
 
           <FooterSection title="Product" className="lg:col-span-2">
-            <FooterRouteLink to="/studio">Studio</FooterRouteLink>
+            <FooterRouteLink to="/studio" search={{}}>
+              Studio
+            </FooterRouteLink>
             {LANDING_SECTION_LINKS.map((link) => (
               <FooterHashLink key={link.id} id={link.id} label={link.label} />
             ))}
@@ -141,6 +159,33 @@ export function SiteFooter() {
               <InstallAppLink />
               {isStudio ? <OfflinePrepRestoreLink /> : null}
             </div>
+          </FooterSection>
+
+          <FooterSection title="Convert" className="lg:col-span-2">
+            {FOOTER_CONVERSIONS.map((pair) => {
+              const link = studioLinkOptions({
+                from: pair.from,
+                to: pair.to,
+              })
+              return link.to === '/studio' ? (
+                <Link
+                  key={`${pair.from}-${pair.to}`}
+                  to="/studio"
+                  className={FOOTER_LINK_CLASS}
+                >
+                  {pairLinkLabel(pair)}
+                </Link>
+              ) : (
+                <Link
+                  key={`${pair.from}-${pair.to}`}
+                  to="/studio/$conversion"
+                  params={link.params}
+                  className={FOOTER_LINK_CLASS}
+                >
+                  {pairLinkLabel(pair)}
+                </Link>
+              )
+            })}
           </FooterSection>
 
           <FooterSection title="Guides" className="lg:col-span-3">
@@ -152,7 +197,7 @@ export function SiteFooter() {
             <FooterRouteLink to="/blog">Blog</FooterRouteLink>
           </FooterSection>
 
-          <FooterSection title="About" className="lg:col-span-3">
+          <FooterSection title="About" className="lg:col-span-2">
             <FooterRouteLink to="/about">About Asset Melt</FooterRouteLink>
             <FooterRouteLink to="/author">Author</FooterRouteLink>
             <FooterRouteLink to="/privacy">Privacy</FooterRouteLink>

@@ -115,8 +115,18 @@ test('deny patterns stay focused on marketing-only assets', () => {
   assert.ok(OFFLINE_PACK_DENY_PATTERNS.some((pattern) => pattern.test('/about')))
   assert.ok(OFFLINE_PACK_DENY_PATTERNS.some((pattern) => pattern.test('/author')))
   assert.ok(OFFLINE_PACK_DENY_PATTERNS.some((pattern) => pattern.test('/assets/tool-landing-page-abc.js')))
+  assert.ok(OFFLINE_PACK_DENY_PATTERNS.some((pattern) => pattern.test('/studio/png-to-webp')))
+  assert.ok(OFFLINE_PACK_DENY_PATTERNS.some((pattern) => pattern.test('/studio/avif-to-jpg')))
   assert.equal(
     OFFLINE_PACK_DENY_PATTERNS.some((pattern) => pattern.test('/assets/studio-route.js')),
+    false,
+  )
+  assert.equal(
+    OFFLINE_PACK_DENY_PATTERNS.some((pattern) => pattern.test('/assets/avif_enc-abc.wasm')),
+    false,
+  )
+  assert.equal(
+    OFFLINE_PACK_DENY_PATTERNS.some((pattern) => pattern.test('/studio')),
     false,
   )
 })

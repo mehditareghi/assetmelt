@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as StudioRouteImport } from './routes/studio'
 import { Route as SquooshAlternativeRouteImport } from './routes/squoosh-alternative'
 import { Route as PrivacyFirstImageCompressionRouteImport } from './routes/privacy-first-image-compression'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -17,19 +16,16 @@ import { Route as AuthorRouteImport } from './routes/author'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as SplatRouteImport } from './routes/$'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as StudioIndexRouteImport } from './routes/studio/index'
 import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as ToolsBatchImageCompressorRouteImport } from './routes/tools/batch-image-compressor'
+import { Route as StudioConversionRouteImport } from './routes/studio/$conversion'
 import { Route as ConvertHeicToJpgRouteImport } from './routes/convert/heic-to-jpg'
 import { Route as CompressAvifRouteImport } from './routes/compress/avif'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 import { Route as ApiSentryExampleRouteImport } from './routes/api/sentry-example'
 import { Route as BlogClusterIdSlugRouteImport } from './routes/blog/$clusterId/$slug'
 
-const StudioRoute = StudioRouteImport.update({
-  id: '/studio',
-  path: '/studio',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const SquooshAlternativeRoute = SquooshAlternativeRouteImport.update({
   id: '/squoosh-alternative',
   path: '/squoosh-alternative',
@@ -66,6 +62,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StudioIndexRoute = StudioIndexRouteImport.update({
+  id: '/studio/',
+  path: '/studio/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BlogIndexRoute = BlogIndexRouteImport.update({
   id: '/blog/',
   path: '/blog/',
@@ -77,6 +78,11 @@ const ToolsBatchImageCompressorRoute =
     path: '/tools/batch-image-compressor',
     getParentRoute: () => rootRouteImport,
   } as any)
+const StudioConversionRoute = StudioConversionRouteImport.update({
+  id: '/studio/$conversion',
+  path: '/studio/$conversion',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ConvertHeicToJpgRoute = ConvertHeicToJpgRouteImport.update({
   id: '/convert/heic-to-jpg',
   path: '/convert/heic-to-jpg',
@@ -111,13 +117,14 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/privacy-first-image-compression': typeof PrivacyFirstImageCompressionRoute
   '/squoosh-alternative': typeof SquooshAlternativeRoute
-  '/studio': typeof StudioRoute
   '/api/sentry-example': typeof ApiSentryExampleRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/compress/avif': typeof CompressAvifRoute
   '/convert/heic-to-jpg': typeof ConvertHeicToJpgRoute
+  '/studio/$conversion': typeof StudioConversionRoute
   '/tools/batch-image-compressor': typeof ToolsBatchImageCompressorRoute
   '/blog/': typeof BlogIndexRoute
+  '/studio/': typeof StudioIndexRoute
   '/blog/$clusterId/$slug': typeof BlogClusterIdSlugRoute
 }
 export interface FileRoutesByTo {
@@ -128,13 +135,14 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/privacy-first-image-compression': typeof PrivacyFirstImageCompressionRoute
   '/squoosh-alternative': typeof SquooshAlternativeRoute
-  '/studio': typeof StudioRoute
   '/api/sentry-example': typeof ApiSentryExampleRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/compress/avif': typeof CompressAvifRoute
   '/convert/heic-to-jpg': typeof ConvertHeicToJpgRoute
+  '/studio/$conversion': typeof StudioConversionRoute
   '/tools/batch-image-compressor': typeof ToolsBatchImageCompressorRoute
   '/blog': typeof BlogIndexRoute
+  '/studio': typeof StudioIndexRoute
   '/blog/$clusterId/$slug': typeof BlogClusterIdSlugRoute
 }
 export interface FileRoutesById {
@@ -146,13 +154,14 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/privacy-first-image-compression': typeof PrivacyFirstImageCompressionRoute
   '/squoosh-alternative': typeof SquooshAlternativeRoute
-  '/studio': typeof StudioRoute
   '/api/sentry-example': typeof ApiSentryExampleRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/compress/avif': typeof CompressAvifRoute
   '/convert/heic-to-jpg': typeof ConvertHeicToJpgRoute
+  '/studio/$conversion': typeof StudioConversionRoute
   '/tools/batch-image-compressor': typeof ToolsBatchImageCompressorRoute
   '/blog/': typeof BlogIndexRoute
+  '/studio/': typeof StudioIndexRoute
   '/blog/$clusterId/$slug': typeof BlogClusterIdSlugRoute
 }
 export interface FileRouteTypes {
@@ -165,13 +174,14 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/privacy-first-image-compression'
     | '/squoosh-alternative'
-    | '/studio'
     | '/api/sentry-example'
     | '/blog/$slug'
     | '/compress/avif'
     | '/convert/heic-to-jpg'
+    | '/studio/$conversion'
     | '/tools/batch-image-compressor'
     | '/blog/'
+    | '/studio/'
     | '/blog/$clusterId/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -182,13 +192,14 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/privacy-first-image-compression'
     | '/squoosh-alternative'
-    | '/studio'
     | '/api/sentry-example'
     | '/blog/$slug'
     | '/compress/avif'
     | '/convert/heic-to-jpg'
+    | '/studio/$conversion'
     | '/tools/batch-image-compressor'
     | '/blog'
+    | '/studio'
     | '/blog/$clusterId/$slug'
   id:
     | '__root__'
@@ -199,13 +210,14 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/privacy-first-image-compression'
     | '/squoosh-alternative'
-    | '/studio'
     | '/api/sentry-example'
     | '/blog/$slug'
     | '/compress/avif'
     | '/convert/heic-to-jpg'
+    | '/studio/$conversion'
     | '/tools/batch-image-compressor'
     | '/blog/'
+    | '/studio/'
     | '/blog/$clusterId/$slug'
   fileRoutesById: FileRoutesById
 }
@@ -217,25 +229,19 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   PrivacyFirstImageCompressionRoute: typeof PrivacyFirstImageCompressionRoute
   SquooshAlternativeRoute: typeof SquooshAlternativeRoute
-  StudioRoute: typeof StudioRoute
   ApiSentryExampleRoute: typeof ApiSentryExampleRoute
   BlogSlugRoute: typeof BlogSlugRoute
   CompressAvifRoute: typeof CompressAvifRoute
   ConvertHeicToJpgRoute: typeof ConvertHeicToJpgRoute
+  StudioConversionRoute: typeof StudioConversionRoute
   ToolsBatchImageCompressorRoute: typeof ToolsBatchImageCompressorRoute
   BlogIndexRoute: typeof BlogIndexRoute
+  StudioIndexRoute: typeof StudioIndexRoute
   BlogClusterIdSlugRoute: typeof BlogClusterIdSlugRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/studio': {
-      id: '/studio'
-      path: '/studio'
-      fullPath: '/studio'
-      preLoaderRoute: typeof StudioRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/squoosh-alternative': {
       id: '/squoosh-alternative'
       path: '/squoosh-alternative'
@@ -285,6 +291,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/studio/': {
+      id: '/studio/'
+      path: '/studio'
+      fullPath: '/studio/'
+      preLoaderRoute: typeof StudioIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/blog/': {
       id: '/blog/'
       path: '/blog'
@@ -297,6 +310,13 @@ declare module '@tanstack/react-router' {
       path: '/tools/batch-image-compressor'
       fullPath: '/tools/batch-image-compressor'
       preLoaderRoute: typeof ToolsBatchImageCompressorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/studio/$conversion': {
+      id: '/studio/$conversion'
+      path: '/studio/$conversion'
+      fullPath: '/studio/$conversion'
+      preLoaderRoute: typeof StudioConversionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/convert/heic-to-jpg': {
@@ -345,13 +365,14 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   PrivacyFirstImageCompressionRoute: PrivacyFirstImageCompressionRoute,
   SquooshAlternativeRoute: SquooshAlternativeRoute,
-  StudioRoute: StudioRoute,
   ApiSentryExampleRoute: ApiSentryExampleRoute,
   BlogSlugRoute: BlogSlugRoute,
   CompressAvifRoute: CompressAvifRoute,
   ConvertHeicToJpgRoute: ConvertHeicToJpgRoute,
+  StudioConversionRoute: StudioConversionRoute,
   ToolsBatchImageCompressorRoute: ToolsBatchImageCompressorRoute,
   BlogIndexRoute: BlogIndexRoute,
+  StudioIndexRoute: StudioIndexRoute,
   BlogClusterIdSlugRoute: BlogClusterIdSlugRoute,
 }
 export const routeTree = rootRouteImport

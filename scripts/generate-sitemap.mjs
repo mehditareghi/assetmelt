@@ -8,6 +8,8 @@ const SITE_URL = 'https://assetmelt.com'
 const GENERATED_META = join(ROOT, 'src/generated/blog-meta.json')
 const TOOL_CONTENT = join(ROOT, 'src/lib/tool-pages/content.ts')
 const SITE_MODULE = join(ROOT, 'src/lib/site.ts')
+const STUDIO_PAIRS = join(ROOT, 'src/lib/studio-seo/pairs.ts')
+const STUDIO_FORMATS = join(ROOT, 'src/lib/studio-seo/formats.ts')
 const SITEMAP_PATH = join(ROOT, 'public/sitemap.xml')
 const RSS_PATH = join(ROOT, 'public/rss.xml')
 const BLOG_CLUSTERS = [
@@ -15,6 +17,63 @@ const BLOG_CLUSTERS = [
   { id: 'format-conversion', path: '/blog/format-conversion' },
   { id: 'performance-seo', path: '/blog/performance-seo' },
 ]
+
+const INPUT_URL_SLUG = {
+  jpeg: 'jpg',
+  png: 'png',
+  webp: 'webp',
+  avif: 'avif',
+  gif: 'gif',
+  bmp: 'bmp',
+  svg: 'svg',
+  heic: 'heic',
+  jxl: 'jxl',
+  qoi: 'qoi',
+  tiff: 'tiff',
+}
+
+const OUTPUT_URL_SLUG = {
+  jpeg: 'jpg',
+  png: 'png',
+  webp: 'webp',
+  avif: 'avif',
+  jxl: 'jxl',
+  qoi: 'qoi',
+}
+
+function buildStudioSeoPath({ from, to }) {
+  if (from && to) {
+    const fromSlug = INPUT_URL_SLUG[from] ?? from
+    const toSlug = OUTPUT_URL_SLUG[to] ?? to
+    // Prefer jpg in public URLs (jpeg → jpg via map)
+    return `/studio/${fromSlug}-to-${toSlug}`
+  }
+  if (to) {
+    const toSlug = OUTPUT_URL_SLUG[to] ?? to
+    return `/studio/to-${toSlug}`
+  }
+  return '/studio'
+}
+
+function readStudioSeoPaths() {
+  if (!existsSync(STUDIO_PAIRS)) return []
+
+  const source = readFileSync(STUDIO_PAIRS, 'utf8')
+  const pairPaths = [
+    ...source.matchAll(/\{\s*from:\s*'([a-z]+)',\s*to:\s*'([a-z]+)'/g),
+  ].map((match) => buildStudioSeoPath({ from: match[1], to: match[2] }))
+
+  const targetsBlock = source.match(
+    /INDEXABLE_OUTPUT_TARGETS[^=]*=\s*\[([\s\S]*?)\]\s*as const/,
+  )
+  const targetPaths = targetsBlock
+    ? [...targetsBlock[1].matchAll(/'([a-z]+)'/g)].map((match) =>
+        buildStudioSeoPath({ to: match[1] }),
+      )
+    : []
+
+  return [...new Set([...pairPaths, ...targetPaths])]
+}
 
 function readBlogMeta() {
   if (!existsSync(GENERATED_META)) return []
@@ -66,6 +125,15 @@ function generateSitemap() {
   const blogPosts = readBlogMeta()
   const toolPaths = readToolPagePaths()
   const trustPaths = readTrustPagePaths()
+  const studioSeoPaths = readStudioSeoPaths()
+  const studioLastmod = maxDate([
+    resolveLastmod(join(ROOT, 'src/routes/studio/index.tsx')),
+    resolveLastmod(join(ROOT, 'src/routes/studio/$conversion.tsx')),
+    resolveLastmod(STUDIO_PAIRS),
+    resolveLastmod(join(ROOT, 'src/lib/studio-seo/content.ts')),
+    resolveLastmod(join(ROOT, 'src/lib/studio-seo/paths.ts')),
+    resolveLastmod(STUDIO_FORMATS),
+  ])
 
   const blogLastmods = blogPosts.map((post) =>
     resolveLastmod(join(ROOT, post.sourceFile), post.updatedAt ?? post.publishedAt),
@@ -88,10 +156,16 @@ function generateSitemap() {
     },
     {
       loc: `${SITE_URL}/studio`,
-      lastmod: resolveLastmod(join(ROOT, 'src/routes/studio.tsx')),
+      lastmod: studioLastmod,
       changefreq: 'weekly',
       priority: '0.9',
     },
+    ...studioSeoPaths.map((path) => ({
+      loc: `${SITE_URL}${path}`,
+      lastmod: studioLastmod,
+      changefreq: 'monthly',
+      priority: '0.85',
+    })),
     {
       loc: `${SITE_URL}/blog`,
       lastmod: maxDate(blogLastmods),

@@ -21,12 +21,41 @@ import { LandingSectionHeader } from '@/components/landing/landing-section-heade
 import { TOOL_PAGE_ICONS } from '@/components/tools/tool-page-icons'
 import { getRelatedToolPages } from '@/lib/tool-pages'
 import type { ToolPageContent } from '@/lib/tool-pages/types'
+import { toStudioSearchParams, studioLinkOptions } from '@/lib/studio-seo'
 import { cn } from '@/lib/utils'
 
 const STEP_ICONS = [Upload, Settings, Download] as const
 
 interface ToolLandingPageProps {
   content: ToolPageContent
+}
+
+function StudioCtaLink({
+  content,
+  children,
+  className,
+}: {
+  content: ToolPageContent
+  children: React.ReactNode
+  className?: string
+}) {
+  const link = content.studioSearch
+    ? studioLinkOptions(toStudioSearchParams(content.studioSearch))
+    : ({ to: '/studio' } as const)
+
+  if (link.to === '/studio') {
+    return (
+      <Link to="/studio" className={className}>
+        {children}
+      </Link>
+    )
+  }
+
+  return (
+    <Link to="/studio/$conversion" params={link.params} className={className}>
+      {children}
+    </Link>
+  )
 }
 
 export function ToolLandingPage({ content }: ToolLandingPageProps) {
@@ -117,10 +146,10 @@ function ToolPageHero({ content }: { content: ToolPageContent }) {
           transition={{ duration: 0.45, delay: 0.32 }}
         >
           <Button size="lg" asChild className="group h-12 px-8 text-base">
-            <Link to="/studio">
+            <StudioCtaLink content={content}>
               {content.ctaLabel ?? 'Open Studio — it\u2019s free'}
               <ArrowRight className="transition-transform group-hover:translate-x-1" />
-            </Link>
+            </StudioCtaLink>
           </Button>
           <Button variant="outline" size="lg" asChild className="h-12 px-8 text-base">
             <a href="#how-it-works">See how it works</a>
@@ -423,10 +452,10 @@ function ToolPageCta({ content }: { content: ToolPageContent }) {
               Open Asset Melt Studio — free, no account, no uploads. Your files stay on your device.
             </p>
             <Button size="lg" asChild className="group mt-8 h-12 px-8 text-base">
-              <Link to="/studio">
+              <StudioCtaLink content={content}>
                 {content.ctaLabel ?? 'Open Studio'}
                 <ArrowRight className="transition-transform group-hover:translate-x-1" />
-              </Link>
+              </StudioCtaLink>
             </Button>
           </div>
         </motion.div>

@@ -102,7 +102,7 @@ export function SiteHeader() {
               variant={isStudio ? 'secondary' : 'default'}
               className="shrink-0"
             >
-              <Link to="/studio" aria-current={isStudio ? 'page' : undefined}>
+              <Link to="/studio" search={{}} aria-current={isStudio ? 'page' : undefined}>
                 Open Studio
               </Link>
             </Button>

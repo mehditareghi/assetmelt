@@ -3,6 +3,7 @@ import { DEFAULT_OG_IMAGE, SITE_NAME, SITE_URL } from '@/lib/site'
 export interface SeoConfig {
   title: string
   description: string
+  /** Pathname or pathname + query (e.g. `/studio?from=png&to=webp`). */
   path: `/${string}` | '/'
   ogImage?: string
   ogType?: 'website' | 'article'

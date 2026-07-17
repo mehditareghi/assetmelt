@@ -74,6 +74,11 @@ export interface ToolPageContent {
     rows: ToolPageComparisonRow[]
   }
   ctaLabel?: string
+  /** Deep-link Studio with format intent (`?from=` / `?to=`). */
+  studioSearch?: {
+    from?: string
+    to?: string
+  }
   keywords: string
   breadcrumbLabel: string
 }

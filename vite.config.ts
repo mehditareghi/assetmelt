@@ -1,5 +1,6 @@
 import path from "path";
 import { execSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { defineConfig } from "vite";
 import tailwindcss from "@tailwindcss/vite";
 import { sentryTanstackStart } from "@sentry/tanstackstart-react/vite";
@@ -28,12 +29,63 @@ function resolveSentryReleaseName(): string | undefined {
   return version && version !== "dev" ? version : undefined;
 }
 
+/** Mirror `src/lib/studio-seo` curated paths so dynamic routes get static HTML. */
+function studioConversionPrerenderPages(): Array<{ path: string }> {
+  const pairsSource = readFileSync(
+    path.resolve(__dirname, "src/lib/studio-seo/pairs.ts"),
+    "utf8",
+  );
+  const inputSlug: Record<string, string> = {
+    jpeg: "jpg",
+    png: "png",
+    webp: "webp",
+    avif: "avif",
+    gif: "gif",
+    bmp: "bmp",
+    svg: "svg",
+    heic: "heic",
+    jxl: "jxl",
+    qoi: "qoi",
+    tiff: "tiff",
+  };
+  const outputSlug: Record<string, string> = {
+    jpeg: "jpg",
+    png: "png",
+    webp: "webp",
+    avif: "avif",
+    jxl: "jxl",
+    qoi: "qoi",
+  };
+
+  const paths = new Set<string>();
+  for (const match of pairsSource.matchAll(
+    /\{\s*from:\s*'([a-z]+)',\s*to:\s*'([a-z]+)'/g,
+  )) {
+    const from = inputSlug[match[1]] ?? match[1];
+    const to = outputSlug[match[2]] ?? match[2];
+    paths.add(`/studio/${from}-to-${to}`);
+  }
+
+  const targetsBlock = pairsSource.match(
+    /INDEXABLE_OUTPUT_TARGETS[^=]*=\s*\[([\s\S]*?)\]\s*as const/,
+  );
+  if (targetsBlock) {
+    for (const match of targetsBlock[1].matchAll(/'([a-z]+)'/g)) {
+      const to = outputSlug[match[1]] ?? match[1];
+      paths.add(`/studio/to-${to}`);
+    }
+  }
+
+  return [...paths].map((pagePath) => ({ path: pagePath }));
+}
+
 const sentryRelease = resolveSentryReleaseName();
 
 export default defineConfig({
   // Service worker is generated post-build via scripts/build-pwa.mjs (TanStack Start + Workbox).
   plugins: [
     tanstackStart({
+      pages: studioConversionPrerenderPages(),
       prerender: {
         enabled: true,
         crawlLinks: false,

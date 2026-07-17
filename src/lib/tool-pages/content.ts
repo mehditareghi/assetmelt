@@ -208,6 +208,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
       },
     ],
     relatedTools: ['squoosh-alternative', 'batch-image-compressor', 'avif-compressor'],
+    studioSearch: { from: 'heic', to: 'jpg' },
     keywords:
       'heic to jpg, convert heic to jpeg, heic converter online, heif to jpg, iphone photo converter, free heic converter',
     breadcrumbLabel: 'HEIC to JPG',
@@ -307,6 +308,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
       },
     ],
     relatedTools: ['squoosh-alternative', 'heic-to-jpg', 'avif-compressor'],
+    studioSearch: { to: 'webp' },
     keywords:
       'batch image compressor, compress multiple images, bulk image compression, batch photo optimizer, zip export',
     breadcrumbLabel: 'Batch Compressor',
@@ -406,6 +408,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
       },
     ],
     relatedTools: ['squoosh-alternative', 'batch-image-compressor', 'heic-to-jpg'],
+    studioSearch: { to: 'avif' },
     keywords:
       'compress avif, avif compressor, avif optimizer, convert to avif, avif compression online, free avif tool',
     breadcrumbLabel: 'AVIF Compressor',
@@ -530,6 +533,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
       },
     ],
     relatedTools: ['squoosh-alternative', 'batch-image-compressor', 'heic-to-jpg'],
+    studioSearch: { to: 'webp' },
     keywords:
       'privacy-first image compression, compress images without uploading, private image compressor, no upload image tool, client-side image compression',
     breadcrumbLabel: 'Privacy-First Compression',

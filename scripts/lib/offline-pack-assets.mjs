@@ -20,6 +20,8 @@ export const OFFLINE_PACK_DENY_PATTERNS = [
   /^\/convert\//,
   /^\/tools\//,
   /^\/compress\//,
+  // Studio SEO conversion HTML is not part of the offline pack (SPA shell + JS covers it).
+  /^\/studio\/.+/,
   /^\/squoosh-alternative/,
   /^\/crypto\//,
   /^\/llms/,
@@ -29,7 +31,7 @@ export const OFFLINE_PACK_DENY_PATTERNS = [
   /\/squoosh-alternative-/,
   /\/heic-to-jpg-/,
   /\/batch-image-compressor-/,
-  /\/avif-/,
+  /\/privacy-first-image-compression-/,
 ]
 
 export const OFFLINE_PACK_STATIC_URLS = [

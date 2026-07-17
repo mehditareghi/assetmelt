@@ -4,6 +4,7 @@ import { isValidElement, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { getToolPage } from '@/lib/tool-pages'
 import type { ToolPageId } from '@/lib/tool-pages/types'
+import { studioLinkOptions, toStudioSearchParams } from '@/lib/studio-seo'
 import { cn } from '@/lib/utils'
 import { SrcsetPlanner } from '@/components/blog/srcset-planner'
 import { ResponsivePicture } from '@/components/blog/responsive-picture'
@@ -65,11 +66,30 @@ export function Callout({ title, children, variant = 'info' }: CalloutProps) {
   )
 }
 
-export function StudioCta({ label = 'Open Studio — free, no uploads' }: { label?: string }) {
+export function StudioCta({
+  label = 'Open Studio — free, no uploads',
+  from,
+  to,
+}: {
+  label?: string
+  from?: string
+  to?: string
+}) {
+  const link =
+    from || to
+      ? studioLinkOptions(toStudioSearchParams({ from, to }))
+      : ({ to: '/studio' } as const)
+
   return (
     <div className="my-8 flex justify-center not-prose">
       <Button size="lg" asChild className="gap-2">
-        <Link to="/studio">{label}</Link>
+        {link.to === '/studio' ? (
+          <Link to="/studio">{label}</Link>
+        ) : (
+          <Link to="/studio/$conversion" params={link.params}>
+            {label}
+          </Link>
+        )}
       </Button>
     </div>
   )
