@@ -4,6 +4,9 @@ import './instrument.client'
 import { StartClient } from '@tanstack/react-start/client'
 import { StrictMode, startTransition } from 'react'
 import { hydrateRoot } from 'react-dom/client'
+import { patchDomForBrowserTranslation } from '@/lib/patch-dom-for-browser-translation'
+
+patchDomForBrowserTranslation()
 
 startTransition(() => {
   hydrateRoot(
