@@ -3,11 +3,21 @@ import { Link, type ErrorComponentProps } from '@tanstack/react-router'
 import * as Sentry from '@sentry/tanstackstart-react'
 import { Home, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import {
+  isChunkLoadError,
+  recoverFromChunkLoadError,
+} from '@/lib/chunk-load-recovery'
+import { applyAppUpdate } from '@/lib/pwa/apply-app-update'
 
 export function RouteError({ error, reset }: ErrorComponentProps) {
+  const chunkError = isChunkLoadError(error)
+
   useEffect(() => {
+    if (chunkError && recoverFromChunkLoadError()) {
+      return
+    }
     Sentry.captureException(error)
-  }, [error])
+  }, [chunkError, error])
 
   const message =
     error instanceof Error ? error.message : 'An unexpected error occurred.'
@@ -22,7 +32,17 @@ export function RouteError({ error, reset }: ErrorComponentProps) {
           {message}
         </p>
         <div className="mt-10 flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
-          <Button size="lg" onClick={reset} className="h-11 px-7">
+          <Button
+            size="lg"
+            onClick={() => {
+              if (chunkError) {
+                void applyAppUpdate()
+                return
+              }
+              reset()
+            }}
+            className="h-11 px-7"
+          >
             <RotateCcw className="size-4" />
             Try again
           </Button>
