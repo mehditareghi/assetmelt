@@ -29,6 +29,8 @@ test('compile-blog outputs repo artifacts', () => {
   assert.match(index, /BLOG_POST_CONTENT/)
   assert.match(index, /export function getBlogPostContent/)
   assert.match(index, /^import Post/m)
+  assert.match(index, /"publishedAt": "\d{4}-\d{2}-\d{2}"/)
+  assert.doesNotMatch(index, /"publishedAt": "[A-Z][a-z]{2} /)
 })
 
 test('generate-sitemap writes blog urls', () => {

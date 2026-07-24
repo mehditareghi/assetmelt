@@ -62,6 +62,28 @@ function estimateReadingTime(text) {
   return Math.max(1, Math.round(words / 220))
 }
 
+/** Normalize frontmatter dates to YYYY-MM-DD (calendar day, no timezone skew). */
+function toDateOnly(value, fieldName, fileName) {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toISOString().slice(0, 10)
+  }
+
+  const raw = String(value ?? '').trim()
+  if (!raw) {
+    throw new Error(`${fileName}: missing ${fieldName}`)
+  }
+
+  const isoDay = /^(\d{4}-\d{2}-\d{2})/.exec(raw)
+  if (isoDay) return isoDay[1]
+
+  const parsed = new Date(raw)
+  if (!Number.isNaN(parsed.getTime())) {
+    return parsed.toISOString().slice(0, 10)
+  }
+
+  throw new Error(`${fileName}: invalid ${fieldName}: ${raw}`)
+}
+
 function excerptFromBody(body, maxLength = 160) {
   const plain = body
     .replace(/```[\s\S]*?```/g, ' ')
@@ -129,11 +151,10 @@ function validateFrontmatter(data, fileName) {
   const slug = slugify(data.slug ?? basename(fileName, '.mdx'))
   const title = String(data.title ?? '').trim()
   const description = String(data.description ?? '').trim()
-  const publishedAt = String(data.publishedAt ?? '').trim()
+  const publishedAt = toDateOnly(data.publishedAt, 'publishedAt', fileName)
 
   if (!title) throw new Error(`${fileName}: missing title`)
   if (!description) throw new Error(`${fileName}: missing description`)
-  if (!publishedAt) throw new Error(`${fileName}: missing publishedAt`)
 
   const relatedTools = Array.isArray(data.relatedTools)
     ? data.relatedTools.filter((id) => VALID_TOOL_IDS.has(id))
@@ -157,7 +178,9 @@ function validateFrontmatter(data, fileName) {
     title,
     description,
     publishedAt,
-    updatedAt: data.updatedAt ? String(data.updatedAt).trim() : undefined,
+    updatedAt: data.updatedAt
+      ? toDateOnly(data.updatedAt, 'updatedAt', fileName)
+      : undefined,
     keywords,
     cluster: VALID_CLUSTER_IDS.has(data.cluster) ? data.cluster : null,
     heroImage: String(data.heroImage ?? 'hero').trim(),

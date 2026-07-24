@@ -2,19 +2,12 @@ import { ArrowRight, Clock } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import type { BlogPostMeta } from '@/lib/blog/types'
 import { isPillarPost } from '@/lib/blog/clusters'
+import { formatBlogDate } from '@/lib/blog/format-date'
 import { cn } from '@/lib/utils'
 
 interface BlogClusterArticleIndexProps {
   posts: BlogPostMeta[]
   className?: string
-}
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  })
 }
 
 export function BlogClusterArticleIndex({ posts, className }: BlogClusterArticleIndexProps) {
@@ -43,7 +36,9 @@ export function BlogClusterArticleIndex({ posts, className }: BlogClusterArticle
                     </Badge>
                   ) : null}
                   <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-                    <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
+                    <time dateTime={post.publishedAt}>
+                      {formatBlogDate(post.publishedAt, { month: 'short' })}
+                    </time>
                     <span aria-hidden="true"> · </span>
                     <span className="inline-flex items-center gap-1">
                       <Clock className="size-3" aria-hidden="true" />

@@ -5,19 +5,12 @@ import { ResponsivePicture } from '@/components/blog/responsive-picture'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import { BLOG_CLUSTER_BY_ID, isPillarPost } from '@/lib/blog/clusters'
+import { formatBlogDate } from '@/lib/blog/format-date'
 
 interface BlogPostCardProps {
   post: BlogPostMeta
   featured?: boolean
   className?: string
-}
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
 }
 
 export function BlogPostCard({ post, featured = false, className }: BlogPostCardProps) {
@@ -62,7 +55,7 @@ export function BlogPostCard({ post, featured = false, className }: BlogPostCard
                 <span aria-hidden="true">·</span>
               </>
             ) : null}
-            <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
+            <time dateTime={post.publishedAt}>{formatBlogDate(post.publishedAt)}</time>
             <span aria-hidden="true">·</span>
             <span className="inline-flex items-center gap-1">
               <Clock className="size-3" aria-hidden="true" />

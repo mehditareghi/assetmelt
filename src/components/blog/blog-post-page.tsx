@@ -15,14 +15,7 @@ import type { BlogPostMeta } from '@/lib/blog/types'
 import { SITE_AUTHOR } from '@/lib/site'
 import { ResponsivePicture } from '@/components/blog/responsive-picture'
 import { BLOG_CLUSTER_BY_ID } from '@/lib/blog/clusters'
-
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
-}
+import { formatBlogDate } from '@/lib/blog/format-date'
 
 interface BlogPostPageProps {
   post: BlogPostMeta
@@ -95,11 +88,11 @@ export function BlogPostPage({ post, Content }: BlogPostPageProps) {
                 {SITE_AUTHOR}
               </Link>
               <span aria-hidden="true">·</span>
-              <time dateTime={post.publishedAt}>Published {formatDate(post.publishedAt)}</time>
+              <time dateTime={post.publishedAt}>Published {formatBlogDate(post.publishedAt)}</time>
               {post.updatedAt ? (
                 <>
                   <span aria-hidden="true">·</span>
-                  <time dateTime={post.updatedAt}>Updated {formatDate(post.updatedAt)}</time>
+                  <time dateTime={post.updatedAt}>Updated {formatBlogDate(post.updatedAt)}</time>
                 </>
               ) : null}
               <span aria-hidden="true">·</span>
