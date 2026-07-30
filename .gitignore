@@ -42,3 +42,4 @@ src/generated/blog-meta.json
 src/generated/blog-prerender-paths.json
 public/blog/
 .env*
+coverage/
