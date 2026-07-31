@@ -14,7 +14,10 @@
     "test:offline-pack": "node --test scripts/lib/offline-pack-assets.test.mjs",
     "test:blog": "node --test scripts/compile-blog.test.mjs",
     "prepare": "husky",
-    "test": "vitest"
+    "test": "vitest",
+    "test-ui": "vitest --ui",
+    "test-coverage": "vitest --coverage",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@fontsource-variable/bricolage-grotesque": "^5.2.10",
@@ -77,6 +80,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
     "@vitest/coverage-v8": "4.1.10",
+    "@vitest/ui": "^4.1.10",
     "esbuild": "^0.25.12",
     "eslint": "^10.3.0",
     "eslint-plugin-react-hooks": "^7.1.1",
