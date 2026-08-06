@@ -1,6 +1,7 @@
-import { X, FileImage, AlertCircle, CheckCircle2, Loader2 } from 'lucide-react'
+import { X, FileImage, AlertCircle, CheckCircle2, Loader2, Plus } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useStudioStore } from '@/stores/studio-store'
+import { pickImageFiles } from '@/lib/image/pick-image-files'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { filesize } from 'filesize'
@@ -9,17 +10,37 @@ export function FileQueue() {
   const files = useStudioStore((s) => s.files)
   const activeFileId = useStudioStore((s) => s.activeFileId)
   const isCropEditing = useStudioStore((s) => s.isCropEditing)
+  const isProcessing = useStudioStore((s) => s.isProcessing)
   const setActiveFile = useStudioStore((s) => s.setActiveFile)
   const removeFile = useStudioStore((s) => s.removeFile)
+  const addFiles = useStudioStore((s) => s.addFiles)
 
   if (files.length === 0) return null
 
+  const handleAddFiles = async () => {
+    if (isCropEditing || isProcessing) return
+    const picked = await pickImageFiles()
+    if (picked.length === 0) return
+    await addFiles(picked)
+  }
+
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between">
+    <div className="glass-surface flex flex-col gap-2 rounded-2xl p-3 lg:p-4">
+      <div className="flex items-center justify-between gap-2">
         <h3 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
           Queue ({files.length})
         </h3>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-7 gap-1 px-2 font-mono text-[11px]"
+          onClick={() => void handleAddFiles()}
+          disabled={isCropEditing || isProcessing}
+        >
+          <Plus className="size-3" />
+          Add
+        </Button>
       </div>
 
       <div className="flex flex-col gap-1.5 lg:max-h-[calc(100vh-280px)] lg:overflow-y-auto">
@@ -72,6 +93,11 @@ export function FileQueue() {
                     −{file.stats.savingsPercent.toFixed(1)}% · {filesize(file.stats.outputSize)}
                   </p>
                 )}
+              {file.status === 'pending' && (
+                <p className="mt-1 font-mono text-xs text-muted-foreground">
+                  {files.some((f) => f.status === 'done') ? 'Needs re-process' : 'Queued'}
+                </p>
+              )}
               {file.status === 'error' && (
                 <p className="mt-1 text-xs text-destructive">{file.error}</p>
               )}

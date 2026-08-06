@@ -52,11 +52,11 @@ export function SiteHeader() {
   const isBlog = pathname.startsWith('/blog')
 
   return (
-    <header className="sticky top-0 z-50 flex justify-center px-4 pt-3 sm:px-6">
+    <header className="pointer-events-none sticky top-0 z-50 flex justify-center px-4 pt-3 sm:px-6">
       <GlassSurface
         width="auto"
         height={48}
-        className="w-fit max-w-[calc(100vw-2rem)] [&>div]:p-1"
+        className="pointer-events-auto w-fit max-w-[calc(100vw-2rem)] [&>div]:p-1"
         {...HEADER_LIQUID_GLASS}
       >
         <div className="flex h-full items-center gap-3 pl-3 sm:gap-5 sm:pl-4 pr-1">

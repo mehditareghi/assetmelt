@@ -7,7 +7,7 @@ import {
 import { formatSizeBudgetTarget } from '@/lib/image/size-budget-encode'
 import { createDefaultCrop } from '@/lib/image/crop-math'
 import { getCropSpaceDimensions } from '@/lib/image/transform-space'
-import { PLATFORM_BUILT_IN_PRESETS, type PlatformPreset } from '@/lib/platform-presets'
+import { PLATFORM_BUILT_IN_PRESETS, resolvePlatformPresetId, type PlatformPreset } from '@/lib/platform-presets'
 
 export interface Preset {
   id: string
@@ -31,7 +31,7 @@ export const GENERAL_BUILT_IN_PRESETS: Preset[] = [
   {
     id: 'web-optimized',
     name: 'Web Optimized',
-    description: 'WebP at 80% quality, max 1920px wide',
+    description: 'WebP for the web — max 1920px',
     category: 'general',
     config: {
       outputFormat: 'webp',
@@ -54,7 +54,7 @@ export const GENERAL_BUILT_IN_PRESETS: Preset[] = [
   {
     id: 'dev-assets',
     name: 'Dev Assets',
-    description: 'AVIF at 75% quality with metadata stripped',
+    description: 'AVIF with metadata stripped',
     category: 'general',
     config: {
       outputFormat: 'avif',
@@ -64,7 +64,7 @@ export const GENERAL_BUILT_IN_PRESETS: Preset[] = [
   {
     id: 'lossless-png',
     name: 'Lossless PNG',
-    description: 'Oxipng level 4 optimization',
+    description: 'Sharp PNG — Oxipng level 4',
     category: 'general',
     config: {
       outputFormat: 'png',
@@ -74,7 +74,7 @@ export const GENERAL_BUILT_IN_PRESETS: Preset[] = [
   {
     id: 'thumbnail',
     name: 'Thumbnail',
-    description: '400px max, WebP 85%',
+    description: 'Tiny WebP — max 400px',
     category: 'general',
     config: {
       outputFormat: 'webp',
@@ -97,7 +97,7 @@ export const GENERAL_BUILT_IN_PRESETS: Preset[] = [
   {
     id: 'max-compress',
     name: 'Max Compress',
-    description: 'AVIF 50%, aggressive resize to 1280px',
+    description: 'Smallest AVIF — max 1280px',
     category: 'general',
     config: {
       outputFormat: 'avif',
@@ -128,9 +128,10 @@ export function getPresetDisplayName(
   activePresetId: string,
   customPresets: CustomPreset[],
 ): string {
-  const builtIn = BUILT_IN_PRESETS.find((preset) => preset.id === activePresetId)
+  const resolvedId = resolvePlatformPresetId(activePresetId)
+  const builtIn = BUILT_IN_PRESETS.find((preset) => preset.id === resolvedId)
   if (builtIn) return builtIn.name
-  return customPresets.find((preset) => preset.id === activePresetId)?.name ?? 'Preset'
+  return customPresets.find((preset) => preset.id === activePresetId)?.name ?? 'Recipe'
 }
 
 export function getCustomPresetSummary(config: Partial<PipelineConfig>): string {

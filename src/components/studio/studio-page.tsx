@@ -4,7 +4,10 @@ import { OfflinePrepPanel } from '@/components/pwa/offline-prep-panel'
 import { FileQueue } from '@/components/studio/file-queue'
 import { PreviewPanel } from '@/components/studio/preview-panel'
 import { SettingsPanel } from '@/components/studio/settings-panel'
-import { StudioToolbar } from '@/components/studio/studio-toolbar'
+import {
+  StudioToolbar,
+  studioQueueStatus,
+} from '@/components/studio/studio-toolbar'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -13,7 +16,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
-import { HardDriveDownload, Lock, ServerOff, UserX } from 'lucide-react'
+import { Download, Loader2, Lock, Play, SlidersHorizontal } from 'lucide-react'
 import {
   Accordion,
   AccordionContent,
@@ -35,8 +38,10 @@ import {
   type StudioSeoContent,
 } from '@/lib/studio-seo'
 import { useStudioStore } from '@/stores/studio-store'
+import { downloadProcessedFiles, fileHasDownloadableResult } from '@/lib/download-results'
+import { trackExportCompleted } from '@/lib/analytics'
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
-import { SlidersHorizontal } from 'lucide-react'
+import { toast } from 'sonner'
 import { useEffect, useRef } from 'react'
 
 function applyOutputFromSearch(toSlug: string | undefined) {
@@ -65,8 +70,51 @@ export function StudioPage({ search }: { search: StudioSearch }) {
   const addFiles = useStudioStore((s) => s.addFiles)
   const undo = useStudioStore((s) => s.undo)
   const redo = useStudioStore((s) => s.redo)
+  const processAll = useStudioStore((s) => s.processAll)
+  const isProcessing = useStudioStore((s) => s.isProcessing)
+  const isCropEditing = useStudioStore((s) => s.isCropEditing)
+  const activePresetId = useStudioStore((s) => s.activePresetId)
+  const pipeline = useStudioStore((s) => s.pipeline)
   const offlinePrep = useOptionalOfflinePrepContext()
   const hideOfflinePanels = offlinePrep?.offlineStudioChrome ?? false
+
+  const doneCount = files.filter(fileHasDownloadableResult).length
+  const pendingCount = files.filter(
+    (f) => f.status === 'pending' || f.status === 'error',
+  ).length
+  const queueStatus = studioQueueStatus(files)
+  const canProcess =
+    files.length > 0 && pendingCount > 0 && !isCropEditing && !isProcessing
+  const canDownload = doneCount > 0 && !isCropEditing && !isProcessing
+
+  const handleMobileDownload = async () => {
+    const done = files.filter(fileHasDownloadableResult)
+    if (done.length === 0) {
+      toast.error('No processed files to export')
+      return
+    }
+    try {
+      const { kind, count } = await downloadProcessedFiles(done, activePresetId)
+      trackExportCompleted({
+        file_count: count,
+        export_type: kind,
+        preset_id: activePresetId,
+        output_format: pipeline.encode.format,
+      })
+      if (kind === 'zip') {
+        toast.success(
+          done.length === 1
+            ? `Downloaded kit (${count} files)`
+            : `Downloaded ${count} files as zip`,
+        )
+      } else {
+        toast.success('Downloaded')
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Download failed'
+      toast.error(message)
+    }
+  }
 
   /** Skip URL rewrite while applying format from the route itself. */
   const applyingFromRouteRef = useRef(false)
@@ -193,32 +241,36 @@ export function StudioPage({ search }: { search: StudioSearch }) {
       <div className="mesh-gradient studio-page-bg pointer-events-none fixed inset-0 -z-10" />
       <div className="landing-hero-grid pointer-events-none fixed inset-0 -z-10 opacity-25" />
 
-      <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-5 px-4 py-5 sm:px-6 sm:py-6 lg:px-8">
+      <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-4 px-4 py-5 sm:gap-5 sm:px-6 sm:py-6 lg:px-8">
         {!hideOfflinePanels ? <OfflinePrepPanel /> : null}
         {!hideOfflinePanels ? <AppUpdatePanel /> : null}
         <div className="glass-surface overflow-visible rounded-2xl p-3 sm:p-4">
           <StudioToolbar />
         </div>
 
-        <StudioPrivacyStrip />
-
         {files.length === 0 ? (
           <>
-            <DropZone className="min-h-[55vh]" />
-            <p className="text-center text-sm text-muted-foreground">
-              {seo.dropHint ??
-                'Or pick a preset and start — defaults to Web Optimized (WebP, max 1920px)'}
-            </p>
+            <DropZone className="min-h-[min(55vh,32rem)] flex-1" />
+            <StudioPrivacyStrip />
+            {seo.dropHint ? (
+              <p className="text-center text-sm text-muted-foreground">{seo.dropHint}</p>
+            ) : null}
           </>
         ) : (
           <>
+            {queueStatus ? (
+              <p className="text-center font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+                {queueStatus}
+              </p>
+            ) : null}
+
             <div className="lg:hidden">
-              <div className="flex gap-2 overflow-x-auto pb-2">
+              <div className="overflow-x-auto pb-1">
                 <FileQueue />
               </div>
             </div>
 
-            <div className="grid flex-1 gap-5 lg:grid-cols-[240px_1fr_320px]">
+            <div className="grid flex-1 gap-5 pb-24 lg:grid-cols-[240px_1fr_320px] lg:pb-0">
               <aside className="hidden lg:block">
                 <FileQueue />
               </aside>
@@ -237,28 +289,68 @@ export function StudioPage({ search }: { search: StudioSearch }) {
               </aside>
             </div>
 
-            <div className="fixed bottom-6 right-6 lg:hidden">
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button
-                    size="lg"
-                    className="size-14 rounded-full shadow-lg shadow-primary/20"
+            <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/50 bg-background/90 px-4 py-3 backdrop-blur-xl lg:hidden">
+              <div className="mx-auto flex max-w-7xl items-center gap-2">
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-10 gap-2">
+                      <SlidersHorizontal className="size-4" />
+                      Settings
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent
+                    side="bottom"
+                    className="max-h-[85vh] overflow-y-auto border-border/50 bg-background/95 backdrop-blur-xl"
                   >
-                    <SlidersHorizontal className="size-5" />
+                    <SheetHeader>
+                      <SheetTitle>Settings</SheetTitle>
+                    </SheetHeader>
+                    <div className="mt-4 pb-8">
+                      <SettingsPanel />
+                    </div>
+                  </SheetContent>
+                </Sheet>
+
+                {isProcessing ? (
+                  <Button size="sm" className="h-10 flex-1 gap-2" disabled>
+                    <Loader2 className="size-4 animate-spin" />
+                    Processing…
                   </Button>
-                </SheetTrigger>
-                <SheetContent
-                  side="bottom"
-                  className="max-h-[85vh] overflow-y-auto border-border/50 bg-background/95 backdrop-blur-xl"
-                >
-                  <SheetHeader>
-                    <SheetTitle>Pipeline Settings</SheetTitle>
-                  </SheetHeader>
-                  <div className="mt-4 pb-8">
-                    <SettingsPanel />
-                  </div>
-                </SheetContent>
-              </Sheet>
+                ) : pendingCount > 0 ? (
+                  <Button
+                    size="sm"
+                    className="h-10 flex-1 gap-2"
+                    onClick={() => void processAll()}
+                    disabled={!canProcess}
+                  >
+                    <Play className="size-4" />
+                    Re-process ({pendingCount})
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    className="h-10 flex-1 gap-2"
+                    onClick={() => void handleMobileDownload()}
+                    disabled={!canDownload}
+                  >
+                    <Download className="size-4" />
+                    Download ({doneCount})
+                  </Button>
+                )}
+
+                {pendingCount > 0 && canDownload ? (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="h-10 gap-2"
+                    onClick={() => void handleMobileDownload()}
+                    disabled={!canDownload}
+                  >
+                    <Download className="size-4" />
+                    {doneCount}
+                  </Button>
+                ) : null}
+              </div>
             </div>
           </>
         )}
@@ -269,26 +361,15 @@ export function StudioPage({ search }: { search: StudioSearch }) {
   )
 }
 
-const PRIVACY_BADGES = [
-  { icon: ServerOff, label: 'Files never uploaded' },
-  { icon: HardDriveDownload, label: 'Processed in your browser' },
-  { icon: UserX, label: 'No account needed' },
-  { icon: Lock, label: 'Nothing stored or shared' },
-] as const
-
 function StudioPrivacyStrip() {
   return (
-    <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
-      {PRIVACY_BADGES.map(({ icon: Icon, label }) => (
-        <span
-          key={label}
-          className="flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground"
-        >
-          <Icon className="size-3 shrink-0 text-primary" aria-hidden="true" />
-          {label}
-        </span>
-      ))}
-    </div>
+    <p className="mx-auto max-w-2xl text-center font-mono text-[11px] leading-relaxed text-muted-foreground">
+      Files never uploaded · Processed in your browser · No account needed ·{' '}
+      <Link to="/privacy" className="text-primary/90 underline-offset-2 hover:underline">
+        Nothing stored or shared
+      </Link>
+      <Lock className="ml-1 inline size-3 align-text-top text-primary/70" aria-hidden />
+    </p>
   )
 }
 

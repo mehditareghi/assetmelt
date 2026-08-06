@@ -31,6 +31,7 @@ import {
 export function SettingsPanel() {
   const pipeline = useStudioStore((s) => s.pipeline)
   const isAdvancedMode = useStudioStore((s) => s.isAdvancedMode)
+  const setAdvancedMode = useStudioStore((s) => s.setAdvancedMode)
   const isCropEditing = useStudioStore((s) => s.isCropEditing)
   const cancelCropEdit = useStudioStore((s) => s.cancelCropEdit)
   const commitCropEdit = useStudioStore((s) => s.commitCropEdit)
@@ -52,6 +53,22 @@ export function SettingsPanel() {
 
   return (
     <div className="flex flex-col gap-4">
+      <div className="flex items-center justify-between gap-3 rounded-xl border border-border/40 bg-background/30 px-3 py-2.5">
+        <div className="min-w-0">
+          <p className="text-sm font-medium">Advanced</p>
+          <p className="font-mono text-[11px] text-muted-foreground">
+            Codec method, effort, and resize color options
+          </p>
+        </div>
+        <Switch
+          id="settings-advanced"
+          checked={isAdvancedMode}
+          onCheckedChange={setAdvancedMode}
+          disabled={isCropEditing}
+          aria-label="Advanced settings"
+        />
+      </div>
+
       {isCropEditing && (
         <div className="glass-surface space-y-2 rounded-xl border-primary/20 p-3 ring-1 ring-primary/20">
           <p className="text-xs text-foreground">

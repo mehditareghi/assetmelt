@@ -57,8 +57,9 @@ const PRESET_ICON_MAP: Record<PresetIconId, LucideIcon> = {
 }
 
 export function getPresetIcon(id: string): LucideIcon {
-  if (id in PRESET_ICON_MAP) {
-    return PRESET_ICON_MAP[id as PresetIconId]
+  const resolved = id === 'linkedin-share' || id === 'reddit-post' ? 'og-image' : id
+  if (resolved in PRESET_ICON_MAP) {
+    return PRESET_ICON_MAP[resolved as PresetIconId]
   }
   if (id.startsWith('custom-')) return PRESET_ICON_MAP.custom
   return Sparkles

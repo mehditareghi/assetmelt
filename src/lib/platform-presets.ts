@@ -49,7 +49,7 @@ export const PLATFORM_PRESET_GROUPS: Array<{
   id: PlatformPresetGroup
   label: string
 }> = [
-  { id: 'link', label: 'Link previews' },
+  { id: 'link', label: 'Link preview' },
   { id: 'instagram', label: 'Instagram' },
   { id: 'video', label: 'Video' },
   { id: 'site', label: 'Site assets' },
@@ -60,6 +60,16 @@ export type PlatformPreset = Preset & {
   group: PlatformPresetGroup
   icon?: string
   platform?: PlatformPresetOptions
+}
+
+/** Legacy platform ids that map onto the consolidated link-preview canvas. */
+export const PLATFORM_PRESET_ALIASES: Record<string, string> = {
+  'linkedin-share': 'og-image',
+  'reddit-post': 'og-image',
+}
+
+export function resolvePlatformPresetId(presetId: string): string {
+  return PLATFORM_PRESET_ALIASES[presetId] ?? presetId
 }
 
 export interface PlatformWorkflowVariant {
@@ -83,8 +93,8 @@ export const PLATFORM_BUILT_IN_PRESETS: PlatformPreset[] = [
     id: 'og-image',
     category: 'platform',
     group: 'link',
-    name: 'Open Graph',
-    description: '1200×630 JPEG — link previews (Facebook, Slack, Discord)',
+    name: 'Link preview',
+    description: '1200×630 · Facebook, Slack, Discord, LinkedIn, Reddit',
     platform: { suggestedCropAspect: '40:21', autoCrop: true },
     config: {
       outputFormat: 'jpeg',
@@ -95,41 +105,11 @@ export const PLATFORM_BUILT_IN_PRESETS: PlatformPreset[] = [
     },
   },
   {
-    id: 'linkedin-share',
-    category: 'platform',
-    group: 'link',
-    name: 'LinkedIn share',
-    description: '1200×627 JPEG — feed link image',
-    platform: { suggestedCropAspect: '40:21', autoCrop: true },
-    config: {
-      outputFormat: 'jpeg',
-      filenamePattern: '{name}-linkedin.{ext}',
-      stripMetadata: true,
-      resize: platformExactResize(1200, 627),
-      crop: cropHint('40:21'),
-    },
-  },
-  {
-    id: 'reddit-post',
-    category: 'platform',
-    group: 'link',
-    name: 'Reddit post',
-    description: '1200×628 JPEG — image posts & link previews',
-    platform: { suggestedCropAspect: '40:21', autoCrop: true },
-    config: {
-      outputFormat: 'jpeg',
-      filenamePattern: '{name}-reddit.{ext}',
-      stripMetadata: true,
-      resize: platformExactResize(1200, 628),
-      crop: cropHint('40:21'),
-    },
-  },
-  {
     id: 'youtube-thumbnail',
     category: 'platform',
     group: 'video',
     name: 'YouTube thumbnail',
-    description: '1280×720 JPEG — video thumbnail',
+    description: '1280×720 · video thumbnail',
     platform: { suggestedCropAspect: '16:9', autoCrop: true },
     config: {
       outputFormat: 'jpeg',
@@ -143,8 +123,8 @@ export const PLATFORM_BUILT_IN_PRESETS: PlatformPreset[] = [
     id: 'instagram-square',
     category: 'platform',
     group: 'instagram',
-    name: 'Instagram feed (1:1)',
-    description: '1080×1080 JPEG — square posts',
+    name: 'Instagram feed',
+    description: '1080×1080 · square posts',
     platform: { suggestedCropAspect: '1:1', autoCrop: true },
     config: {
       outputFormat: 'jpeg',
@@ -158,8 +138,8 @@ export const PLATFORM_BUILT_IN_PRESETS: PlatformPreset[] = [
     id: 'instagram-portrait',
     category: 'platform',
     group: 'instagram',
-    name: 'Instagram portrait (4:5)',
-    description: '1080×1350 JPEG — portrait feed posts',
+    name: 'Instagram portrait',
+    description: '1080×1350 · 4:5 feed posts',
     platform: { suggestedCropAspect: '4:5', autoCrop: true },
     config: {
       outputFormat: 'jpeg',
@@ -174,7 +154,7 @@ export const PLATFORM_BUILT_IN_PRESETS: PlatformPreset[] = [
     category: 'platform',
     group: 'instagram',
     name: 'Instagram story / Reels',
-    description: '1080×1920 JPEG — stories and Reels cover',
+    description: '1080×1920 · stories and Reels cover',
     platform: { suggestedCropAspect: '9:16', autoCrop: true },
     config: {
       outputFormat: 'jpeg',
@@ -189,7 +169,7 @@ export const PLATFORM_BUILT_IN_PRESETS: PlatformPreset[] = [
     category: 'platform',
     group: 'instagram',
     name: 'Instagram landscape',
-    description: '1080×566 JPEG — wide feed posts (~1.91:1)',
+    description: '1080×566 · wide feed posts',
     platform: { suggestedCropAspect: '40:21', autoCrop: true },
     config: {
       outputFormat: 'jpeg',
@@ -204,7 +184,7 @@ export const PLATFORM_BUILT_IN_PRESETS: PlatformPreset[] = [
     category: 'platform',
     group: 'site',
     name: 'Favicon kit',
-    description: '512×512 PNG preview — export zip for 16/32/180/512',
+    description: '16 / 32 / 180 / 512 PNG icons in one zip',
     config: {
       outputFormat: 'png',
       filenamePattern: '{name}-favicon-512.{ext}',
@@ -271,5 +251,7 @@ export function getActivePlatformWorkflow(activePresetId: string): PlatformWorkf
 }
 
 export function getPlatformPreset(id: string): PlatformPreset | undefined {
-  return PLATFORM_BUILT_IN_PRESETS.find((preset) => preset.id === id)
+  return PLATFORM_BUILT_IN_PRESETS.find(
+    (preset) => preset.id === resolvePlatformPresetId(id),
+  )
 }

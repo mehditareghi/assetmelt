@@ -1,0 +1,175 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+vi.mock('@/lib/analytics', () => ({
+  trackFilesAdded: vi.fn(),
+  trackFilesProcessed: vi.fn(),
+}))
+
+vi.mock('@/lib/image/worker-bridge', () => ({
+  createWasmPreviewInWorker: vi.fn(),
+  processImageInWorker: vi.fn(async () => ({
+    buffer: new ArrayBuffer(8),
+    mimeType: 'image/webp',
+    outputName: 'out.webp',
+    stats: {
+      originalSize: 100,
+      outputSize: 40,
+      originalWidth: 10,
+      originalHeight: 10,
+      outputWidth: 10,
+      outputHeight: 10,
+      savingsPercent: 60,
+    },
+  })),
+}))
+
+vi.mock('@/lib/image/dimensions', () => ({
+  getImageDimensions: vi.fn(async () => ({ width: 10, height: 10 })),
+}))
+
+vi.mock('@/lib/image/heic', () => ({
+  prepareFileForProcessing: vi.fn(async (file: File, inputFormat: string) => ({
+    file,
+    inputFormat,
+  })),
+  resolveHeicInputFormat: vi.fn(async (_file: File, inputFormat: string) => inputFormat),
+}))
+
+vi.mock('@/lib/image/format-detection', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/image/format-detection')>(
+    '@/lib/image/format-detection',
+  )
+  return {
+    ...actual,
+    detectFormatFromBuffer: vi.fn(() => 'jpeg'),
+    isImageFile: vi.fn(() => true),
+  }
+})
+
+vi.mock('@/lib/image/browser-display', () => ({
+  createPreviewObjectUrl: vi.fn(() => 'blob:preview'),
+  needsWasmPreview: vi.fn(() => false),
+}))
+
+vi.mock('@/lib/platform-presets', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/platform-presets')>(
+    '@/lib/platform-presets',
+  )
+  return {
+    ...actual,
+    getActivePlatformWorkflow: vi.fn(() => null),
+  }
+})
+
+import { trackFilesProcessed } from '@/lib/analytics'
+import { processImageInWorker } from '@/lib/image/worker-bridge'
+import { useStudioStore } from '@/stores/studio-store'
+
+function tinyJpegFile(name = 'photo.jpg') {
+  return new File([new Uint8Array([0xff, 0xd8, 0xff, 0xd9])], name, {
+    type: 'image/jpeg',
+  })
+}
+
+describe('studio hybrid processing', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    useStudioStore.setState({
+      files: [],
+      activeFileId: null,
+      isCropEditing: false,
+      isProcessing: false,
+      isPipelineModified: false,
+    })
+  })
+
+  afterEach(() => {
+    useStudioStore.getState().clearFiles()
+  })
+
+  it('auto-processes newly added files', async () => {
+    await useStudioStore.getState().addFiles([tinyJpegFile()])
+
+    await vi.waitFor(() => {
+      expect(useStudioStore.getState().files[0]?.status).toBe('done')
+    })
+
+    expect(processImageInWorker).toHaveBeenCalled()
+    expect(trackFilesProcessed).toHaveBeenCalledWith(
+      expect.objectContaining({
+        file_count: 1,
+        succeeded: 1,
+        failed: 0,
+      }),
+    )
+  })
+
+  it('skips auto-process while crop editing', async () => {
+    useStudioStore.setState({ isCropEditing: true })
+    await useStudioStore.getState().addFiles([tinyJpegFile()])
+
+    expect(useStudioStore.getState().files[0]?.status).toBe('pending')
+    expect(processImageInWorker).not.toHaveBeenCalled()
+  })
+
+  it('marks done results pending when pipeline settings change', async () => {
+    await useStudioStore.getState().addFiles([tinyJpegFile()])
+    await vi.waitFor(() => {
+      expect(useStudioStore.getState().files[0]?.status).toBe('done')
+    })
+
+    useStudioStore.getState().updatePipeline({
+      stripMetadata: !useStudioStore.getState().pipeline.stripMetadata,
+    })
+
+    expect(useStudioStore.getState().files[0]?.status).toBe('pending')
+    expect(useStudioStore.getState().files[0]?.resultBlob).toBeUndefined()
+  })
+
+  it('marks done results pending when applying a preset', async () => {
+    await useStudioStore.getState().addFiles([tinyJpegFile()])
+    await vi.waitFor(() => {
+      expect(useStudioStore.getState().files[0]?.status).toBe('done')
+    })
+
+    useStudioStore.getState().applyPresetById('thumbnail')
+
+    expect(useStudioStore.getState().files[0]?.status).toBe('pending')
+  })
+
+  it('processAll only runs pending and error files', async () => {
+    await useStudioStore.getState().addFiles([tinyJpegFile('a.jpg')])
+    await vi.waitFor(() => {
+      expect(useStudioStore.getState().files[0]?.status).toBe('done')
+    })
+
+    const callsAfterAuto = vi.mocked(processImageInWorker).mock.calls.length
+    await useStudioStore.getState().processAll()
+    expect(vi.mocked(processImageInWorker).mock.calls.length).toBe(callsAfterAuto)
+
+    useStudioStore.getState().updatePipeline({
+      stripMetadata: !useStudioStore.getState().pipeline.stripMetadata,
+    })
+    await useStudioStore.getState().processAll()
+    await vi.waitFor(() => {
+      expect(useStudioStore.getState().files[0]?.status).toBe('done')
+    })
+    expect(vi.mocked(processImageInWorker).mock.calls.length).toBeGreaterThan(callsAfterAuto)
+  })
+})
+
+describe('studioQueueStatus', () => {
+  it('describes processing, stale, and ready states', async () => {
+    const { studioQueueStatus } = await import('@/components/studio/studio-toolbar')
+    expect(studioQueueStatus([])).toBeNull()
+    expect(
+      studioQueueStatus([{ status: 'processing' }, { status: 'pending' }]),
+    ).toMatch(/Processing/)
+    expect(
+      studioQueueStatus([{ status: 'done' }, { status: 'pending' }]),
+    ).toBe('Settings changed — re-process to update')
+    expect(studioQueueStatus([{ status: 'done' }, { status: 'done' }])).toBe(
+      '2 files · 2 ready',
+    )
+  })
+})

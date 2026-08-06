@@ -8,7 +8,7 @@ import {
   BUILT_IN_PRESETS,
   type CustomPreset,
 } from '@/lib/presets'
-import { getActivePlatformWorkflow, type PlatformPreset } from '@/lib/platform-presets'
+import { getActivePlatformWorkflow, resolvePlatformPresetId, type PlatformPreset } from '@/lib/platform-presets'
 import {
   pickPrimaryWorkflowVariant,
   processPlatformWorkflowVariants,
@@ -197,6 +197,63 @@ function revokeFileResults(file: ProcessableFile) {
   revokeWorkflowResults(file.workflowResults)
 }
 
+/** Clear processed outputs so the next Process/Re-process run uses the current pipeline. */
+function invalidateDoneResults(set: SetState, get: () => StudioState) {
+  const hasDone = get().files.some((f) => f.status === 'done')
+  if (!hasDone) return
+  set((state) => ({
+    files: state.files.map((f) => {
+      if (f.status !== 'done') return f
+      revokeFileResults(f)
+      return {
+        ...f,
+        status: 'pending' as const,
+        progress: 0,
+        error: undefined,
+        previewUrl: undefined,
+        resultUrl: undefined,
+        resultBlob: undefined,
+        resultName: undefined,
+        stats: undefined,
+        workflowResults: undefined,
+      }
+    }),
+  }))
+}
+
+async function processPendingByIds(
+  get: () => StudioState,
+  ids: string[],
+): Promise<void> {
+  if (get().isCropEditing || ids.length === 0) return
+
+  let succeeded = 0
+  let failed = 0
+  let attempted = 0
+
+  for (const id of ids) {
+    if (get().isCropEditing) break
+    const file = get().files.find((f) => f.id === id)
+    if (!file || (file.status !== 'pending' && file.status !== 'error')) continue
+    attempted += 1
+    await get().processFile(id)
+    const updated = get().files.find((f) => f.id === id)
+    if (updated?.status === 'done') succeeded += 1
+    else if (updated?.status === 'error') failed += 1
+  }
+
+  if (attempted === 0) return
+
+  const { pipeline, activePresetId } = get()
+  trackFilesProcessed({
+    file_count: attempted,
+    succeeded,
+    failed,
+    output_format: pipeline.encode.format,
+    preset_id: activePresetId,
+  })
+}
+
 export const useStudioStore = create<StudioState>()(
   persist(
     (set, get) => ({
@@ -322,6 +379,16 @@ export const useStudioStore = create<StudioState>()(
             has_heic: added.some((file) => file.inputFormat === 'heic'),
           })
         }
+
+        // Hybrid: auto-process newly added files with the active preset.
+        if (!get().isCropEditing) {
+          const autoIds = added
+            .filter((file) => file.status === 'pending')
+            .map((file) => file.id)
+          if (autoIds.length > 0) {
+            void processPendingByIds(get, autoIds)
+          }
+        }
       },
 
       removeFile: (id) => {
@@ -400,6 +467,9 @@ export const useStudioStore = create<StudioState>()(
           },
           isPipelineModified: true,
         }))
+        if (!get().isCropEditing) {
+          invalidateDoneResults(set, get)
+        }
       },
 
       syncCropFromActiveFile: () => {
@@ -414,6 +484,9 @@ export const useStudioStore = create<StudioState>()(
           ...get().pipeline,
           crop: createFullImageCrop(cropSpace.width, cropSpace.height),
         })
+        if (!get().isCropEditing) {
+          invalidateDoneResults(set, get)
+        }
       },
 
       beginCropEdit: () => {
@@ -442,6 +515,7 @@ export const useStudioStore = create<StudioState>()(
       setPipeline: (pipeline, options) => {
         if (get().isCropEditing) return
         replacePipeline(set, get, pipeline, options)
+        invalidateDoneResults(set, get)
       },
 
       updatePipeline: (partial, options) => {
@@ -482,6 +556,10 @@ export const useStudioStore = create<StudioState>()(
               (partial.crop !== undefined ? CROP_HISTORY_DEBOUNCE_MS : undefined) ??
               (partial.filters !== undefined ? HISTORY_DEBOUNCE_MS : undefined)),
         })
+        // Crop-session edits stay live until Done; don't invalidate mid-edit.
+        if (!get().isCropEditing) {
+          invalidateDoneResults(set, get)
+        }
       },
 
       flushPipelineHistory: () => {
@@ -505,6 +583,7 @@ export const useStudioStore = create<StudioState>()(
             isCropEditing: false,
             isPipelineModified: true,
           }))
+          invalidateDoneResults(set, get)
           return
         }
         set({ isCropEditing: false })
@@ -522,6 +601,7 @@ export const useStudioStore = create<StudioState>()(
           isPipelineModified: true,
           isCropEditing: false,
         })
+        invalidateDoneResults(set, get)
       },
 
       redo: () => {
@@ -536,6 +616,7 @@ export const useStudioStore = create<StudioState>()(
           isPipelineModified: true,
           isCropEditing: false,
         })
+        invalidateDoneResults(set, get)
       },
 
       canUndo: () => {
@@ -553,7 +634,8 @@ export const useStudioStore = create<StudioState>()(
       applyPresetById: (presetId) => {
         if (get().isCropEditing) return
         flushDebouncedHistory(set)
-        const builtIn = BUILT_IN_PRESETS.find((p) => p.id === presetId)
+        const resolvedId = resolvePlatformPresetId(presetId)
+        const builtIn = BUILT_IN_PRESETS.find((p) => p.id === resolvedId)
         if (builtIn) {
           const prev = get().pipeline
           let next = applyPreset(builtIn)
@@ -577,10 +659,11 @@ export const useStudioStore = create<StudioState>()(
           set({
             pipeline: next,
             pipelineHistory: commitPipelineChange(history, prev, next),
-            activePresetId: presetId,
+            activePresetId: resolvedId,
             isPipelineModified: false,
             isCropEditing: false,
           })
+          invalidateDoneResults(set, get)
           return
         }
         const custom = get().customPresets.find((p) => p.id === presetId)
@@ -605,6 +688,7 @@ export const useStudioStore = create<StudioState>()(
             isPipelineModified: false,
             isCropEditing: false,
           })
+          invalidateDoneResults(set, get)
         }
       },
 
@@ -738,27 +822,10 @@ export const useStudioStore = create<StudioState>()(
 
       processAll: async () => {
         if (get().isCropEditing) return
-        const { files, processFile } = get()
-        const pending = files.filter((f) => f.status !== 'processing')
-        if (pending.length === 0) return
-
-        let succeeded = 0
-        let failed = 0
-        for (const file of pending) {
-          await processFile(file.id)
-          const updated = get().files.find((f) => f.id === file.id)
-          if (updated?.status === 'done') succeeded += 1
-          else if (updated?.status === 'error') failed += 1
-        }
-
-        const { pipeline, activePresetId } = get()
-        trackFilesProcessed({
-          file_count: pending.length,
-          succeeded,
-          failed,
-          output_format: pipeline.encode.format,
-          preset_id: activePresetId,
-        })
+        const pendingIds = get()
+          .files.filter((f) => f.status === 'pending' || f.status === 'error')
+          .map((f) => f.id)
+        await processPendingByIds(get, pendingIds)
       },
 
       saveCustomPreset: (name) => {
@@ -813,6 +880,7 @@ export const useStudioStore = create<StudioState>()(
           isPipelineModified: true,
           isCropEditing: false,
         })
+        invalidateDoneResults(set, get)
       },
     }),
     {
@@ -869,6 +937,7 @@ export const useStudioStore = create<StudioState>()(
           state.activePresetId = 'web-optimized'
           state.isPipelineModified = true
         }
+        state.activePresetId = resolvePlatformPresetId(state.activePresetId)
         const presetExists =
           BUILT_IN_PRESETS.some((preset) => preset.id === state.activePresetId) ||
           state.customPresets.some((preset) => preset.id === state.activePresetId)

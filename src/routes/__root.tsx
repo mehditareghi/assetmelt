@@ -16,7 +16,7 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import { Toaster } from '@/components/ui/sonner'
 import { PwaManager } from '@/components/pwa/pwa-manager'
 import { RouteError } from '@/components/sentry/route-error'
-import { SentryVerifyPanel } from '@/components/sentry/sentry-verify-panel'
+// import { SentryVerifyPanel } from '@/components/sentry/sentry-verify-panel'
 import { documentBootstrapScript } from '@/lib/pwa/register-sw'
 import { getAppVersion } from '@/lib/app-version-fn'
 import { AppVersionProvider } from '@/lib/version'
@@ -71,7 +71,7 @@ function RootComponent() {
             <PwaManager />
             <Toaster richColors position="bottom-right" />
             {import.meta.env.DEV && <TanStackRouterDevtools />}
-            <SentryVerifyPanel />
+            {/* <SentryVerifyPanel /> */}
           </TooltipProvider>
         </ThemeProvider>
       </AppVersionProvider>
