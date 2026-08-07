@@ -7,9 +7,9 @@ import {
   useOptionalOfflinePrepContext,
 } from '@/lib/pwa/offline-prep-context'
 
-function SiteLayoutFrame() {
+function SiteLayoutFrame({ isStudio }: { isStudio: boolean }) {
   const offlinePrep = useOptionalOfflinePrepContext()
-  const hideChrome = offlinePrep?.offlineStudioChrome ?? false
+  const hideChrome = isStudio && (offlinePrep?.offlineStudioChrome ?? false)
 
   if (hideChrome) {
     return (
@@ -41,13 +41,9 @@ export function SiteLayout() {
     return () => window.clearTimeout(timer)
   }, [pathname, hash])
 
-  if (isStudio) {
-    return (
-      <OfflinePrepProvider>
-        <SiteLayoutFrame />
-      </OfflinePrepProvider>
-    )
-  }
-
-  return <SiteLayoutFrame />
+  return (
+    <OfflinePrepProvider>
+      <SiteLayoutFrame isStudio={isStudio} />
+    </OfflinePrepProvider>
+  )
 }

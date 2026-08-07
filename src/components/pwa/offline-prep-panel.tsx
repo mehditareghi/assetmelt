@@ -5,7 +5,7 @@ import {
   formatOfflineSize,
   offlineAssetLabel,
 } from '@/lib/pwa/offline-prep'
-import { useOfflinePrepContext } from '@/lib/pwa/offline-prep-context'
+import { useOptionalOfflinePrepContext } from '@/lib/pwa/offline-prep-context'
 import {
   AlertCircle,
   Download,
@@ -17,8 +17,10 @@ import {
 import type { ReactNode } from 'react'
 
 export function OfflinePrepPanel() {
+  const offlinePrep = useOptionalOfflinePrepContext()
+  if (!offlinePrep?.visible) return null
+
   const {
-    visible,
     status,
     manifest,
     progress,
@@ -30,9 +32,7 @@ export function OfflinePrepPanel() {
     dismissPrompt,
     dismissReady,
     refresh,
-  } = useOfflinePrepContext()
-
-  if (!visible) return null
+  } = offlinePrep
 
   if (status === 'ready' && readyDismissed) return null
   if ((status === 'not-ready' || status === 'unsupported') && promptDismissed) return null
