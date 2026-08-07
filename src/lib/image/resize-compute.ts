@@ -7,6 +7,23 @@ export interface ComputedResize {
   skipped: boolean
 }
 
+const RESIZE_DIM_MIN = 1
+const RESIZE_DIM_MAX = 16384
+const RESIZE_PERCENTAGE_MIN = 1
+const RESIZE_PERCENTAGE_MAX = 400
+
+export function clampResizeDimension(value: unknown, fallback: number): number {
+  const n = typeof value === 'number' ? value : Number(value)
+  if (!Number.isFinite(n)) return fallback
+  return Math.min(RESIZE_DIM_MAX, Math.max(RESIZE_DIM_MIN, Math.round(n)))
+}
+
+function clampResizePercentage(value: unknown, fallback: number): number {
+  const n = typeof value === 'number' ? value : Number(value)
+  if (!Number.isFinite(n)) return fallback
+  return Math.min(RESIZE_PERCENTAGE_MAX, Math.max(RESIZE_PERCENTAGE_MIN, n))
+}
+
 /** Normalize legacy persisted resize configs. */
 export function normalizeResizeConfig(resize: ResizeConfig & Record<string, unknown>): ResizeConfig {
   const legacy = resize as ResizeConfig & {
@@ -21,13 +38,13 @@ export function normalizeResizeConfig(resize: ResizeConfig & Record<string, unkn
     legacy.lockAspectRatio ?? legacy.maintainAspect ?? true
 
   let mode = legacy.mode ?? 'maxSide'
-  let width = legacy.width ?? 1920
-  let height = legacy.height ?? 1080
+  let width = clampResizeDimension(legacy.width, 1920)
+  let height = clampResizeDimension(legacy.height, 1080)
 
   if (!legacy.mode && legacy.maxDimension) {
     mode = 'maxSide'
-    width = legacy.maxDimension
-    height = legacy.maxDimension
+    width = clampResizeDimension(legacy.maxDimension, 1920)
+    height = width
   }
 
   return {
@@ -35,7 +52,7 @@ export function normalizeResizeConfig(resize: ResizeConfig & Record<string, unkn
     mode,
     width,
     height,
-    percentage: legacy.percentage ?? 100,
+    percentage: clampResizePercentage(legacy.percentage, 100),
     lockAspectRatio,
     lockTargetDimensions: legacy.lockTargetDimensions ?? false,
     method: legacy.method ?? 'lanczos3',

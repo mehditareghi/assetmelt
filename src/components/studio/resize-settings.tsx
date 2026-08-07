@@ -61,6 +61,13 @@ export function ResizeSettings({ pipeline, isAdvanced, onUpdate }: ResizeSetting
     onUpdate({ resize: { ...resize, ...partial } })
   }
 
+  /** Ignore empty/invalid number input so Zod history clones never see 0/NaN. */
+  const updateResizeDimension = (field: 'width' | 'height', rawValue: string) => {
+    const value = Number.parseInt(rawValue, 10)
+    if (!Number.isFinite(value) || value < 1) return
+    updateResize({ [field]: Math.min(16384, value) })
+  }
+
   const handleEnable = (enabled: boolean) => {
     if (enabled && hasSource) {
       onUpdate({
@@ -184,8 +191,9 @@ export function ResizeSettings({ pipeline, isAdvanced, onUpdate }: ResizeSetting
               <Input
                 type="number"
                 min={1}
+                max={16384}
                 value={resize.width}
-                onChange={(e) => updateResize({ width: Number(e.target.value) })}
+                onChange={(e) => updateResizeDimension('width', e.target.value)}
                 className="font-mono"
               />
             </div>
@@ -197,8 +205,9 @@ export function ResizeSettings({ pipeline, isAdvanced, onUpdate }: ResizeSetting
               <Input
                 type="number"
                 min={1}
+                max={16384}
                 value={resize.width}
-                onChange={(e) => updateResize({ width: Number(e.target.value) })}
+                onChange={(e) => updateResizeDimension('width', e.target.value)}
                 className="font-mono"
               />
             </div>
@@ -210,8 +219,9 @@ export function ResizeSettings({ pipeline, isAdvanced, onUpdate }: ResizeSetting
               <Input
                 type="number"
                 min={1}
+                max={16384}
                 value={resize.height}
-                onChange={(e) => updateResize({ height: Number(e.target.value) })}
+                onChange={(e) => updateResizeDimension('height', e.target.value)}
                 className="font-mono"
               />
             </div>
@@ -225,8 +235,9 @@ export function ResizeSettings({ pipeline, isAdvanced, onUpdate }: ResizeSetting
                   <Input
                     type="number"
                     min={1}
+                    max={16384}
                     value={resize.width}
-                    onChange={(e) => updateResize({ width: Number(e.target.value) })}
+                    onChange={(e) => updateResizeDimension('width', e.target.value)}
                     className="font-mono"
                   />
                 </div>
@@ -235,8 +246,9 @@ export function ResizeSettings({ pipeline, isAdvanced, onUpdate }: ResizeSetting
                   <Input
                     type="number"
                     min={1}
+                    max={16384}
                     value={resize.height}
-                    onChange={(e) => updateResize({ height: Number(e.target.value) })}
+                    onChange={(e) => updateResizeDimension('height', e.target.value)}
                     className="font-mono"
                   />
                 </div>
