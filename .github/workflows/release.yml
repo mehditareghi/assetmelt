@@ -125,13 +125,17 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
       - name: Build for production
-        run: pnpm run build
+        run: npx vercel@latest build --prod --token="$VERCEL_TOKEN"
         env:
-          VERCEL: '1'
-          VERCEL_ENV: production
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
           APP_VERSION: ${{ needs.release.outputs.version }}
+          SENTRY_RELEASE: ${{ needs.release.outputs.version }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          CI: 'true'
           HUSKY: '0'
+          NODE_OPTIONS: --max-old-space-size=6144
 
       - name: Deploy to Vercel production
         id: deploy
@@ -144,15 +148,17 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-      - name: Record Sentry deploy
+      - name: Create Sentry release
+        uses: getsentry/action-release@v3
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-        run: |
-          pnpm exec sentry-cli releases deploys "${{ needs.release.outputs.version }}" new \
-            -e production \
-            --org assetmelt \
-            --project assetmelt-web \
-            --url "${{ steps.deploy.outputs.url }}"
+          SENTRY_ORG: assetmelt
+          SENTRY_PROJECT: assetmelt-web
+        with:
+          environment: production
+          release: ${{ needs.release.outputs.version }}
+          set_commits: auto
+          ignore_missing: true
 
       - name: Deploy summary
         run: |
