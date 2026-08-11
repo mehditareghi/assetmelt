@@ -7,6 +7,13 @@
     <language>en-us</language>
     <atom:link href="https://assetmelt.com/rss.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>Privacy-First Image Compression: Why Local Beats Upload Tools</title>
+      <link>https://assetmelt.com/blog/image-compression/privacy-first-image-compression</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/image-compression/privacy-first-image-compression</guid>
+      <description>Learn what privacy-first image compression really means — why upload compressors expose EXIF and GPS data, how to verify files never leave your device, and how to still ship small AVIF and WebP assets.</description>
+      <pubDate>Tue, 11 Aug 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
       <title>HEIC vs JPG: Which Format Should You Use?</title>
       <link>https://assetmelt.com/blog/format-conversion/heic-vs-jpg</link>
       <guid isPermaLink="true">https://assetmelt.com/blog/format-conversion/heic-vs-jpg</guid>
@@ -138,13 +145,6 @@
       <guid isPermaLink="true">https://assetmelt.com/blog/image-compression/squoosh-alternative-guide</guid>
       <description>Google shut down Squoosh.app — here's how Asset Melt compares as a client-side image compressor with batch processing, size budgets, HEIC support, and the same WASM codecs.</description>
       <pubDate>Mon, 01 Jun 2026 00:00:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>AVIF vs WebP in 2026: Which Format Should You Use?</title>
-      <link>https://assetmelt.com/blog/format-conversion/avif-vs-webp-2026</link>
-      <guid isPermaLink="true">https://assetmelt.com/blog/format-conversion/avif-vs-webp-2026</guid>
-      <description>AVIF vs WebP compared for web delivery — compression efficiency, browser support, encoding speed, and when to use each in your picture element fallback chain.</description>
-      <pubDate>Thu, 28 May 2026 00:00:00 GMT</pubDate>
     </item>
   </channel>
 </rss>

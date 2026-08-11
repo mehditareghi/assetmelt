@@ -27,6 +27,7 @@ const VALID_TOOL_IDS = new Set([
   'heic-to-jpg',
   'batch-image-compressor',
   'avif-compressor',
+  'privacy-first-image-compression',
 ])
 
 const VALID_CLUSTER_IDS = new Set([

@@ -8,7 +8,12 @@ import type { BlogCluster, BlogPostMeta } from '@/lib/blog/types'
 import { getRelatedToolPages } from '@/lib/tool-pages'
 
 const CLUSTER_TOOL_IDS = {
-  'image-compression': ['batch-image-compressor', 'avif-compressor', 'squoosh-alternative'],
+  'image-compression': [
+    'privacy-first-image-compression',
+    'batch-image-compressor',
+    'avif-compressor',
+    'squoosh-alternative',
+  ],
   'format-conversion': ['heic-to-jpg', 'batch-image-compressor', 'avif-compressor'],
   'performance-seo': ['batch-image-compressor', 'avif-compressor'],
 } as const satisfies Record<BlogCluster['id'], BlogPostMeta['relatedTools']>

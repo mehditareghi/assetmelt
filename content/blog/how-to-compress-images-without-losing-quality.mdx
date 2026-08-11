@@ -3,6 +3,7 @@ title: "How to Compress Images Without Losing Quality"
 description: "The complete guide to visually lossless image compression — resize first, choose the right format, tune quality carefully, hit byte budgets, and verify results before publishing to WordPress, Shopify, or the open web."
 slug: how-to-compress-images-without-losing-quality
 publishedAt: 2026-06-27
+updatedAt: 2026-08-11
 keywords:
   - compress images without losing quality
   - lossless image compression
@@ -15,6 +16,7 @@ heroImageAlt: "Glowing image card dissolving into smaller pixels while preservin
 relatedTools:
   - batch-image-compressor
   - avif-compressor
+  - privacy-first-image-compression
 faq:
   - question: "Can you compress images with no quality loss?"
     answer: "Yes for PNG and some WebP workflows with lossless compression, but most photo savings come from visually lossless lossy compression. The goal is no visible difference at the rendered size, not mathematically identical pixels."
@@ -400,8 +402,13 @@ Why local compression matters:
 | Batch speed | Upload/download latency | CPU-bound only |
 | Metadata | May retain on server logs | You control export |
 
-- **Full browser workflow:** [compress images in the browser](/blog/image-compression/compress-images-in-browser)
+Treat this section as a hub for the privacy slice of the cluster:
+
+- **Why privacy-first matters** (upload risk, EXIF/GPS, verification): [privacy-first image compression](/blog/image-compression/privacy-first-image-compression)
+- **How browser compression works** (WASM pipeline, presets, batch queues): [compress images in the browser](/blog/image-compression/compress-images-in-browser)
 - **Migrating from Squoosh:** [Squoosh alternative guide](/blog/image-compression/squoosh-alternative-guide)
+
+You can also start from the <ToolLink tool="privacy-first-image-compression">privacy-first tool page</ToolLink> when you want the product angle before the deep dives.
 
 <Callout title="Verify with DevTools" variant="tip">
 Open the Network tab while processing in Asset Melt. Legitimate client-side tools show zero image upload requests. If bytes leave your machine, so does any private EXIF metadata embedded in them.
@@ -443,7 +450,8 @@ This pillar introduces the cluster. Each guide below goes deep on one slice of t
 | [JPEG vs PNG vs WebP vs AVIF](/blog/image-compression/jpeg-vs-png-vs-webp-vs-avif) | Format comparison when quality tradeoffs confuse you |
 | [Compress images for WordPress](/blog/image-compression/compress-images-for-wordpress) | Pre-upload workflow for WP Media Library |
 | [Compress images for Shopify](/blog/image-compression/compress-images-for-shopify) | Product photos, banners, and collection images |
-| [Compress images in the browser](/blog/image-compression/compress-images-in-browser) | Privacy-first, client-side compression |
+| [Privacy-first image compression](/blog/image-compression/privacy-first-image-compression) | Why local beats upload tools — EXIF risk and verification |
+| [Compress images in the browser](/blog/image-compression/compress-images-in-browser) | Client-side WASM workflow, presets, and batch queues |
 | [Squoosh alternative guide](/blog/image-compression/squoosh-alternative-guide) | Migrating from Google's deprecated tool |
 
 Start here for principles. Jump to the guide that matches your immediate problem. Come back when your next batch needs a different preset.
