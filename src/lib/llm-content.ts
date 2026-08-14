@@ -66,6 +66,11 @@ export const FAQ_ITEMS = [
     answer:
       'Yes. Copy the recipe link in Studio. It puts the pipeline in a ?recipe= query — named preset or compact settings, never the image. Opening the link restores those settings locally.',
   },
+  {
+    question: 'Can I export AVIF, WebP, and JPEG in one run?',
+    answer:
+      'Yes. In Studio Format settings, use Also export to add extra codecs. One process run encodes every selected format. Download is a ZIP with a folder per format (avif/, webp/, jpeg/). A single-file queue downloads name-formats.zip; a multi-file queue downloads one assetmelt-batch.zip. JPEG fallback is optional and flattens transparency. Not available with favicon kits.',
+  },
 ] as const
 
 export const KEY_FEATURES = [
@@ -81,6 +86,7 @@ export const KEY_FEATURES = [
   'Keyboard shortcuts overlay (? in Studio)',
   'Filename tokens {name} {ext} {width} {height} {quality} {date}',
   'Shareable recipe URLs (?recipe= preset or compact pipeline; no images)',
+  'Multi-format one-run (Also export AVIF / WebP / JPEG; ZIP folders per format)',
   'HEIC/HEIF input (decoded via JPEG quality 0.92)',
   'TIFF input (first page)',
   'Optional PWA offline pack (not automatic)',

@@ -95,6 +95,11 @@ const DEFAULT_FAQ: StudioFaqItem[] = [
     answer:
       'Yes. Copy the recipe link from the Studio toolbar. It stores the pipeline (preset or compact settings) in ?recipe= — photos never go in the URL. Opening the link restores those settings on this device.',
   },
+  {
+    question: 'Can I export AVIF, WebP, and JPEG in one run?',
+    answer:
+      'Yes. Under Format → Also export, toggle extra codecs (AVIF, WebP, and optional JPEG fallback). Process once; download is a ZIP with folders like avif/, webp/, jpeg/. One image in the queue → name-formats.zip; several images → one batch ZIP. JPEG fallback flattens transparency. Unavailable while a favicon kit is active.',
+  },
 ]
 
 const PAIR_TIPS: Partial<

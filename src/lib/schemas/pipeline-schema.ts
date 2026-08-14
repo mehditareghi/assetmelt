@@ -11,6 +11,10 @@ export const outputFormatSchema = z.enum([
 
 export type OutputFormat = z.infer<typeof outputFormatSchema>
 
+/** Formats that can ride along as extra ZIP outputs in a multi-format run. */
+export const alsoExportFormatSchema = z.enum(['avif', 'webp', 'jpeg'])
+export type AlsoExportFormat = z.infer<typeof alsoExportFormatSchema>
+
 export const resizeMethodSchema = z.enum([
   'triangle',
   'catrom',
@@ -230,14 +234,18 @@ export const pipelineSchema = z.object({
     targetBytes: 102_400,
     allowResize: true,
   }),
+  /**
+   * Extra codecs to encode in the same run (ZIP). Primary `outputFormat` is always first.
+   * Ignored under platform workflows (e.g. favicon kit).
+   */
+  alsoExportFormats: z.array(alsoExportFormatSchema).default([]),
   metadataMode: metadataModeSchema.optional(),
   /** @deprecated Prefer `metadataMode`. Accepted on parse for saved pipelines. */
   stripMetadata: z.boolean().optional(),
   filenamePattern: z.string().default('{name}-melted.{ext}'),
-}).transform((data) => {
+}).transform(({ stripMetadata, metadataMode: modeFromData, ...rest }) => {
   const metadataMode: MetadataMode =
-    data.metadataMode ?? (data.stripMetadata === false ? 'keep' : 'strip')
-  const { stripMetadata: _legacy, metadataMode: _mode, ...rest } = data
+    modeFromData ?? (stripMetadata === false ? 'keep' : 'strip')
   return { ...rest, metadataMode }
 })
 

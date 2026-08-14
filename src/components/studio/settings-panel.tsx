@@ -4,12 +4,14 @@ import { usePipelineForm } from '@/hooks/use-pipeline-form'
 import type { MetadataMode, PipelineConfig } from '@/lib/schemas/pipeline-schema'
 import type { PipelineChangeOptions } from '@/stores/pipeline-change'
 import { getDefaultEncodeOptions } from '@/lib/schemas/pipeline-schema'
+import { normalizeAlsoExportFormats } from '@/lib/multi-format'
 import { isSizeBudgetSupported } from '@/lib/image/size-budget-encode'
 import { SETTING_HELP } from '@/lib/setting-help'
 import { SettingLabel, SettingRow } from '@/components/studio/setting-label'
 import { CropSettings, ResizeSettings } from '@/components/studio/resize-settings'
 import { FilenamePatternField } from '@/components/studio/filename-pattern-field'
 import { SizeBudgetSettings } from '@/components/studio/size-budget-settings'
+import { AlsoExportFormatsSettings } from '@/components/studio/also-export-formats-settings'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -46,6 +48,10 @@ export function SettingsPanel() {
     const patch = { ...partial }
     if (partial.outputFormat) {
       patch.encode = getDefaultEncodeOptions(partial.outputFormat)
+      patch.alsoExportFormats = normalizeAlsoExportFormats({
+        outputFormat: partial.outputFormat,
+        alsoExportFormats: pipeline.alsoExportFormats,
+      })
     }
     updatePipeline(patch, options)
   }
@@ -138,6 +144,8 @@ export function SettingsPanel() {
             isAdvanced={isAdvancedMode}
             onChange={(encode) => update({ encode })}
           />
+
+          <AlsoExportFormatsSettings pipeline={pipeline} onUpdate={update} />
 
           <div className="space-y-2">
             <SettingLabel label="Metadata" help={SETTING_HELP.stripMetadata} />

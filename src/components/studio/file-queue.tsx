@@ -88,7 +88,7 @@ export function FileQueue() {
               )}
               {file.status === 'done' && file.workflowResults && file.workflowResults.length > 0 && (
                 <p className="mt-1 font-mono text-xs text-primary">
-                  {file.workflowResults.length} sizes ready
+                  {file.workflowResults.length} outputs ready
                 </p>
               )}
               {file.status === 'done' &&

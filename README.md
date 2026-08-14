@@ -14,6 +14,7 @@ Built with Vite, React, shadcn/ui, and Squoosh-grade WASM codecs (@jsquash).
 - **Keyboard shortcuts** — `?` cheatsheet in Studio; Cmd/Ctrl+Enter process, S download, K recipes
 - **Filename tokens** — `{name}` `{ext}` `{width}` `{height}` `{quality}` `{date}` in the pattern field, ZIP, and favicon kits
 - **Shareable recipes** — copy a `?recipe=` link (named preset or compact pipeline). Images never go in the URL
+- **Multi-format one-run** — Also export AVIF / WebP / optional JPEG; ZIP download uses a folder per format (`avif/`, `webp/`, `jpeg/`)
 - **Advanced mode** — Full codec parameter control
 - **Privacy** — 100% client-side, no server, no accounts
 

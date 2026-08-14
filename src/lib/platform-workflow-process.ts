@@ -9,7 +9,12 @@ import type { PlatformWorkflow } from '@/lib/platform-presets'
 
 export function pickPrimaryWorkflowVariant(
   results: WorkflowVariantResult[],
+  preferredVariantId?: string,
 ): WorkflowVariantResult {
+  if (preferredVariantId) {
+    const preferred = results.find((r) => r.variantId === preferredVariantId)
+    if (preferred) return preferred
+  }
   return (
     results.find((r) => r.variantId === 'favicon-512') ??
     results[results.length - 1] ??

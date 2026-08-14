@@ -22,3 +22,4 @@ Asset Melt is a browser-based image studio for developers and creators who need 
 - Studio keyboard shortcuts: press `?` for the cheatsheet; Cmd/Ctrl+Enter process, S download, K recipes
 - Filename tokens: `{name}` `{ext}` `{width}` `{height}` `{quality}` `{date}` on downloads, ZIP, and favicon kits
 - Shareable recipes: copy `?recipe=` from Studio (preset or compact pipeline; photos are not in the URL)
+- Multi-format one-run: Also export AVIF / WebP / optional JPEG; ZIP uses a folder per format (batch = one ZIP for the whole queue)

@@ -85,7 +85,14 @@ export function formatOutputFilename(
   })
 
   const safe = sanitizeSegment(rendered).replace(/^\.+/, '')
-  return safe || `${baseName}.${ext}`
+  // Never return a bare extension as the whole filename (e.g. pattern "{ext}" → "webp").
+  if (!safe || safe === ext) {
+    return `${baseName}.${ext}`
+  }
+  if (!safe.includes('.')) {
+    return `${safe}.${ext}`
+  }
+  return safe
 }
 
 export function insertFilenameToken(

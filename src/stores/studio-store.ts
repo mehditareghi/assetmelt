@@ -13,6 +13,10 @@ import {
   pickPrimaryWorkflowVariant,
   processPlatformWorkflowVariants,
 } from '@/lib/platform-workflow-process'
+import {
+  buildMultiFormatWorkflow,
+  multiFormatPrimaryVariantId,
+} from '@/lib/multi-format'
 import type { WorkflowVariantResult } from '@/lib/image/types'
 import { detectFormatFromBuffer, isImageFile } from '@/lib/image/format-detection'
 import { createPreviewObjectUrl, needsWasmPreview } from '@/lib/image/browser-display'
@@ -758,7 +762,11 @@ export const useStudioStore = create<StudioState>()(
           const originalByteSize =
             fileEntry.sourceByteSize ?? sourceByteSize ?? buffer.byteLength
           const pipeline = get().pipeline
-          const workflow = getActivePlatformWorkflow(get().activePresetId)
+          const platformWorkflow = getActivePlatformWorkflow(get().activePresetId)
+          const multiFormatWorkflow = platformWorkflow
+            ? null
+            : buildMultiFormatWorkflow(pipeline)
+          const workflow = platformWorkflow ?? multiFormatWorkflow
 
           if (workflow) {
             const workflowResults = await processPlatformWorkflowVariants({
@@ -784,7 +792,12 @@ export const useStudioStore = create<StudioState>()(
               return
             }
 
-            const primary = pickPrimaryWorkflowVariant(workflowResults)
+            const primary = pickPrimaryWorkflowVariant(
+              workflowResults,
+              multiFormatWorkflow
+                ? multiFormatPrimaryVariantId(pipeline.outputFormat)
+                : undefined,
+            )
 
             set((s) => ({
               files: s.files.map((f) => {
@@ -985,6 +998,12 @@ export const useStudioStore = create<StudioState>()(
         state.pipeline = {
           ...state.pipeline,
           metadataMode,
+          alsoExportFormats: Array.isArray(state.pipeline.alsoExportFormats)
+            ? state.pipeline.alsoExportFormats.filter(
+                (fmt): fmt is 'avif' | 'webp' | 'jpeg' =>
+                  fmt === 'avif' || fmt === 'webp' || fmt === 'jpeg',
+              )
+            : [],
           resize: normalizeResizeConfig(
             state.pipeline.resize as ResizeConfig & Record<string, unknown>,
           ),
