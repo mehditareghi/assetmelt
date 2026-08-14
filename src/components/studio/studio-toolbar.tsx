@@ -1,5 +1,8 @@
 import {
   Download,
+  FileJson,
+  Keyboard,
+  Loader2,
   MoreHorizontal,
   Play,
   Plus,
@@ -7,16 +10,15 @@ import {
   Trash2,
   Undo2,
   Upload,
-  FileJson,
-  Loader2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { OfflinePrepRestoreLink } from '@/components/pwa/offline-prep-restore-link'
 import { useOptionalOfflinePrepContext } from '@/lib/pwa/offline-prep-context'
 import { useStudioStore } from '@/stores/studio-store'
-import { downloadProcessedFiles, fileHasDownloadableResult } from '@/lib/download-results'
+import { fileHasDownloadableResult } from '@/lib/download-results'
 import { pickImageFiles } from '@/lib/image/pick-image-files'
 import { PresetPicker } from '@/components/studio/preset-picker'
+import { ShortcutHint } from '@/components/studio/shortcut-cheatsheet'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -24,16 +26,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { pipelineSchema } from '@/lib/schemas/pipeline-schema'
-import { trackExportCompleted } from '@/lib/analytics'
+import { exportStudioResults } from '@/lib/studio-actions'
+import { useStudioChromeStore } from '@/stores/studio-chrome-store'
 
 export function StudioToolbar() {
   const offlinePrep = useOptionalOfflinePrepContext()
   const hideOfflineChrome = offlinePrep?.offlineStudioChrome ?? false
   const files = useStudioStore((s) => s.files)
-  const activePresetId = useStudioStore((s) => s.activePresetId)
   const isProcessing = useStudioStore((s) => s.isProcessing)
-  const pipeline = useStudioStore((s) => s.pipeline)
   const processAll = useStudioStore((s) => s.processAll)
   const clearFiles = useStudioStore((s) => s.clearFiles)
   const addFiles = useStudioStore((s) => s.addFiles)
@@ -61,34 +63,8 @@ export function StudioToolbar() {
     await addFiles(picked)
   }
 
-  const handleExportAll = async () => {
-    const done = files.filter(fileHasDownloadableResult)
-    if (done.length === 0) {
-      toast.error('No processed files to export')
-      return
-    }
-
-    try {
-      const { kind, count } = await downloadProcessedFiles(done, activePresetId)
-      trackExportCompleted({
-        file_count: count,
-        export_type: kind,
-        preset_id: activePresetId,
-        output_format: pipeline.encode.format,
-      })
-      if (kind === 'zip') {
-        toast.success(
-          done.length === 1
-            ? `Downloaded kit (${count} files)`
-            : `Downloaded ${count} files as zip`,
-        )
-      } else {
-        toast.success('Downloaded')
-      }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Download failed'
-      toast.error(message)
-    }
+  const handleExportAll = () => {
+    void exportStudioResults()
   }
 
   const handleExportConfig = () => {
@@ -133,28 +109,44 @@ export function StudioToolbar() {
     }
     if (needsReprocess) {
       return (
-        <Button
-          size="sm"
-          onClick={() => void processAll()}
-          disabled={!canProcess}
-          className="gap-1.5"
-        >
-          <Play className="size-3.5" />
-          Re-process ({pendingCount})
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="sm"
+              onClick={() => void processAll()}
+              disabled={!canProcess}
+              className="gap-1.5"
+              aria-keyshortcuts="Meta+Enter Control+Enter"
+            >
+              <Play className="size-3.5" />
+              Re-process ({pendingCount})
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <ShortcutHint shortcutId="process" label="Process queue" />
+          </TooltipContent>
+        </Tooltip>
       )
     }
     if (canDownload) {
       return (
-        <Button
-          size="sm"
-          onClick={() => void handleExportAll()}
-          disabled={!canDownload}
-          className="gap-1.5"
-        >
-          <Download className="size-3.5" />
-          Download ({doneCount})
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="sm"
+              onClick={() => void handleExportAll()}
+              disabled={!canDownload}
+              className="gap-1.5"
+              aria-keyshortcuts="Meta+S Control+S"
+            >
+              <Download className="size-3.5" />
+              Download ({doneCount})
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <ShortcutHint shortcutId="download" label="Download" />
+          </TooltipContent>
+        </Tooltip>
       )
     }
     return null
@@ -162,16 +154,24 @@ export function StudioToolbar() {
 
   const secondaryDownload =
     needsReprocess && canDownload ? (
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={() => void handleExportAll()}
-        disabled={!canDownload}
-        className="gap-1.5"
-      >
-        <Download className="size-3.5" />
-        Download ({doneCount})
-      </Button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => void handleExportAll()}
+            disabled={!canDownload}
+            className="gap-1.5"
+            aria-keyshortcuts="Meta+S Control+S"
+          >
+            <Download className="size-3.5" />
+            Download ({doneCount})
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <ShortcutHint shortcutId="download" label="Download" />
+        </TooltipContent>
+      </Tooltip>
     ) : null
 
   return (
@@ -199,26 +199,8 @@ export function StudioToolbar() {
         </div>
 
         <div className="hidden shrink-0 flex-wrap items-center justify-end gap-2 lg:flex">
-          <Button
-            variant="outline"
-            size="icon-sm"
-            onClick={() => undo()}
-            disabled={!canUndo()}
-            title="Undo (⌘Z)"
-            aria-label="Undo"
-          >
-            <Undo2 className="size-3.5" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon-sm"
-            onClick={() => redo()}
-            disabled={!canRedo()}
-            title="Redo (⌘⇧Z)"
-            aria-label="Redo"
-          >
-            <Redo2 className="size-3.5" />
-          </Button>
+          <HistoryButtons canUndo={canUndo()} canRedo={canRedo()} onUndo={undo} onRedo={redo} />
+          <ShortcutsButton />
           <PipelineOverflowMenu
             disabled={isCropEditing}
             onImport={handleImportConfig}
@@ -254,24 +236,8 @@ export function StudioToolbar() {
             <Plus className="size-3.5" />
             Add files
           </Button>
-          <Button
-            variant="outline"
-            size="icon-sm"
-            onClick={() => undo()}
-            disabled={!canUndo()}
-            aria-label="Undo"
-          >
-            <Undo2 className="size-3.5" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon-sm"
-            onClick={() => redo()}
-            disabled={!canRedo()}
-            aria-label="Redo"
-          >
-            <Redo2 className="size-3.5" />
-          </Button>
+          <HistoryButtons canUndo={canUndo()} canRedo={canRedo()} onUndo={undo} onRedo={redo} />
+          <ShortcutsButton />
           <Button
             variant="ghost"
             size="icon-sm"
@@ -289,24 +255,8 @@ export function StudioToolbar() {
         </div>
       ) : (
         <div className="flex items-center justify-end gap-1 lg:hidden">
-          <Button
-            variant="outline"
-            size="icon-sm"
-            onClick={() => undo()}
-            disabled={!canUndo()}
-            aria-label="Undo"
-          >
-            <Undo2 className="size-3.5" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon-sm"
-            onClick={() => redo()}
-            disabled={!canRedo()}
-            aria-label="Redo"
-          >
-            <Redo2 className="size-3.5" />
-          </Button>
+          <HistoryButtons canUndo={canUndo()} canRedo={canRedo()} onUndo={undo} onRedo={redo} />
+          <ShortcutsButton />
           <PipelineOverflowMenu
             disabled={isCropEditing}
             onImport={handleImportConfig}
@@ -315,6 +265,82 @@ export function StudioToolbar() {
         </div>
       )}
     </div>
+  )
+}
+
+function HistoryButtons({
+  canUndo,
+  canRedo,
+  onUndo,
+  onRedo,
+}: {
+  canUndo: boolean
+  canRedo: boolean
+  onUndo: () => void
+  onRedo: () => void
+}) {
+  return (
+    <>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="outline"
+            size="icon-sm"
+            onClick={onUndo}
+            disabled={!canUndo}
+            aria-label="Undo"
+            aria-keyshortcuts="Meta+Z Control+Z"
+          >
+            <Undo2 className="size-3.5" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <ShortcutHint shortcutId="undo" label="Undo" />
+        </TooltipContent>
+      </Tooltip>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="outline"
+            size="icon-sm"
+            onClick={onRedo}
+            disabled={!canRedo}
+            aria-label="Redo"
+            aria-keyshortcuts="Meta+Shift+Z Control+Shift+Z Control+Y"
+          >
+            <Redo2 className="size-3.5" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>
+          <ShortcutHint shortcutId="redo" label="Redo" />
+        </TooltipContent>
+      </Tooltip>
+    </>
+  )
+}
+
+function ShortcutsButton() {
+  const open = useStudioChromeStore((s) => s.shortcutsOpen)
+  const toggle = useStudioChromeStore((s) => s.toggleShortcuts)
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant={open ? 'secondary' : 'outline'}
+          size="icon-sm"
+          onClick={toggle}
+          aria-label="Keyboard shortcuts"
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          aria-controls="studio-shortcut-cheatsheet"
+        >
+          <Keyboard className="size-3.5" />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>
+        <ShortcutHint shortcutId="cheatsheet" label="Shortcuts" />
+      </TooltipContent>
+    </Tooltip>
   )
 }
 
@@ -351,25 +377,4 @@ function PipelineOverflowMenu({
       </DropdownMenuContent>
     </DropdownMenu>
   )
-}
-
-/** Shared status copy for toolbar / preview chrome. */
-export function studioQueueStatus(files: { status: string }[]): string | null {
-  if (files.length === 0) return null
-  const done = files.filter((f) => f.status === 'done').length
-  const processing = files.filter((f) => f.status === 'processing').length
-  const pending = files.filter(
-    (f) => f.status === 'pending' || f.status === 'error',
-  ).length
-  if (processing > 0) {
-    const index = done + 1
-    return `Processing ${Math.min(index, files.length)} of ${files.length}…`
-  }
-  if (pending > 0 && done > 0) {
-    return `Settings changed — re-process to update`
-  }
-  if (pending > 0) {
-    return `${files.length} file${files.length === 1 ? '' : 's'} · waiting`
-  }
-  return `${files.length} file${files.length === 1 ? '' : 's'} · ${done} ready`
 }

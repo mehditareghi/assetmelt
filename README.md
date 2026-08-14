@@ -11,6 +11,7 @@ Built with Vite, React, shadcn/ui, and Squoosh-grade WASM codecs (@jsquash).
 - **Filters** — Brightness, contrast, saturation, grayscale, sharpen
 - **Batch processing** — Queue multiple files, export as zip
 - **Presets + JSON config** — Web Optimized, Dev Assets, Lossless PNG, Thumbnail, custom presets
+- **Keyboard shortcuts** — `?` cheatsheet in Studio; Cmd/Ctrl+Enter process, S download, K recipes
 - **Advanced mode** — Full codec parameter control
 - **Privacy** — 100% client-side, no server, no accounts
 

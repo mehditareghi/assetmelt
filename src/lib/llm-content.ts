@@ -51,6 +51,11 @@ export const FAQ_ITEMS = [
     answer:
       'Not automatically. Download the optional offline pack from the Studio while you are online. After that, Studio can run without a network connection. Installing as a PWA is optional.',
   },
+  {
+    question: 'Does Asset Melt have keyboard shortcuts?',
+    answer:
+      'Yes. Open the Studio and press ? for the cheatsheet. Cmd/Ctrl+Enter processes the queue, Cmd/Ctrl+S downloads, Cmd/Ctrl+K opens recipes, and Cmd/Ctrl+Z undoes. Shortcuts skip text fields except process, download, and recipes.',
+  },
 ] as const
 
 export const KEY_FEATURES = [
@@ -63,6 +68,7 @@ export const KEY_FEATURES = [
   'Full pipeline: resize, crop, rotate, flip, brightness, contrast, saturation',
   'Live before/after compare with scrubber',
   'Undo/redo, custom presets, JSON pipeline import/export',
+  'Keyboard shortcuts overlay (? in Studio)',
   'HEIC/HEIF input (decoded via JPEG quality 0.92)',
   'TIFF input (first page)',
   'Optional PWA offline pack (not automatic)',

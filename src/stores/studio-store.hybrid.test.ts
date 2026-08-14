@@ -162,7 +162,7 @@ describe('studio hybrid processing', () => {
 
 describe('studioQueueStatus', () => {
   it('describes processing, stale, and ready states', async () => {
-    const { studioQueueStatus } = await import('@/components/studio/studio-toolbar')
+    const { studioQueueStatus } = await import('@/lib/studio-actions')
     expect(studioQueueStatus([])).toBeNull()
     expect(
       studioQueueStatus([{ status: 'processing' }, { status: 'pending' }]),

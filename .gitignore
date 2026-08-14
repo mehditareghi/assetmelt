@@ -43,3 +43,5 @@ src/generated/blog-prerender-paths.json
 public/blog/
 .env*
 coverage/
+
+.cursor/

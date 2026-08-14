@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { createElement, useState, type ComponentType } from 'react'
 import {
   Check,
   ChevronRight,
@@ -44,6 +44,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { FitToSizeSheet } from '@/components/studio/fit-to-size-sheet'
+import { ShortcutHint } from '@/components/studio/shortcut-cheatsheet'
+import { useStudioChromeStore } from '@/stores/studio-chrome-store'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 export function PresetPicker({ disabled = false }: { disabled?: boolean }) {
   const activePresetId = useStudioStore((s) => s.activePresetId)
@@ -56,8 +59,9 @@ export function PresetPicker({ disabled = false }: { disabled?: boolean }) {
   const updateCustomPreset = useStudioStore((s) => s.updateCustomPreset)
   const deleteCustomPreset = useStudioStore((s) => s.deleteCustomPreset)
 
-  const [open, setOpen] = useState(false)
   const [fitOpen, setFitOpen] = useState(false)
+  const open = useStudioChromeStore((s) => s.recipePickerOpen)
+  const setOpen = useStudioChromeStore((s) => s.setRecipePickerOpen)
   const [saveOpen, setSaveOpen] = useState(false)
   const [saveName, setSaveName] = useState('')
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -71,7 +75,6 @@ export function PresetPicker({ disabled = false }: { disabled?: boolean }) {
   const isActiveCustom = isCustomPresetId(activePresetId)
   const isActivePlatform = PLATFORM_BUILT_IN_PRESETS.some((p) => p.id === resolvedActive)
   const summary = getCustomPresetSummary(pipeline)
-  const ActiveIcon = getPresetIcon(resolvedActive)
 
   const handleSelect = (presetId: string) => {
     if (presetId === resolvedActive && !isPipelineModified && !isActiveCustom) {
@@ -158,33 +161,43 @@ export function PresetPicker({ disabled = false }: { disabled?: boolean }) {
   return (
     <>
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            disabled={disabled}
-            className="h-9 min-w-[10rem] justify-between gap-2 px-3 font-normal"
-            aria-label={`Recipe: ${presetName}`}
-          >
-            <span className="flex min-w-0 items-center gap-2">
-              <span
-                className={cn(
-                  'flex size-6 shrink-0 items-center justify-center rounded-md border border-border/50 bg-muted/40',
-                  isPipelineModified && 'text-primary',
-                )}
-              >
-                <ActiveIcon className="size-3.5" strokeWidth={1.75} />
-              </span>
-              {isPipelineModified && (
-                <span
-                  className="size-1.5 shrink-0 rounded-full bg-primary"
-                  aria-label="Unsaved changes"
-                />
-              )}
-              <span className="truncate">{presetName}</span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="inline-flex min-w-0 max-w-full">
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  disabled={disabled}
+                  className="h-9 min-w-[10rem] justify-between gap-2 px-3 font-normal"
+                  aria-label={`Recipe: ${presetName}`}
+                  aria-keyshortcuts="Meta+K Control+K"
+                >
+                  <span className="flex min-w-0 items-center gap-2">
+                    <span
+                      className={cn(
+                        'flex size-6 shrink-0 items-center justify-center rounded-md border border-border/50 bg-muted/40',
+                        isPipelineModified && 'text-primary',
+                      )}
+                    >
+                      {glyph(getPresetIcon(resolvedActive), 'size-3.5', 1.75)}
+                    </span>
+                    {isPipelineModified && (
+                      <span
+                        className="size-1.5 shrink-0 rounded-full bg-primary"
+                        aria-label="Unsaved changes"
+                      />
+                    )}
+                    <span className="truncate">{presetName}</span>
+                  </span>
+                  <Ratio className="size-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
             </span>
-            <Ratio className="size-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
+          </TooltipTrigger>
+          <TooltipContent>
+            <ShortcutHint shortcutId="recipes" label="Recipes" />
+          </TooltipContent>
+        </Tooltip>
 
         <PopoverContent
           align="start"
@@ -249,7 +262,6 @@ export function PresetPicker({ disabled = false }: { disabled?: boolean }) {
               </p>
               <div className="space-y-0.5">
                 {GENERAL_BUILT_IN_PRESETS.map((preset) => {
-                  const Icon = getGeneralPresetIcon(preset)
                   const dimensions = getPresetDimensionsLabel(preset)
                   const active =
                     resolvedActive === preset.id &&
@@ -277,7 +289,7 @@ export function PresetPicker({ disabled = false }: { disabled?: boolean }) {
                             : 'bg-muted/60 text-muted-foreground',
                         )}
                       >
-                        <Icon className="size-3.5" strokeWidth={1.75} />
+                        {glyph(getGeneralPresetIcon(preset), 'size-3.5', 1.75)}
                       </span>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
@@ -316,7 +328,6 @@ export function PresetPicker({ disabled = false }: { disabled?: boolean }) {
                     const isEditing = editingId === preset.id
                     const isActive =
                       activePresetId === preset.id && !isPipelineModified
-                    const Icon = getPresetIcon('custom')
 
                     if (isEditing) {
                       return (
@@ -367,7 +378,7 @@ export function PresetPicker({ disabled = false }: { disabled?: boolean }) {
                           className="flex min-w-0 flex-1 items-center gap-2.5 px-2 py-2 text-left"
                         >
                           <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted/60 text-muted-foreground">
-                            <Icon className="size-3.5" />
+                            {glyph(getPresetIcon('custom'), 'size-3.5')}
                           </span>
                           <div className="min-w-0 flex-1">
                             <span
@@ -485,4 +496,12 @@ export function PresetPicker({ disabled = false }: { disabled?: boolean }) {
       </Dialog>
     </>
   )
+}
+
+function glyph(
+  Icon: ComponentType<{ className?: string; strokeWidth?: number }>,
+  className: string,
+  strokeWidth?: number,
+) {
+  return createElement(Icon, { className, strokeWidth })
 }

@@ -4,10 +4,7 @@ import { OfflinePrepPanel } from '@/components/pwa/offline-prep-panel'
 import { FileQueue } from '@/components/studio/file-queue'
 import { PreviewPanel } from '@/components/studio/preview-panel'
 import { SettingsPanel } from '@/components/studio/settings-panel'
-import {
-  StudioToolbar,
-  studioQueueStatus,
-} from '@/components/studio/studio-toolbar'
+import { StudioToolbar } from '@/components/studio/studio-toolbar'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -38,11 +35,12 @@ import {
   type StudioSeoContent,
 } from '@/lib/studio-seo'
 import { useStudioStore } from '@/stores/studio-store'
-import { downloadProcessedFiles, fileHasDownloadableResult } from '@/lib/download-results'
-import { trackExportCompleted } from '@/lib/analytics'
+import { fileHasDownloadableResult } from '@/lib/download-results'
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
-import { toast } from 'sonner'
 import { useEffect, useRef } from 'react'
+import { useStudioShortcuts } from '@/hooks/use-studio-shortcuts'
+import { ShortcutCheatsheet } from '@/components/studio/shortcut-cheatsheet'
+import { exportStudioResults, studioQueueStatus } from '@/lib/studio-actions'
 
 function applyOutputFromSearch(toSlug: string | undefined) {
   const to = studioSearchIntents({ to: toSlug }).to
@@ -68,15 +66,12 @@ export function StudioPage({ search }: { search: StudioSearch }) {
   const files = useStudioStore((s) => s.files)
   const outputFormat = useStudioStore((s) => s.pipeline.outputFormat)
   const addFiles = useStudioStore((s) => s.addFiles)
-  const undo = useStudioStore((s) => s.undo)
-  const redo = useStudioStore((s) => s.redo)
   const processAll = useStudioStore((s) => s.processAll)
   const isProcessing = useStudioStore((s) => s.isProcessing)
   const isCropEditing = useStudioStore((s) => s.isCropEditing)
-  const activePresetId = useStudioStore((s) => s.activePresetId)
-  const pipeline = useStudioStore((s) => s.pipeline)
   const offlinePrep = useOptionalOfflinePrepContext()
   const hideOfflinePanels = offlinePrep?.offlineStudioChrome ?? false
+  useStudioShortcuts()
 
   const doneCount = files.filter(fileHasDownloadableResult).length
   const pendingCount = files.filter(
@@ -87,33 +82,8 @@ export function StudioPage({ search }: { search: StudioSearch }) {
     files.length > 0 && pendingCount > 0 && !isCropEditing && !isProcessing
   const canDownload = doneCount > 0 && !isCropEditing && !isProcessing
 
-  const handleMobileDownload = async () => {
-    const done = files.filter(fileHasDownloadableResult)
-    if (done.length === 0) {
-      toast.error('No processed files to export')
-      return
-    }
-    try {
-      const { kind, count } = await downloadProcessedFiles(done, activePresetId)
-      trackExportCompleted({
-        file_count: count,
-        export_type: kind,
-        preset_id: activePresetId,
-        output_format: pipeline.encode.format,
-      })
-      if (kind === 'zip') {
-        toast.success(
-          done.length === 1
-            ? `Downloaded kit (${count} files)`
-            : `Downloaded ${count} files as zip`,
-        )
-      } else {
-        toast.success('Downloaded')
-      }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Download failed'
-      toast.error(message)
-    }
+  const handleMobileDownload = () => {
+    void exportStudioResults()
   }
 
   /** Skip URL rewrite while applying format from the route itself. */
@@ -213,28 +183,6 @@ export function StudioPage({ search }: { search: StudioSearch }) {
     window.addEventListener('paste', onPaste)
     return () => window.removeEventListener('paste', onPaste)
   }, [addFiles])
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== 'z')
-        return
-      const target = event.target
-      if (
-        target instanceof HTMLElement &&
-        (target.isContentEditable ||
-          target.tagName === 'INPUT' ||
-          target.tagName === 'TEXTAREA' ||
-          target.tagName === 'SELECT')
-      ) {
-        return
-      }
-      event.preventDefault()
-      if (event.shiftKey) redo()
-      else undo()
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [undo, redo])
 
   return (
     <>
@@ -357,6 +305,7 @@ export function StudioPage({ search }: { search: StudioSearch }) {
 
         <StudioSeoSection content={seo} />
       </main>
+      <ShortcutCheatsheet />
     </>
   )
 }

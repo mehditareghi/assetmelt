@@ -80,6 +80,11 @@ const DEFAULT_FAQ: StudioFaqItem[] = [
     answer:
       'Not automatically. Install the app if you want, then download the optional offline pack from the Studio while you are online. After that, Studio can run without a network connection.',
   },
+  {
+    question: 'Are there keyboard shortcuts?',
+    answer:
+      'Yes. Press ? in the Studio for the cheatsheet. Process the queue with Cmd/Ctrl+Enter, download with Cmd/Ctrl+S, open recipes with Cmd/Ctrl+K, and undo with Cmd/Ctrl+Z. Paste still adds images when you are not typing in a field.',
+  },
 ]
 
 const PAIR_TIPS: Partial<
