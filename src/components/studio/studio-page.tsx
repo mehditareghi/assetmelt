@@ -13,7 +13,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
-import { Download, Loader2, Lock, Play, SlidersHorizontal } from 'lucide-react'
+import { Download, Lock, Play, SlidersHorizontal, Square } from 'lucide-react'
 import {
   Accordion,
   AccordionContent,
@@ -89,6 +89,7 @@ export function StudioPage({ search }: { search: StudioSearch }) {
   const outputFormat = pipeline.outputFormat
   const addFiles = useStudioStore((s) => s.addFiles)
   const processAll = useStudioStore((s) => s.processAll)
+  const cancelProcessing = useStudioStore((s) => s.cancelProcessing)
   const isProcessing = useStudioStore((s) => s.isProcessing)
   const isCropEditing = useStudioStore((s) => s.isCropEditing)
   const offlinePrep = useOptionalOfflinePrepContext()
@@ -322,9 +323,14 @@ export function StudioPage({ search }: { search: StudioSearch }) {
                 </Sheet>
 
                 {isProcessing ? (
-                  <Button size="sm" className="h-10 flex-1 gap-2" disabled>
-                    <Loader2 className="size-4 animate-spin" />
-                    Processing…
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="h-10 flex-1 gap-2"
+                    onClick={() => cancelProcessing()}
+                  >
+                    <Square className="size-4 fill-current" />
+                    Cancel
                   </Button>
                 ) : pendingCount > 0 ? (
                   <Button

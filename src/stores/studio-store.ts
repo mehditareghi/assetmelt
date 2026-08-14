@@ -18,7 +18,15 @@ import { detectFormatFromBuffer, isImageFile } from '@/lib/image/format-detectio
 import { createPreviewObjectUrl, needsWasmPreview } from '@/lib/image/browser-display'
 import { getImageDimensions } from '@/lib/image/dimensions'
 import { normalizeResizeConfig } from '@/lib/image/resize-compute'
-import { createWasmPreviewInWorker, processImageInWorker } from '@/lib/image/worker-bridge'
+import {
+  cancelStudioWorkerJobs,
+  createWasmPreviewInWorker,
+  processImageInWorker,
+} from '@/lib/image/worker-bridge'
+import {
+  isWorkerPoolCancelError,
+  resolveWorkerPoolSize,
+} from '@/lib/image/worker-pool'
 import { normalizeMozJpegOptions } from '@/lib/image/jpeg-encode'
 import { createFullImageCrop } from '@/lib/image/crop-math'
 import { getCropSpaceDimensions } from '@/lib/image/transform-space'
@@ -140,6 +148,8 @@ interface StudioState {
   isPipelineModified: boolean
   isAdvancedMode: boolean
   isProcessing: boolean
+  /** Bumped when a batch starts or is cancelled so in-flight jobs can discard results. */
+  processingToken: number
   customPresets: CustomPreset[]
 
   addFiles: (files: FileList | File[]) => Promise<void>
@@ -166,6 +176,7 @@ interface StudioState {
   setAdvancedMode: (enabled: boolean) => void
   processFile: (id: string) => Promise<void>
   processAll: () => Promise<void>
+  cancelProcessing: () => void
   saveCustomPreset: (name: string) => string
   updateCustomPreset: (
     id: string,
@@ -223,24 +234,47 @@ function invalidateDoneResults(set: SetState, get: () => StudioState) {
 
 async function processPendingByIds(
   get: () => StudioState,
+  set: SetState,
   ids: string[],
 ): Promise<void> {
   if (get().isCropEditing || ids.length === 0) return
+  if (get().isProcessing) return
+
+  const token = get().processingToken + 1
+  set({ isProcessing: true, processingToken: token })
 
   let succeeded = 0
   let failed = 0
   let attempted = 0
+  const queue = [...ids]
+  const concurrency = resolveWorkerPoolSize()
 
-  for (const id of ids) {
-    if (get().isCropEditing) break
+  const runOne = async (id: string) => {
+    if (get().processingToken !== token || get().isCropEditing) return
     const file = get().files.find((f) => f.id === id)
-    if (!file || (file.status !== 'pending' && file.status !== 'error')) continue
+    if (!file || (file.status !== 'pending' && file.status !== 'error')) return
     attempted += 1
     await get().processFile(id)
+    if (get().processingToken !== token) return
     const updated = get().files.find((f) => f.id === id)
     if (updated?.status === 'done') succeeded += 1
     else if (updated?.status === 'error') failed += 1
   }
+
+  const workers = Array.from({ length: Math.min(concurrency, queue.length) }, async () => {
+    while (queue.length > 0) {
+      if (get().processingToken !== token || get().isCropEditing) break
+      const id = queue.shift()
+      if (!id) break
+      await runOne(id)
+    }
+  })
+
+  await Promise.all(workers)
+
+  if (get().processingToken !== token) return
+
+  set({ isProcessing: false })
 
   if (attempted === 0) return
 
@@ -266,6 +300,7 @@ export const useStudioStore = create<StudioState>()(
       isPipelineModified: false,
       isAdvancedMode: false,
       isProcessing: false,
+      processingToken: 0,
       customPresets: [],
 
       addFiles: async (fileList) => {
@@ -386,7 +421,7 @@ export const useStudioStore = create<StudioState>()(
             .filter((file) => file.status === 'pending')
             .map((file) => file.id)
           if (autoIds.length > 0) {
-            void processPendingByIds(get, autoIds)
+            void processPendingByIds(get, set, autoIds)
           }
         }
       },
@@ -409,11 +444,20 @@ export const useStudioStore = create<StudioState>()(
       clearFiles: () => {
         endCropEditSession()
         discardDebouncedHistory()
+        if (get().isProcessing) {
+          cancelStudioWorkerJobs()
+        }
         get().files.forEach((f) => {
           revokeUrl(f.originalUrl)
           revokeFileResults(f)
         })
-        set({ files: [], activeFileId: null, isCropEditing: false, isProcessing: false })
+        set({
+          files: [],
+          activeFileId: null,
+          isCropEditing: false,
+          isProcessing: false,
+          processingToken: get().processingToken + 1,
+        })
       },
 
       setActiveFile: (id) => {
@@ -693,18 +737,24 @@ export const useStudioStore = create<StudioState>()(
         const state = get()
         const fileEntry = state.files.find((f) => f.id === id)
         if (!fileEntry) return
+        const token = state.processingToken
 
         set({
-          isProcessing: true,
           files: state.files.map((f) =>
             f.id === id ? { ...f, status: 'processing' as const, progress: 0, error: undefined } : f,
           ),
         })
 
+        const discardIfStale = () => get().processingToken !== token
+
         try {
           const { file: processFile, inputFormat: processFormat, sourceByteSize } =
             await prepareFileForProcessing(fileEntry.file, fileEntry.inputFormat)
+          if (discardIfStale()) return
+
           const buffer = await processFile.arrayBuffer()
+          if (discardIfStale()) return
+
           const originalByteSize =
             fileEntry.sourceByteSize ?? sourceByteSize ?? buffer.byteLength
           const pipeline = get().pipeline
@@ -722,11 +772,17 @@ export const useStudioStore = create<StudioState>()(
               basePipeline: pipeline,
               workflow,
               onProgress: (progress) => {
+                if (discardIfStale()) return
                 set((s) => ({
                   files: s.files.map((f) => (f.id === id ? { ...f, progress } : f)),
                 }))
               },
             })
+
+            if (discardIfStale()) {
+              revokeWorkflowResults(workflowResults)
+              return
+            }
 
             const primary = pickPrimaryWorkflowVariant(workflowResults)
 
@@ -747,7 +803,6 @@ export const useStudioStore = create<StudioState>()(
                   sourceByteSize: f.sourceByteSize ?? sourceByteSize,
                 }
               }),
-              isProcessing: false,
             }))
           } else {
             const result = await processImageInWorker(
@@ -759,11 +814,14 @@ export const useStudioStore = create<StudioState>()(
                 pipeline,
               },
               (progress) => {
+                if (discardIfStale()) return
                 set((s) => ({
                   files: s.files.map((f) => (f.id === id ? { ...f, progress } : f)),
                 }))
               },
             )
+
+            if (discardIfStale()) return
 
             const blob = new Blob([result.buffer], { type: result.mimeType })
             const resultUrl = URL.createObjectURL(blob)
@@ -777,6 +835,12 @@ export const useStudioStore = create<StudioState>()(
                 originalByteSize > 0
                   ? ((originalByteSize - result.stats.outputSize) / originalByteSize) * 100
                   : result.stats.savingsPercent,
+            }
+
+            if (discardIfStale()) {
+              revokePreviewUrl(previewUrl, resultUrl)
+              revokeUrl(resultUrl)
+              return
             }
 
             set((s) => ({
@@ -796,16 +860,24 @@ export const useStudioStore = create<StudioState>()(
                   sourceByteSize: f.sourceByteSize ?? sourceByteSize,
                 }
               }),
-              isProcessing: false,
             }))
           }
         } catch (error) {
+          if (discardIfStale() || isWorkerPoolCancelError(error)) {
+            set((s) => ({
+              files: s.files.map((f) =>
+                f.id === id && f.status === 'processing'
+                  ? { ...f, status: 'pending' as const, progress: 0, error: undefined }
+                  : f,
+              ),
+            }))
+            return
+          }
           const message = error instanceof Error ? error.message : 'Processing failed'
           set((s) => ({
             files: s.files.map((f) =>
               f.id === id ? { ...f, status: 'error' as const, error: message } : f,
             ),
-            isProcessing: false,
           }))
         }
       },
@@ -815,7 +887,21 @@ export const useStudioStore = create<StudioState>()(
         const pendingIds = get()
           .files.filter((f) => f.status === 'pending' || f.status === 'error')
           .map((f) => f.id)
-        await processPendingByIds(get, pendingIds)
+        await processPendingByIds(get, set, pendingIds)
+      },
+
+      cancelProcessing: () => {
+        if (!get().isProcessing) return
+        cancelStudioWorkerJobs()
+        set((s) => ({
+          processingToken: s.processingToken + 1,
+          isProcessing: false,
+          files: s.files.map((f) =>
+            f.status === 'processing'
+              ? { ...f, status: 'pending' as const, progress: 0, error: undefined }
+              : f,
+          ),
+        }))
       },
 
       saveCustomPreset: (name) => {

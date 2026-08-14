@@ -79,7 +79,12 @@ export function FileQueue() {
                 )}
               </p>
               {file.status === 'processing' && (
-                <Progress value={file.progress} className="mt-2 h-1" />
+                <>
+                  <Progress value={file.progress} className="mt-2 h-1" />
+                  <p className="mt-1 font-mono text-xs text-primary">
+                    Encoding… {Math.round(file.progress)}%
+                  </p>
+                </>
               )}
               {file.status === 'done' && file.workflowResults && file.workflowResults.length > 0 && (
                 <p className="mt-1 font-mono text-xs text-primary">

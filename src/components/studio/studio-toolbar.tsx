@@ -3,11 +3,11 @@ import {
   FileJson,
   Keyboard,
   Link2,
-  Loader2,
   MoreHorizontal,
   Play,
   Plus,
   Redo2,
+  Square,
   Trash2,
   Undo2,
   Upload,
@@ -39,6 +39,7 @@ export function StudioToolbar() {
   const pipeline = useStudioStore((s) => s.pipeline)
   const isProcessing = useStudioStore((s) => s.isProcessing)
   const processAll = useStudioStore((s) => s.processAll)
+  const cancelProcessing = useStudioStore((s) => s.cancelProcessing)
   const clearFiles = useStudioStore((s) => s.clearFiles)
   const addFiles = useStudioStore((s) => s.addFiles)
   const importPipelineConfig = useStudioStore((s) => s.importPipelineConfig)
@@ -103,9 +104,14 @@ export function StudioToolbar() {
   const primaryAction = (() => {
     if (isProcessing || processingCount > 0) {
       return (
-        <Button size="sm" disabled className="gap-1.5">
-          <Loader2 className="size-3.5 animate-spin" />
-          Processing…
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={() => cancelProcessing()}
+          className="gap-1.5"
+        >
+          <Square className="size-3.5 fill-current" />
+          Cancel
         </Button>
       )
     }

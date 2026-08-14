@@ -39,7 +39,7 @@ export const FAQ_ITEMS = [
   {
     question: 'Can I compress multiple images at once?',
     answer:
-      'Yes. Queue multiple files; the Studio processes them one at a time on a single worker, then you can download individually or as a ZIP archive.',
+      'Yes. Queue multiple files; the Studio encodes them in parallel on a worker pool sized to your CPU (up to 4), with live per-file progress and cancel. Then download individually or as a ZIP.',
   },
   {
     question: 'What is the best free image compressor that does not upload files?',
@@ -72,7 +72,7 @@ export const KEY_FEATURES = [
   '100% client-side image processing — photos are not uploaded and not in session replay',
   'Size-budget encoding — hit a target file size at maximum quality',
   'Squoosh-grade WASM codecs: MozJPEG, AVIF, WebP, Oxipng, JXL, QOI',
-  'Batch processing with ZIP export and per-file size stats',
+  'Batch processing with parallel worker pool (up to 4), ZIP export, and per-file size stats',
   'Platform presets: OG images, social sizes, favicon kits (16–512px)',
   'General presets: Web Optimized, Dev Assets, Lossless PNG, Thumbnail',
   'Full pipeline: resize, crop, rotate, flip, brightness, contrast, saturation',

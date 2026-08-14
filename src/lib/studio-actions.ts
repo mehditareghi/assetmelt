@@ -66,8 +66,7 @@ export function studioQueueStatus(files: { status: string }[]): string | null {
     (f) => f.status === 'pending' || f.status === 'error',
   ).length
   if (processing > 0) {
-    const index = done + 1
-    return `Processing ${Math.min(index, files.length)} of ${files.length}…`
+    return `Encoding ${processing} · ${done} ready · ${pending} waiting`
   }
   if (pending > 0 && done > 0) {
     return `Settings changed — re-process to update`

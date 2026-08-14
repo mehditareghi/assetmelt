@@ -290,7 +290,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
       {
         question: 'How many images can I compress at once?',
         answer:
-          'There is no hard limit. Asset Melt queues files and processes them sequentially in Web Workers. Very large batches depend on your device memory and browser capabilities.',
+          'There is no hard limit. Asset Melt queues files and encodes them in parallel on a worker pool sized to your CPU (capped at 4). Cancel anytime. Very large batches still depend on device memory and browser capabilities.',
       },
       {
         question: 'Can I download all compressed images as one ZIP?',

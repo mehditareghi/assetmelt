@@ -58,7 +58,7 @@ const DEFAULT_FAQ: StudioFaqItem[] = [
   {
     question: 'Can I compress multiple images at once?',
     answer:
-      'Yes. Drag and drop as many files as you like (or paste from clipboard). The Studio queues them and processes one file at a time on a single worker. You can download each result individually or grab a ZIP of everything.',
+      'Yes. Drag and drop as many files as you like (or paste from clipboard). The Studio queues them and encodes in parallel on a worker pool sized to your CPU (up to 4), with live per-file progress and a Cancel button. Download each result or a ZIP of everything.',
   },
   {
     question: 'What is "size budget" encoding?',
@@ -186,7 +186,7 @@ function pairContent(pair: StudioFormatPair): Omit<
       },
       {
         question: `Can I batch convert ${fromLabel} to ${toLabel}?`,
-        answer: `Yes. Queue many files, keep ${toLabel} as the output format, and the Studio processes them one at a time. Preview savings, then download individually or as a ZIP.`,
+        answer: `Yes. Queue many files, keep ${toLabel} as the output format, and the Studio encodes them in parallel (worker pool up to 4). Preview savings, then download individually or as a ZIP.`,
       },
       {
         question: `Which codec does Asset Melt use for ${toLabel}?`,

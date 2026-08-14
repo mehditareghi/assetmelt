@@ -21,6 +21,7 @@ vi.mock('@/lib/image/worker-bridge', () => ({
       savingsPercent: 60,
     },
   })),
+  cancelStudioWorkerJobs: vi.fn(),
 }))
 
 vi.mock('@/lib/image/dimensions', () => ({
@@ -158,6 +159,71 @@ describe('studio hybrid processing', () => {
     })
     expect(vi.mocked(processImageInWorker).mock.calls.length).toBeGreaterThan(callsAfterAuto)
   })
+
+  it('processes multiple pending files concurrently', async () => {
+    vi.stubGlobal('navigator', { hardwareConcurrency: 4 })
+    let live = 0
+    let peak = 0
+    vi.mocked(processImageInWorker).mockImplementation(async () => {
+      live += 1
+      peak = Math.max(peak, live)
+      await new Promise((resolve) => setTimeout(resolve, 40))
+      live -= 1
+      return {
+        type: 'result' as const,
+        id: 'mock',
+        buffer: new ArrayBuffer(8),
+        mimeType: 'image/webp',
+        outputName: 'out.webp',
+        stats: {
+          originalSize: 100,
+          outputSize: 40,
+          originalWidth: 10,
+          originalHeight: 10,
+          outputWidth: 10,
+          outputHeight: 10,
+          savingsPercent: 60,
+        },
+      }
+    })
+
+    useStudioStore.setState({ isProcessing: false, processingToken: 0, files: [] })
+    await useStudioStore.getState().addFiles([
+      tinyJpegFile('a.jpg'),
+      tinyJpegFile('b.jpg'),
+      tinyJpegFile('c.jpg'),
+      tinyJpegFile('d.jpg'),
+    ])
+
+    await vi.waitFor(() => {
+      expect(useStudioStore.getState().files.every((f) => f.status === 'done')).toBe(true)
+    })
+    expect(peak).toBeGreaterThan(1)
+    vi.unstubAllGlobals()
+  })
+
+  it('cancelProcessing returns in-flight files to pending', async () => {
+    vi.mocked(processImageInWorker).mockImplementation(
+      () =>
+        new Promise(() => {
+          // never resolves
+        }),
+    )
+
+    useStudioStore.setState({ isProcessing: false, processingToken: 0, files: [] })
+    const addPromise = useStudioStore.getState().addFiles([tinyJpegFile('slow.jpg')])
+
+    await vi.waitFor(() => {
+      expect(useStudioStore.getState().isProcessing).toBe(true)
+      expect(useStudioStore.getState().files[0]?.status).toBe('processing')
+    })
+
+    useStudioStore.getState().cancelProcessing()
+    expect(useStudioStore.getState().isProcessing).toBe(false)
+    expect(useStudioStore.getState().files[0]?.status).toBe('pending')
+
+    await Promise.race([addPromise, new Promise((resolve) => setTimeout(resolve, 50))])
+  })
 })
 
 describe('studioQueueStatus', () => {
@@ -165,8 +231,8 @@ describe('studioQueueStatus', () => {
     const { studioQueueStatus } = await import('@/lib/studio-actions')
     expect(studioQueueStatus([])).toBeNull()
     expect(
-      studioQueueStatus([{ status: 'processing' }, { status: 'pending' }]),
-    ).toMatch(/Processing/)
+      studioQueueStatus([{ status: 'processing' }, { status: 'pending' }, { status: 'done' }]),
+    ).toBe('Encoding 1 · 1 ready · 1 waiting')
     expect(
       studioQueueStatus([{ status: 'done' }, { status: 'pending' }]),
     ).toBe('Settings changed — re-process to update')
