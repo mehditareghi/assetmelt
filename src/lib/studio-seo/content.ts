@@ -68,7 +68,7 @@ const DEFAULT_FAQ: StudioFaqItem[] = [
   {
     question: 'How does Asset Melt compare to Squoosh?',
     answer:
-      'Asset Melt uses the same Squoosh-grade codecs (libavif, MozJPEG, WebP) but adds batch processing, platform presets, size-budget encoding, and a non-destructive crop — features that Squoosh lacks.',
+      'Asset Melt uses the same Squoosh-grade codecs (libavif, MozJPEG, WebP) but adds batch processing, platform presets, size-budget encoding, shareable recipe URLs, and a non-destructive crop — features that Squoosh lacks.',
   },
   {
     question: 'Is Asset Melt Studio free?',
@@ -89,6 +89,11 @@ const DEFAULT_FAQ: StudioFaqItem[] = [
     question: 'Can I customize output filenames?',
     answer:
       'Yes. The filename pattern field accepts {name}, {ext}, {width}, {height}, {quality}, and {date} (local YYYY-MM-DD). The same tokens apply to ZIP downloads and favicon-kit files. {quality} is the encode quality used — including size-budget results — and stays blank for PNG and QOI.',
+  },
+  {
+    question: 'Can I share my Studio settings?',
+    answer:
+      'Yes. Copy the recipe link from the Studio toolbar. It stores the pipeline (preset or compact settings) in ?recipe= — photos never go in the URL. Opening the link restores those settings on this device.',
   },
 ]
 

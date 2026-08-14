@@ -1,6 +1,7 @@
 import { toast } from 'sonner'
 import { trackExportCompleted } from '@/lib/analytics'
 import { downloadProcessedFiles, fileHasDownloadableResult } from '@/lib/download-results'
+import { encodeStudioRecipe } from '@/lib/studio-recipe'
 import { formatShortcutLabel } from '@/lib/studio-shortcuts'
 import { useStudioStore } from '@/stores/studio-store'
 
@@ -75,4 +76,21 @@ export function studioQueueStatus(files: { status: string }[]): string | null {
     return `${files.length} file${files.length === 1 ? '' : 's'} · waiting`
   }
   return `${files.length} file${files.length === 1 ? '' : 's'} · ${done} ready`
+}
+
+export async function copyStudioRecipeLink(): Promise<boolean> {
+  const encoded = encodeStudioRecipe(useStudioStore.getState().pipeline)
+  const url = new URL(window.location.href)
+  if (encoded) url.searchParams.set('recipe', encoded)
+  else url.searchParams.delete('recipe')
+  try {
+    await navigator.clipboard.writeText(url.toString())
+    toast.success('Recipe link copied', {
+      description: 'Settings only — photos are not in the URL.',
+    })
+    return true
+  } catch {
+    toast.error('Could not copy link')
+    return false
+  }
 }

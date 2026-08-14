@@ -10,9 +10,10 @@ Built with Vite, React, shadcn/ui, and Squoosh-grade WASM codecs (@jsquash).
 - **Transforms** — Resize (Lanczos3, Mitchell, Magic Kernel, HQX…), crop, rotate, flip
 - **Filters** — Brightness, contrast, saturation, grayscale, sharpen
 - **Batch processing** — Queue multiple files, export as zip
-- **Presets + JSON config** — Web Optimized, Dev Assets, Lossless PNG, Thumbnail, custom presets
+- **Presets + JSON config** — Web Optimized, Dev Assets, Lossless PNG, Thumbnail, custom presets; import/export pipeline as a JSON file
 - **Keyboard shortcuts** — `?` cheatsheet in Studio; Cmd/Ctrl+Enter process, S download, K recipes
 - **Filename tokens** — `{name}` `{ext}` `{width}` `{height}` `{quality}` `{date}` in the pattern field, ZIP, and favicon kits
+- **Shareable recipes** — copy a `?recipe=` link (named preset or compact pipeline). Images never go in the URL
 - **Advanced mode** — Full codec parameter control
 - **Privacy** — 100% client-side, no server, no accounts
 

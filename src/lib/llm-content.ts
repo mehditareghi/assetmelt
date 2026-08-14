@@ -29,7 +29,7 @@ export const FAQ_ITEMS = [
   {
     question: 'How is Asset Melt different from Squoosh?',
     answer:
-      'Asset Melt uses the same @jsquash WASM codec stack as Google Squoosh, but adds batch processing, size-budget encoding, platform presets (OG images, social sizes, favicon kits), live before/after compare, undo/redo, JSON pipeline import/export, and a full transform pipeline (resize, crop, rotate, filters).',
+      'Asset Melt uses the same @jsquash WASM codec stack as Google Squoosh, but adds batch processing, size-budget encoding, platform presets (OG images, social sizes, favicon kits), shareable recipe URLs, live before/after compare, undo/redo, JSON pipeline file import/export, and a full transform pipeline (resize, crop, rotate, filters).',
   },
   {
     question: 'What is size-budget encoding?',
@@ -61,6 +61,11 @@ export const FAQ_ITEMS = [
     answer:
       'Yes. In Studio settings, set a filename pattern with {name}, {ext}, {width}, {height}, {quality}, and {date}. The same tokens apply to ZIP downloads and favicon kits. {quality} is blank for PNG and QOI.',
   },
+  {
+    question: 'Can I share my Studio settings?',
+    answer:
+      'Yes. Copy the recipe link in Studio. It puts the pipeline in a ?recipe= query — named preset or compact settings, never the image. Opening the link restores those settings locally.',
+  },
 ] as const
 
 export const KEY_FEATURES = [
@@ -72,9 +77,10 @@ export const KEY_FEATURES = [
   'General presets: Web Optimized, Dev Assets, Lossless PNG, Thumbnail',
   'Full pipeline: resize, crop, rotate, flip, brightness, contrast, saturation',
   'Live before/after compare with scrubber',
-  'Undo/redo, custom presets, JSON pipeline import/export',
+  'Undo/redo, custom presets, JSON pipeline file import/export',
   'Keyboard shortcuts overlay (? in Studio)',
   'Filename tokens {name} {ext} {width} {height} {quality} {date}',
+  'Shareable recipe URLs (?recipe= preset or compact pipeline; no images)',
   'HEIC/HEIF input (decoded via JPEG quality 0.92)',
   'TIFF input (first page)',
   'Optional PWA offline pack (not automatic)',

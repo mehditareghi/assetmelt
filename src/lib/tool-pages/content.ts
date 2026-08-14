@@ -67,7 +67,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
       {
         heading: 'What Asset Melt adds on top of Squoosh',
         paragraphs: [
-          'Asset Melt was built as a spiritual successor: same codec foundation, modern workflow. You get undo/redo, live before/after compare, JSON pipeline import/export, custom presets, and an optional offline pack (not automatic after the first visit).',
+          'Asset Melt was built as a spiritual successor: same codec foundation, modern workflow. You get undo/redo, live before/after compare, shareable recipe URLs, JSON pipeline file import/export, custom presets, and an optional offline pack (not automatic after the first visit).',
           'Whether you are shrinking hero images for a landing page, converting a folder of HEIC photos, or generating favicon kits at exact dimensions — Asset Melt handles it in one client-side session.',
         ],
       },
@@ -81,6 +81,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
         { feature: 'Size-budget encoding', assetMelt: 'Yes', competitor: 'No' },
         { feature: 'HEIC / HEIF input', assetMelt: 'Yes', competitor: 'No' },
         { feature: 'Platform presets (OG, favicon)', assetMelt: 'Yes', competitor: 'No' },
+        { feature: 'Shareable recipe URL', assetMelt: 'Yes (?recipe=)', competitor: '#settings hash' },
         { feature: 'Transform pipeline (crop, resize, filters)', assetMelt: 'Full pipeline', competitor: 'Basic' },
         { feature: 'Actively maintained', assetMelt: 'Yes', competitor: 'Unmaintained' },
         { feature: 'Price', assetMelt: 'Free', competitor: 'Free' },

@@ -18,13 +18,16 @@ import {
   pairConversionSlug,
   targetConversionSlug,
 } from '@/lib/studio-seo/paths'
+import { parseRecipeParam } from '@/lib/studio-recipe'
 
 /**
  * Format intent used across Studio SEO (URL slugs like `jpg`, not `jpeg`).
+ * `recipe` is a shareable pipeline token — never indexed, never contains images.
  */
 export interface StudioSearch {
   from?: string
   to?: string
+  recipe?: string
 }
 
 export function parseStudioSearch(raw: Record<string, unknown>): StudioSearch {
@@ -33,6 +36,8 @@ export function parseStudioSearch(raw: Record<string, unknown>): StudioSearch {
   const search: StudioSearch = {}
   if (fromIntent) search.from = INPUT_URL_SLUG[fromIntent]
   if (toIntent) search.to = OUTPUT_URL_SLUG[toIntent]
+  const recipe = parseRecipeParam(raw.recipe)
+  if (recipe) search.recipe = recipe
   return search
 }
 
@@ -108,6 +113,7 @@ export function resolveStudioSeoMode(search: StudioSearch): StudioSeoMode {
 }
 
 export function isStudioSearchIndexable(search: StudioSearch): boolean {
+  if (search.recipe) return false
   const mode = resolveStudioSeoMode(search)
   return mode.kind === 'pair' || mode.kind === 'target'
 }

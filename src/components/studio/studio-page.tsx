@@ -41,6 +41,11 @@ import { useEffect, useRef } from 'react'
 import { useStudioShortcuts } from '@/hooks/use-studio-shortcuts'
 import { ShortcutCheatsheet } from '@/components/studio/shortcut-cheatsheet'
 import { exportStudioResults, studioQueueStatus } from '@/lib/studio-actions'
+import {
+  decodeStudioRecipe,
+  encodeStudioRecipe,
+  studioRecipeSearch,
+} from '@/lib/studio-recipe'
 
 function applyOutputFromSearch(toSlug: string | undefined) {
   const to = studioSearchIntents({ to: toSlug }).to
@@ -51,6 +56,22 @@ function applyOutputFromSearch(toSlug: string | undefined) {
     outputFormat: to,
     encode: getDefaultEncodeOptions(to),
   })
+}
+
+function applyRecipeOrFormat(search: StudioSearch) {
+  if (search.recipe) {
+    const decoded = decodeStudioRecipe(search.recipe)
+    const store = useStudioStore.getState()
+    if (decoded?.kind === 'preset') {
+      store.applyPresetById(decoded.id)
+      return
+    }
+    if (decoded?.kind === 'pipeline') {
+      store.importPipelineConfig(decoded.pipeline)
+      return
+    }
+  }
+  applyOutputFromSearch(search.to)
 }
 
 function pathFromLocation(pathname: string): string {
@@ -64,7 +85,8 @@ export function StudioPage({ search }: { search: StudioSearch }) {
   const navigate = useNavigate()
   const pathname = useRouterState({ select: (s) => s.location.pathname })
   const files = useStudioStore((s) => s.files)
-  const outputFormat = useStudioStore((s) => s.pipeline.outputFormat)
+  const pipeline = useStudioStore((s) => s.pipeline)
+  const outputFormat = pipeline.outputFormat
   const addFiles = useStudioStore((s) => s.addFiles)
   const processAll = useStudioStore((s) => s.processAll)
   const isProcessing = useStudioStore((s) => s.isProcessing)
@@ -86,12 +108,13 @@ export function StudioPage({ search }: { search: StudioSearch }) {
     void exportStudioResults()
   }
 
-  /** Skip URL rewrite while applying format from the route itself. */
+  /** Skip URL rewrite while applying format/recipe from the route itself. */
   const applyingFromRouteRef = useRef(false)
   /** Latest SEO search — used when syncing URL after a user format change. */
   const searchRef = useRef(search)
   /** Only rewrite the URL when outputFormat changes from a user action. */
   const lastSyncedFormatRef = useRef<string | null>(null)
+  const lastWrittenRecipeRef = useRef<string | null | undefined>(undefined)
 
   useEffect(() => {
     searchRef.current = search
@@ -101,27 +124,31 @@ export function StudioPage({ search }: { search: StudioSearch }) {
     warmUpWorker()
   }, [])
 
-  // Route `to` wins over persisted localStorage settings after rehydration.
+  // Recipe (or route `to`) wins over persisted localStorage settings after rehydration.
   useEffect(() => {
-    if (!search.to) {
-      // Bare /studio — treat current format as already synced so we don't
-      // immediately bounce to /studio/to-webp.
-      lastSyncedFormatRef.current = useStudioStore.getState().pipeline.outputFormat
+    if (
+      lastWrittenRecipeRef.current === (search.recipe ?? null) &&
+      lastSyncedFormatRef.current !== null
+    ) {
       return
     }
 
     const apply = () => {
       applyingFromRouteRef.current = true
-      applyOutputFromSearch(search.to)
-      const applied = studioSearchIntents({ to: search.to }).to
-      if (applied) lastSyncedFormatRef.current = applied
-      // Keep the flag set long enough that the format-sync effect (scheduled
-      // after this render) still sees the route-driven change as authoritative.
+      applyRecipeOrFormat(search)
+      lastSyncedFormatRef.current = useStudioStore.getState().pipeline.outputFormat
+      lastWrittenRecipeRef.current = search.recipe ?? null
       requestAnimationFrame(() => {
         applyingFromRouteRef.current = false
       })
     }
     const persist = useStudioStore.persist
+
+    if (!search.recipe && !search.to) {
+      lastSyncedFormatRef.current = useStudioStore.getState().pipeline.outputFormat
+      lastWrittenRecipeRef.current = encodeStudioRecipe(useStudioStore.getState().pipeline)
+      return
+    }
 
     if (persist.hasHydrated()) {
       apply()
@@ -129,7 +156,7 @@ export function StudioPage({ search }: { search: StudioSearch }) {
     }
 
     return persist.onFinishHydration(apply)
-  }, [search.to])
+  }, [search, search.recipe, search.to])
 
   // Keep the shareable URL aligned with output format only (not quality/toggles).
   // Only runs when the user changes format in settings — not when related SEO
@@ -146,6 +173,8 @@ export function StudioPage({ search }: { search: StudioSearch }) {
 
     const desired = studioPathForOutputChange(searchRef.current, outputFormat)
     const current = pathFromLocation(pathname)
+    const encoded = encodeStudioRecipe(useStudioStore.getState().pipeline)
+    const recipeSearch = studioRecipeSearch(encoded)
     if (desired === current) return
 
     const intents = studioSearchIntents(searchRef.current)
@@ -159,8 +188,10 @@ export function StudioPage({ search }: { search: StudioSearch }) {
       return
     }
 
+    lastWrittenRecipeRef.current = encoded ?? null
+
     if (desired === '/studio') {
-      void navigate({ to: '/studio', replace: true })
+      void navigate({ to: '/studio', search: recipeSearch, replace: true })
       return
     }
 
@@ -168,9 +199,40 @@ export function StudioPage({ search }: { search: StudioSearch }) {
     void navigate({
       to: '/studio/$conversion',
       params: { conversion },
+      search: recipeSearch,
       replace: true,
     })
   }, [outputFormat, pathname, navigate])
+
+  useEffect(() => {
+    if (applyingFromRouteRef.current) return
+    const encoded = encodeStudioRecipe(pipeline)
+    const next = encoded ?? null
+    if (lastWrittenRecipeRef.current === next) return
+    if ((search.recipe ?? null) === next) {
+      lastWrittenRecipeRef.current = next
+      return
+    }
+
+    const handle = window.setTimeout(() => {
+      if (applyingFromRouteRef.current) return
+      lastWrittenRecipeRef.current = next
+      const recipeSearch = studioRecipeSearch(encoded)
+      const current = pathFromLocation(pathname)
+      if (current === '/studio') {
+        void navigate({ to: '/studio', search: recipeSearch, replace: true })
+        return
+      }
+      void navigate({
+        to: '/studio/$conversion',
+        params: { conversion: current.replace(/^\/studio\//, '') },
+        search: recipeSearch,
+        replace: true,
+      })
+    }, 400)
+
+    return () => window.clearTimeout(handle)
+  }, [pipeline, pathname, navigate, search.recipe])
 
   useEffect(() => {
     const onPaste = (event: ClipboardEvent) => {

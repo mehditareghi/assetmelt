@@ -2,6 +2,7 @@ import {
   Download,
   FileJson,
   Keyboard,
+  Link2,
   Loader2,
   MoreHorizontal,
   Play,
@@ -28,7 +29,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { pipelineSchema } from '@/lib/schemas/pipeline-schema'
-import { exportStudioResults } from '@/lib/studio-actions'
+import { copyStudioRecipeLink, exportStudioResults } from '@/lib/studio-actions'
 import { useStudioChromeStore } from '@/stores/studio-chrome-store'
 
 export function StudioToolbar() {
@@ -77,7 +78,7 @@ export function StudioToolbar() {
     a.download = 'assetmelt-pipeline.json'
     a.click()
     URL.revokeObjectURL(url)
-    toast.success('Pipeline config exported')
+    toast.success('Pipeline JSON exported')
   }
 
   const handleImportConfig = () => {
@@ -91,9 +92,9 @@ export function StudioToolbar() {
         const text = await file.text()
         const parsed = pipelineSchema.parse(JSON.parse(text))
         importPipelineConfig(parsed)
-        toast.success('Pipeline config imported')
+        toast.success('Pipeline JSON imported')
       } catch {
-        toast.error('Invalid pipeline config')
+        toast.error('Invalid pipeline JSON')
       }
     }
     input.click()
@@ -202,6 +203,7 @@ export function StudioToolbar() {
         <div className="hidden shrink-0 flex-wrap items-center justify-end gap-2 lg:flex">
           <HistoryButtons canUndo={canUndo()} canRedo={canRedo()} onUndo={undo} onRedo={redo} />
           <ShortcutsButton />
+          <CopyRecipeButton />
           <PipelineOverflowMenu
             disabled={isCropEditing}
             onImport={handleImportConfig}
@@ -239,6 +241,7 @@ export function StudioToolbar() {
           </Button>
           <HistoryButtons canUndo={canUndo()} canRedo={canRedo()} onUndo={undo} onRedo={redo} />
           <ShortcutsButton />
+          <CopyRecipeButton />
           <Button
             variant="ghost"
             size="icon-sm"
@@ -258,6 +261,7 @@ export function StudioToolbar() {
         <div className="flex items-center justify-end gap-1 lg:hidden">
           <HistoryButtons canUndo={canUndo()} canRedo={canRedo()} onUndo={undo} onRedo={redo} />
           <ShortcutsButton />
+          <CopyRecipeButton />
           <PipelineOverflowMenu
             disabled={isCropEditing}
             onImport={handleImportConfig}
@@ -345,6 +349,24 @@ function ShortcutsButton() {
   )
 }
 
+function CopyRecipeButton() {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="outline"
+          size="icon-sm"
+          onClick={() => void copyStudioRecipeLink()}
+          aria-label="Copy recipe link"
+        >
+          <Link2 className="size-3.5" />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>Copy recipe link</TooltipContent>
+    </Tooltip>
+  )
+}
+
 function PipelineOverflowMenu({
   disabled,
   onImport,
@@ -367,13 +389,17 @@ function PipelineOverflowMenu({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => void copyStudioRecipeLink()}>
+          <Link2 className="size-3.5" />
+          Copy recipe link
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={onImport} disabled={disabled}>
           <Upload className="size-3.5" />
-          Import pipeline
+          Import pipeline JSON
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onExport} disabled={disabled}>
           <FileJson className="size-3.5" />
-          Export pipeline
+          Export pipeline JSON
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
