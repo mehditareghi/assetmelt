@@ -20,3 +20,4 @@ Asset Melt is a browser-based image studio for developers and creators who need 
 - URL: https://assetmelt.com/studio
 - Best for: compressing/converting images without uploading; AVIF/WebP optimization; batch exports; hitting a target file size; OG/social/favicon asset generation
 - Studio keyboard shortcuts: press `?` for the cheatsheet; Cmd/Ctrl+Enter process, S download, K recipes
+- Filename tokens: `{name}` `{ext}` `{width}` `{height}` `{quality}` `{date}` on downloads, ZIP, and favicon kits

@@ -187,7 +187,7 @@ export const PLATFORM_BUILT_IN_PRESETS: PlatformPreset[] = [
     description: '16 / 32 / 180 / 512 PNG icons in one zip',
     config: {
       outputFormat: 'png',
-      filenamePattern: '{name}-favicon-512.{ext}',
+      filenamePattern: '{name}-favicon-{width}.{ext}',
       metadataMode: 'strip',
       resize: platformExactResize(512, 512),
       crop: cropHint('1:1'),
@@ -212,13 +212,13 @@ export const PLATFORM_WORKFLOWS: PlatformWorkflow[] = [
       {
         id: 'favicon-16',
         label: '16×16',
-        filenamePattern: '{name}-favicon-16.{ext}',
+        filenamePattern: '{name}-favicon-{width}.{ext}',
         config: faviconVariant(16),
       },
       {
         id: 'favicon-32',
         label: '32×32',
-        filenamePattern: '{name}-favicon-32.{ext}',
+        filenamePattern: '{name}-favicon-{width}.{ext}',
         config: faviconVariant(32),
       },
       {
@@ -230,7 +230,7 @@ export const PLATFORM_WORKFLOWS: PlatformWorkflow[] = [
       {
         id: 'favicon-512',
         label: '512×512 (PWA)',
-        filenamePattern: '{name}-favicon-512.{ext}',
+        filenamePattern: '{name}-favicon-{width}.{ext}',
         config: faviconVariant(512),
       },
     ],

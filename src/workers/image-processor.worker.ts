@@ -14,7 +14,7 @@ import {
   isSizeBudgetSupported,
 } from '@/lib/image/size-budget-encode'
 import { toMozJpegWasmOptions } from '@/lib/image/jpeg-encode'
-import { formatOutputFilename } from '@/lib/presets'
+import { encodeQualityForFilename, formatOutputFilename } from '@/lib/filename-pattern'
 import { orientImageDataFromExif } from '@/lib/image/exif-orientation'
 import { applyCrop, applyFilters, applyRotateFlip } from '@/lib/image/image-transforms'
 import { applyOutputMetadata, shouldWriteMetadata } from '@/lib/image/metadata'
@@ -253,6 +253,11 @@ async function processImage(
     fileName,
     pipeline.filenamePattern,
     pipeline.outputFormat,
+    {
+      width: outputWidth,
+      height: outputHeight,
+      quality: encodeQualityForFilename(pipeline, sizeBudgetStats?.appliedQuality),
+    },
   )
 
   let previewBuffer: ArrayBuffer | undefined

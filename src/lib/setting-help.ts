@@ -4,7 +4,7 @@ export const SETTING_HELP = {
   stripMetadata:
     'Strip all (default) drops EXIF, GPS, and ICC. Strip GPS keeps camera and color-profile data but removes location. Keep writes a lossy-safe subset (orientation already applied, no thumbnail) into JPEG, WebP, and PNG. AVIF, JXL, and QOI always export pixels only.',
   filenamePattern:
-    'Output naming template. Use {name} for the original basename and {ext} for the new extension.',
+    'Output naming template. Tokens: {name} original basename, {ext} new extension, {width} and {height} output pixels, {quality} encode quality (blank for PNG/QOI), {date} local YYYY-MM-DD. Applies to single downloads, ZIP batches, and favicon kits.',
 
   resizeEnabled: 'Scale images before encoding. Reduces file size and dimensions.',
   resizeMode:

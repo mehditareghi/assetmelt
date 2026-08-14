@@ -85,6 +85,11 @@ const DEFAULT_FAQ: StudioFaqItem[] = [
     answer:
       'Yes. Press ? in the Studio for the cheatsheet. Process the queue with Cmd/Ctrl+Enter, download with Cmd/Ctrl+S, open recipes with Cmd/Ctrl+K, and undo with Cmd/Ctrl+Z. Paste still adds images when you are not typing in a field.',
   },
+  {
+    question: 'Can I customize output filenames?',
+    answer:
+      'Yes. The filename pattern field accepts {name}, {ext}, {width}, {height}, {quality}, and {date} (local YYYY-MM-DD). The same tokens apply to ZIP downloads and favicon-kit files. {quality} is the encode quality used — including size-budget results — and stays blank for PNG and QOI.',
+  },
 ]
 
 const PAIR_TIPS: Partial<

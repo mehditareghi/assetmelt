@@ -8,6 +8,7 @@ import { isSizeBudgetSupported } from '@/lib/image/size-budget-encode'
 import { SETTING_HELP } from '@/lib/setting-help'
 import { SettingLabel, SettingRow } from '@/components/studio/setting-label'
 import { CropSettings, ResizeSettings } from '@/components/studio/resize-settings'
+import { FilenamePatternField } from '@/components/studio/filename-pattern-field'
 import { SizeBudgetSettings } from '@/components/studio/size-budget-settings'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
@@ -155,15 +156,7 @@ export function SettingsPanel() {
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <SettingLabel label="Filename pattern" help={SETTING_HELP.filenamePattern} />
-            <Input
-              value={pipeline.filenamePattern}
-              onChange={(e) => update({ filenamePattern: e.target.value })}
-              className="font-mono text-xs"
-              placeholder="{name}-melted.{ext}"
-            />
-          </div>
+          <FilenamePatternField />
         </TabsContent>
 
         <TabsContent value="transform" className="mt-4 space-y-4">

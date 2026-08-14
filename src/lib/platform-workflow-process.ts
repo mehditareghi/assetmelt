@@ -1,7 +1,8 @@
-import { applyCenteredAspectCrop, mergePipelineWithPartial } from '@/lib/presets'
+import { encodeQualityForFilename, formatOutputFilename } from '@/lib/filename-pattern'
 import { createPreviewObjectUrl } from '@/lib/image/browser-display'
 import { processImageInWorker } from '@/lib/image/worker-bridge'
 import type { InputFormat } from '@/lib/image/format-detection'
+import { applyCenteredAspectCrop, mergePipelineWithPartial } from '@/lib/presets'
 import type { PipelineConfig } from '@/lib/schemas/pipeline-schema'
 import type { ProcessStats, WorkflowVariantResult } from '@/lib/image/types'
 import type { PlatformWorkflow } from '@/lib/platform-presets'
@@ -43,7 +44,6 @@ export async function processPlatformWorkflowVariants(
     onProgress,
   } = options
 
-  const baseName = fileName.replace(/\.[^.]+$/, '')
   const variantCount = workflow.variants.length
   const results: WorkflowVariantResult[] = []
 
@@ -92,11 +92,16 @@ export async function processPlatformWorkflowVariants(
       ? createPreviewObjectUrl(result.previewBuffer)
       : resultUrl
 
-    const ext =
-      variantPipeline.outputFormat === 'jpeg' ? 'jpg' : variantPipeline.outputFormat
     const outputName =
       result.outputName ??
-      variant.filenamePattern.replace('{name}', baseName).replace('{ext}', ext)
+      formatOutputFilename(fileName, variant.filenamePattern, variantPipeline.outputFormat, {
+        width: result.stats.outputWidth,
+        height: result.stats.outputHeight,
+        quality: encodeQualityForFilename(
+          variantPipeline,
+          result.stats.sizeBudget?.appliedQuality,
+        ),
+      })
 
     const stats: ProcessStats = {
       ...result.stats,

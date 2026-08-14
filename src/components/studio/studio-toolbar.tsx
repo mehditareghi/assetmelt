@@ -35,6 +35,7 @@ export function StudioToolbar() {
   const offlinePrep = useOptionalOfflinePrepContext()
   const hideOfflineChrome = offlinePrep?.offlineStudioChrome ?? false
   const files = useStudioStore((s) => s.files)
+  const pipeline = useStudioStore((s) => s.pipeline)
   const isProcessing = useStudioStore((s) => s.isProcessing)
   const processAll = useStudioStore((s) => s.processAll)
   const clearFiles = useStudioStore((s) => s.clearFiles)

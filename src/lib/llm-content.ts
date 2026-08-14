@@ -56,6 +56,11 @@ export const FAQ_ITEMS = [
     answer:
       'Yes. Open the Studio and press ? for the cheatsheet. Cmd/Ctrl+Enter processes the queue, Cmd/Ctrl+S downloads, Cmd/Ctrl+K opens recipes, and Cmd/Ctrl+Z undoes. Shortcuts skip text fields except process, download, and recipes.',
   },
+  {
+    question: 'Can I customize output filenames?',
+    answer:
+      'Yes. In Studio settings, set a filename pattern with {name}, {ext}, {width}, {height}, {quality}, and {date}. The same tokens apply to ZIP downloads and favicon kits. {quality} is blank for PNG and QOI.',
+  },
 ] as const
 
 export const KEY_FEATURES = [
@@ -69,6 +74,7 @@ export const KEY_FEATURES = [
   'Live before/after compare with scrubber',
   'Undo/redo, custom presets, JSON pipeline import/export',
   'Keyboard shortcuts overlay (? in Studio)',
+  'Filename tokens {name} {ext} {width} {height} {quality} {date}',
   'HEIC/HEIF input (decoded via JPEG quality 0.92)',
   'TIFF input (first page)',
   'Optional PWA offline pack (not automatic)',

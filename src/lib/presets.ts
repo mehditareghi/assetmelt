@@ -269,15 +269,6 @@ export function applyPreset(preset: Preset): PipelineConfig {
   })
 }
 
-export const FORMAT_EXTENSIONS: Record<string, string> = {
-  jpeg: 'jpg',
-  webp: 'webp',
-  avif: 'avif',
-  png: 'png',
-  jxl: 'jxl',
-  qoi: 'qoi',
-}
-
 export const FORMAT_MIME: Record<string, string> = {
   jpeg: 'image/jpeg',
   webp: 'image/webp',
@@ -287,14 +278,4 @@ export const FORMAT_MIME: Record<string, string> = {
   qoi: 'image/qoi',
 }
 
-export function formatOutputFilename(
-  originalName: string,
-  pattern: string,
-  outputFormat: string,
-): string {
-  const ext = FORMAT_EXTENSIONS[outputFormat] ?? outputFormat
-  const baseName = originalName.replace(/\.[^.]+$/, '')
-  return pattern
-    .replace('{name}', baseName)
-    .replace('{ext}', ext)
-}
+export { FORMAT_EXTENSIONS, formatOutputFilename } from '@/lib/filename-pattern'
