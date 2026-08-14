@@ -1,11 +1,11 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { PipelineConfig, ResizeConfig } from '@/lib/schemas/pipeline-schema'
-import { createDefaultPipeline } from '@/lib/schemas/pipeline-schema'
 import {
   applyPreset,
   applyPlatformCropForPreset,
   BUILT_IN_PRESETS,
+  mergePipelineWithPartial,
   type CustomPreset,
 } from '@/lib/presets'
 import { getActivePlatformWorkflow, resolvePlatformPresetId, type PlatformPreset } from '@/lib/platform-presets'
@@ -668,19 +668,9 @@ export const useStudioStore = create<StudioState>()(
         }
         const custom = get().customPresets.find((p) => p.id === presetId)
         if (custom) {
-          const base = createDefaultPipeline()
           const prev = get().pipeline
           const history = get().pipelineHistory
-          const next = {
-            ...base,
-            ...custom.config,
-            resize: { ...base.resize, ...custom.config.resize },
-            crop: { ...base.crop, ...custom.config.crop },
-            flip: { ...base.flip, ...custom.config.flip },
-            filters: { ...base.filters, ...custom.config.filters },
-            sizeBudget: { ...base.sizeBudget, ...custom.config.sizeBudget },
-            encode: custom.config.encode ?? base.encode,
-          } as PipelineConfig
+          const next = mergePipelineWithPartial(custom.config)
           set({
             pipeline: next,
             pipelineHistory: commitPipelineChange(history, prev, next),
@@ -894,8 +884,21 @@ export const useStudioStore = create<StudioState>()(
       }),
       onRehydrateStorage: () => (state) => {
         if (!state) return
+        const persisted = state.pipeline as PipelineConfig & {
+          stripMetadata?: boolean
+          metadataMode?: string
+        }
+        const metadataMode =
+          persisted.metadataMode === 'strip' ||
+          persisted.metadataMode === 'strip-gps' ||
+          persisted.metadataMode === 'keep'
+            ? persisted.metadataMode
+            : persisted.stripMetadata === false
+              ? 'keep'
+              : 'strip'
         state.pipeline = {
           ...state.pipeline,
+          metadataMode,
           resize: normalizeResizeConfig(
             state.pipeline.resize as ResizeConfig & Record<string, unknown>,
           ),

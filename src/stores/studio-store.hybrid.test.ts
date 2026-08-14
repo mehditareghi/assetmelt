@@ -119,7 +119,8 @@ describe('studio hybrid processing', () => {
     })
 
     useStudioStore.getState().updatePipeline({
-      stripMetadata: !useStudioStore.getState().pipeline.stripMetadata,
+      metadataMode:
+        useStudioStore.getState().pipeline.metadataMode === 'strip' ? 'keep' : 'strip',
     })
 
     expect(useStudioStore.getState().files[0]?.status).toBe('pending')
@@ -148,7 +149,8 @@ describe('studio hybrid processing', () => {
     expect(vi.mocked(processImageInWorker).mock.calls.length).toBe(callsAfterAuto)
 
     useStudioStore.getState().updatePipeline({
-      stripMetadata: !useStudioStore.getState().pipeline.stripMetadata,
+      metadataMode:
+        useStudioStore.getState().pipeline.metadataMode === 'strip' ? 'keep' : 'strip',
     })
     await useStudioStore.getState().processAll()
     await vi.waitFor(() => {

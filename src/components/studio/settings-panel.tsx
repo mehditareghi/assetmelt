@@ -1,7 +1,7 @@
 import { useStudioStore } from '@/stores/studio-store'
 import { cn } from '@/lib/utils'
 import { usePipelineForm } from '@/hooks/use-pipeline-form'
-import type { PipelineConfig } from '@/lib/schemas/pipeline-schema'
+import type { MetadataMode, PipelineConfig } from '@/lib/schemas/pipeline-schema'
 import type { PipelineChangeOptions } from '@/stores/pipeline-change'
 import { getDefaultEncodeOptions } from '@/lib/schemas/pipeline-schema'
 import { isSizeBudgetSupported } from '@/lib/image/size-budget-encode'
@@ -138,17 +138,22 @@ export function SettingsPanel() {
             onChange={(encode) => update({ encode })}
           />
 
-          <SettingRow
-            label="Strip metadata"
-            help={SETTING_HELP.stripMetadata}
-            htmlFor="strip-meta"
-          >
-            <Switch
-              id="strip-meta"
-              checked={pipeline.stripMetadata}
-              onCheckedChange={(v) => update({ stripMetadata: v })}
-            />
-          </SettingRow>
+          <div className="space-y-2">
+            <SettingLabel label="Metadata" help={SETTING_HELP.stripMetadata} />
+            <Select
+              value={pipeline.metadataMode}
+              onValueChange={(v) => update({ metadataMode: v as MetadataMode })}
+            >
+              <SelectTrigger id="metadata-mode">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="strip">Strip all</SelectItem>
+                <SelectItem value="strip-gps">Strip GPS only</SelectItem>
+                <SelectItem value="keep">Keep (lossy-safe)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           <div className="space-y-2">
             <SettingLabel label="Filename pattern" help={SETTING_HELP.filenamePattern} />

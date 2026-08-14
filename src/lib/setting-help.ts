@@ -2,7 +2,7 @@ export const SETTING_HELP = {
   outputFormat:
     'Target file format for export. WebP and AVIF usually give the smallest files; PNG is lossless.',
   stripMetadata:
-    'Removes EXIF, GPS, and camera data on re-encode. Recommended for web and privacy.',
+    'Strip all (default) drops EXIF, GPS, and ICC. Strip GPS keeps camera and color-profile data but removes location. Keep writes a lossy-safe subset (orientation already applied, no thumbnail) into JPEG, WebP, and PNG. AVIF, JXL, and QOI always export pixels only.',
   filenamePattern:
     'Output naming template. Use {name} for the original basename and {ext} for the new extension.',
 

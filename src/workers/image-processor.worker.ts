@@ -17,6 +17,7 @@ import { toMozJpegWasmOptions } from '@/lib/image/jpeg-encode'
 import { formatOutputFilename } from '@/lib/presets'
 import { orientImageDataFromExif } from '@/lib/image/exif-orientation'
 import { applyCrop, applyFilters, applyRotateFlip } from '@/lib/image/image-transforms'
+import { applyOutputMetadata, shouldWriteMetadata } from '@/lib/image/metadata'
 
 function postProgress(id: string, progress: number, stage: string) {
   self.postMessage({ type: 'progress', id, progress, stage } satisfies WorkerResponse)
@@ -226,6 +227,15 @@ async function processImage(
     const encoded = await encodeImage(imageData, pipeline)
     outputBuffer = encoded.buffer
     mimeType = encoded.mimeType
+  }
+
+  if (shouldWriteMetadata(pipeline.metadataMode)) {
+    postProgress(id, 96, 'Metadata')
+    outputBuffer = await applyOutputMetadata(outputBuffer, pipeline.outputFormat, buffer, {
+      mode: pipeline.metadataMode,
+      width: outputWidth,
+      height: outputHeight,
+    })
   }
 
   postProgress(id, 100, 'Done')

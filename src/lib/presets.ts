@@ -48,7 +48,7 @@ export const GENERAL_BUILT_IN_PRESETS: Preset[] = [
         premultiply: true,
         linearRGB: true,
       },
-      stripMetadata: true,
+      metadataMode: 'strip',
     },
   },
   {
@@ -58,17 +58,17 @@ export const GENERAL_BUILT_IN_PRESETS: Preset[] = [
     category: 'general',
     config: {
       outputFormat: 'avif',
-      stripMetadata: true,
+      metadataMode: 'strip',
     },
   },
   {
     id: 'lossless-png',
     name: 'Lossless PNG',
-    description: 'Sharp PNG — Oxipng level 4',
+    description: 'Sharp PNG — Oxipng level 4, keeps EXIF/ICC',
     category: 'general',
     config: {
       outputFormat: 'png',
-      stripMetadata: false,
+      metadataMode: 'keep',
     },
   },
   {
@@ -91,7 +91,7 @@ export const GENERAL_BUILT_IN_PRESETS: Preset[] = [
         premultiply: true,
         linearRGB: true,
       },
-      stripMetadata: true,
+      metadataMode: 'strip',
     },
   },
   {
@@ -114,7 +114,7 @@ export const GENERAL_BUILT_IN_PRESETS: Preset[] = [
         premultiply: true,
         linearRGB: true,
       },
-      stripMetadata: true,
+      metadataMode: 'strip',
     },
   },
 ]
@@ -152,17 +152,7 @@ export function getCustomPresetSummary(config: Partial<PipelineConfig>): string 
 }
 
 export function resolveCustomPresetPipeline(preset: CustomPreset): PipelineConfig {
-  const base = createDefaultPipeline()
-  return {
-    ...base,
-    ...preset.config,
-    resize: { ...base.resize, ...preset.config.resize },
-    crop: { ...base.crop, ...preset.config.crop },
-    flip: { ...base.flip, ...preset.config.flip },
-    filters: { ...base.filters, ...preset.config.filters },
-    sizeBudget: { ...base.sizeBudget, ...preset.config.sizeBudget },
-    encode: preset.config.encode ?? base.encode,
-  } as PipelineConfig
+  return mergePipelineWithPartial(preset.config)
 }
 
 export function pipelinesEqual(a: PipelineConfig, b: PipelineConfig): boolean {

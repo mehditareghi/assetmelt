@@ -161,6 +161,11 @@ export const sizeBudgetSchema = z.object({
   allowResize: z.boolean().default(true),
 })
 
+/** How to treat source EXIF/ICC on encode. Legacy `stripMetadata` maps in parse. */
+export const metadataModeSchema = z.enum(['strip', 'strip-gps', 'keep'])
+
+export type MetadataMode = z.infer<typeof metadataModeSchema>
+
 export const jxlOptionsSchema = z.object({
   quality: z.number().min(-1).max(100).default(75),
   effort: z.number().int().min(1).max(9).default(7),
@@ -225,8 +230,15 @@ export const pipelineSchema = z.object({
     targetBytes: 102_400,
     allowResize: true,
   }),
-  stripMetadata: z.boolean().default(true),
+  metadataMode: metadataModeSchema.optional(),
+  /** @deprecated Prefer `metadataMode`. Accepted on parse for saved pipelines. */
+  stripMetadata: z.boolean().optional(),
   filenamePattern: z.string().default('{name}-melted.{ext}'),
+}).transform((data) => {
+  const metadataMode: MetadataMode =
+    data.metadataMode ?? (data.stripMetadata === false ? 'keep' : 'strip')
+  const { stripMetadata: _legacy, metadataMode: _mode, ...rest } = data
+  return { ...rest, metadataMode }
 })
 
 export type PipelineConfig = z.infer<typeof pipelineSchema>

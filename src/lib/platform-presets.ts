@@ -99,7 +99,7 @@ export const PLATFORM_BUILT_IN_PRESETS: PlatformPreset[] = [
     config: {
       outputFormat: 'jpeg',
       filenamePattern: '{name}-og.{ext}',
-      stripMetadata: true,
+      metadataMode: 'strip',
       resize: platformExactResize(1200, 630),
       crop: cropHint('40:21'),
     },
@@ -114,7 +114,7 @@ export const PLATFORM_BUILT_IN_PRESETS: PlatformPreset[] = [
     config: {
       outputFormat: 'jpeg',
       filenamePattern: '{name}-youtube.{ext}',
-      stripMetadata: true,
+      metadataMode: 'strip',
       resize: platformExactResize(1280, 720),
       crop: cropHint('16:9'),
     },
@@ -129,7 +129,7 @@ export const PLATFORM_BUILT_IN_PRESETS: PlatformPreset[] = [
     config: {
       outputFormat: 'jpeg',
       filenamePattern: '{name}-instagram-square.{ext}',
-      stripMetadata: true,
+      metadataMode: 'strip',
       resize: platformExactResize(1080, 1080),
       crop: cropHint('1:1'),
     },
@@ -144,7 +144,7 @@ export const PLATFORM_BUILT_IN_PRESETS: PlatformPreset[] = [
     config: {
       outputFormat: 'jpeg',
       filenamePattern: '{name}-instagram-portrait.{ext}',
-      stripMetadata: true,
+      metadataMode: 'strip',
       resize: platformExactResize(1080, 1350),
       crop: cropHint('4:5'),
     },
@@ -159,7 +159,7 @@ export const PLATFORM_BUILT_IN_PRESETS: PlatformPreset[] = [
     config: {
       outputFormat: 'jpeg',
       filenamePattern: '{name}-instagram-story.{ext}',
-      stripMetadata: true,
+      metadataMode: 'strip',
       resize: platformExactResize(1080, 1920),
       crop: cropHint('9:16'),
     },
@@ -174,7 +174,7 @@ export const PLATFORM_BUILT_IN_PRESETS: PlatformPreset[] = [
     config: {
       outputFormat: 'jpeg',
       filenamePattern: '{name}-instagram-landscape.{ext}',
-      stripMetadata: true,
+      metadataMode: 'strip',
       resize: platformExactResize(1080, 566),
       crop: cropHint('40:21'),
     },
@@ -188,7 +188,7 @@ export const PLATFORM_BUILT_IN_PRESETS: PlatformPreset[] = [
     config: {
       outputFormat: 'png',
       filenamePattern: '{name}-favicon-512.{ext}',
-      stripMetadata: true,
+      metadataMode: 'strip',
       resize: platformExactResize(512, 512),
       crop: cropHint('1:1'),
     },
@@ -197,7 +197,7 @@ export const PLATFORM_BUILT_IN_PRESETS: PlatformPreset[] = [
 
 const faviconVariant = (size: number): Partial<PipelineConfig> => ({
   outputFormat: 'png',
-  stripMetadata: true,
+  metadataMode: 'strip',
   resize: platformExactResize(size, size),
   crop: cropHint('1:1'),
 })
