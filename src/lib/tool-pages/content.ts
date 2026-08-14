@@ -80,7 +80,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
         { feature: 'Batch processing + ZIP export', assetMelt: 'Yes', competitor: 'No' },
         { feature: 'Size-budget encoding', assetMelt: 'Yes', competitor: 'No' },
         { feature: 'HEIC / HEIF input', assetMelt: 'Yes', competitor: 'No' },
-        { feature: 'Platform presets (OG, favicon)', assetMelt: 'Yes', competitor: 'No' },
+        { feature: 'Platform presets (OG, favicon)', assetMelt: 'Yes (+ favicon.ico)', competitor: 'No' },
         { feature: 'Shareable recipe URL', assetMelt: 'Yes (?recipe=)', competitor: '#settings hash' },
         { feature: 'Multi-format one-run ZIP', assetMelt: 'Yes (Also export)', competitor: 'No' },
         { feature: 'Transform pipeline (crop, resize, filters)', assetMelt: 'Full pipeline', competitor: 'Basic' },

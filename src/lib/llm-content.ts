@@ -71,6 +71,11 @@ export const FAQ_ITEMS = [
     answer:
       'Yes. In Studio Format settings, use Also export to add extra codecs. One process run encodes every selected format. Download is a ZIP with a folder per format (avif/, webp/, jpeg/). A single-file queue downloads name-formats.zip; a multi-file queue downloads one assetmelt-batch.zip. JPEG fallback is optional and flattens transparency. Not available with favicon kits.',
   },
+  {
+    question: 'What is in the favicon kit?',
+    answer:
+      'PNG icons at 16, 32, 180 (apple-touch), and 512 px, plus a multi-size favicon.ico (16+32+48) in the same ZIP.',
+  },
 ] as const
 
 export const KEY_FEATURES = [
@@ -78,7 +83,7 @@ export const KEY_FEATURES = [
   'Size-budget encoding — hit a target file size at maximum quality',
   'Squoosh-grade WASM codecs: MozJPEG, AVIF, WebP, Oxipng, JXL, QOI',
   'Batch processing with parallel worker pool (up to 4), ZIP export, and per-file size stats',
-  'Platform presets: OG images, social sizes, favicon kits (16–512px)',
+  'Platform presets: OG images, social sizes, favicon kits (PNG sizes + favicon.ico + apple-touch)',
   'General presets: Web Optimized, Dev Assets, Lossless PNG, Thumbnail',
   'Full pipeline: resize, crop, rotate, flip, brightness, contrast, saturation',
   'Live before/after compare with scrubber',

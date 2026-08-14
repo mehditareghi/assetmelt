@@ -18,7 +18,7 @@ Asset Melt is a browser-based image studio for developers and creators who need 
 - Price: free forever, no account required
 - Privacy: 100% client-side image processing; photos are not uploaded, not visible to the operator, and not included in Sentry session replay. Analytics and UI-only replay: https://assetmelt.com/privacy
 - URL: https://assetmelt.com/studio
-- Best for: compressing/converting images without uploading; AVIF/WebP optimization; batch exports; hitting a target file size; OG/social/favicon asset generation
+- Best for: compressing/converting images without uploading; AVIF/WebP optimization; batch exports; hitting a target file size; OG/social/favicon kits (including favicon.ico)
 - Studio keyboard shortcuts: press `?` for the cheatsheet; Cmd/Ctrl+Enter process, S download, K recipes
 - Filename tokens: `{name}` `{ext}` `{width}` `{height}` `{quality}` `{date}` on downloads, ZIP, and favicon kits
 - Shareable recipes: copy `?recipe=` from Studio (preset or compact pipeline; photos are not in the URL)

@@ -184,7 +184,7 @@ export const PLATFORM_BUILT_IN_PRESETS: PlatformPreset[] = [
     category: 'platform',
     group: 'site',
     name: 'Favicon kit',
-    description: '16 / 32 / 180 / 512 PNG icons in one zip',
+    description: '16 / 32 / 180 / 512 PNG + favicon.ico (16+32+48) in one zip',
     config: {
       outputFormat: 'png',
       filenamePattern: '{name}-favicon-{width}.{ext}',
@@ -206,7 +206,7 @@ export const PLATFORM_WORKFLOWS: PlatformWorkflow[] = [
   {
     id: 'favicon-kit',
     name: 'Favicon kit',
-    description: '16, 32, 180, and 512 px PNG icons in one zip',
+    description: 'PNG sizes 16–512, apple-touch, and multi-size favicon.ico',
     previewPresetId: 'favicon-kit',
     variants: [
       {

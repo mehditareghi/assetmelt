@@ -100,6 +100,11 @@ const DEFAULT_FAQ: StudioFaqItem[] = [
     answer:
       'Yes. Under Format → Also export, toggle extra codecs (AVIF, WebP, and optional JPEG fallback). Process once; download is a ZIP with folders like avif/, webp/, jpeg/. One image in the queue → name-formats.zip; several images → one batch ZIP. JPEG fallback flattens transparency. Unavailable while a favicon kit is active.',
   },
+  {
+    question: 'What is in the favicon kit?',
+    answer:
+      'The Favicon kit recipe exports PNG icons at 16, 32, 180 (apple-touch), and 512 px, plus a classic multi-size favicon.ico (16+32+48 embedded). Everything lands in one ZIP.',
+  },
 ]
 
 const PAIR_TIPS: Partial<
