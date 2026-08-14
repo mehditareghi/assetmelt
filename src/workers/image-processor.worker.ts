@@ -61,6 +61,11 @@ async function decodeToImageData(
       imageData = await decode(buffer)
       break
     }
+    case 'tiff': {
+      const { decodeTiff } = await import('@/lib/image/tiff')
+      imageData = await decodeTiff(buffer)
+      break
+    }
     default:
       imageData = await decodeViaCanvas(buffer)
   }

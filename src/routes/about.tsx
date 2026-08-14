@@ -17,7 +17,7 @@ const PRINCIPLES = [
     icon: Shield,
     title: 'Privacy by architecture',
     description:
-      'Not a policy checkbox — the app has no upload endpoint. If images leave your machine, it is because you exported them.',
+      'Not a policy checkbox — image processing is 100% client-side with no upload endpoint. I cannot see your photos. If image files leave your machine, it is because you exported them. Site telemetry (UI only, not pictures) is listed on the privacy page.',
   },
   {
     icon: Zap,
@@ -57,7 +57,7 @@ function AboutPage() {
       <p>
         I wanted something different: professional results, modern formats like AVIF and WebP, batch
         processing when a folder of exports lands on my desk — and the certainty that{' '}
-        <strong className="text-foreground">nothing ever leaves my machine</strong>.
+        <strong className="text-foreground">image files never leave my machine</strong>.
       </p>
       <p>
         Google&apos;s Squoosh had already shown that WASM codecs in the browser could match server
@@ -73,7 +73,8 @@ function AboutPage() {
             assetmelt.com/studio
           </Link>
           . Drop images, configure a pipeline, compare before/after, and export — individually or
-          as a ZIP. Install it as a PWA for offline use. Read guides on the{' '}
+          as a ZIP. Offline use is optional: download the offline pack from Studio while you are
+          online. Read guides on the{' '}
           <Link to="/blog" className="font-medium text-primary hover:underline">
             blog
           </Link>{' '}
@@ -86,8 +87,11 @@ function AboutPage() {
         {SITE_NAME} is a static web application — there is no backend that receives your images.
         When you open Studio, the app downloads WebAssembly codec modules to your browser. Decoding,
         resizing, cropping, and encoding all run in Web Workers on your CPU. The site is hosted on
-        Vercel, which only delivers the app itself — HTML, JavaScript, and codec bundles. Your
-        images never leave your device, so the host never sees them.
+        Vercel, which delivers the app itself — HTML, JavaScript, and codec bundles. Your image
+        files stay on your device, so the host never sees them. I cannot access your photos.
+        Usage analytics, crash reports, and sampled session replay of the website UI (not your
+        image pixels — media is blocked) are described on the{' '}
+        <Link to="/privacy">privacy policy</Link>.
       </p>
 
       <TrustCardGrid items={PRINCIPLES} />
@@ -96,8 +100,9 @@ function AboutPage() {
       <p>
         The codec stack builds on the open-source ecosystem that powered Squoosh —{' '}
         <code>@jsquash</code> bindings around MozJPEG, libwebp, rav1e, Oxipng, and more. HEIC
-        decoding uses local WASM decoders. The UI is a React app built with TanStack Start and
-        TanStack Router, prerendered for fast loads and search-engine discoverability.
+        decoding uses local WASM decoders, currently through a JPEG intermediate at quality 0.92.
+        The UI is a React app built with TanStack Start and TanStack Router, prerendered for fast
+        loads and search-engine discoverability.
       </p>
       <p>
         <Cpu className="mb-0.5 inline size-4 text-primary" aria-hidden="true" />{' '}
@@ -137,7 +142,8 @@ function AboutPage() {
       </div>
 
       <p>
-        If you want to understand exactly what data the site collects (spoiler: not your images),
+        If you want to understand exactly what data the site collects (image processing is 100%
+        client-side; I never see your photos; analytics and Sentry record website UI, not pictures),
         read the <Link to="/privacy">privacy policy</Link>.
       </p>
 

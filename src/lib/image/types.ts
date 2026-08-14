@@ -45,7 +45,7 @@ export interface ProcessableFile {
   originalUrl?: string
   originalWidth?: number
   originalHeight?: number
-  /** Browser-displayable preview (PNG for JXL/QOI; same as resultUrl otherwise). */
+  /** Browser-displayable preview (PNG for JXL/QOI/TIFF; same as resultUrl otherwise). */
   previewUrl?: string
   resultUrl?: string
   resultBlob?: Blob
@@ -88,7 +88,7 @@ export interface WorkerProcessResponse {
   mimeType: string
   outputName: string
   stats: ProcessStats
-  /** PNG preview for formats browsers cannot render in <img> (JXL, QOI). */
+  /** PNG preview for formats browsers cannot render in <img> (JXL, QOI, TIFF). */
   previewBuffer?: ArrayBuffer
   previewMimeType?: string
 }

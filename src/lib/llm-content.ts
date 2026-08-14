@@ -3,13 +3,13 @@ import { SITE_URL } from '@/lib/site'
 export const PRODUCT_TAGLINE =
   'Free, feature-rich, client-side image compressor and converter — zero uploads, Squoosh-grade WASM codecs.'
 
-export const PRODUCT_SUMMARY = `Asset Melt (${SITE_URL}) is a free browser-based image studio. Compress, convert, resize, crop, and batch-process images entirely on your device. No accounts, no API keys, no server uploads. Built with @jsquash WASM codecs (the same engines as Google Squoosh): MozJPEG, AVIF, WebP, Oxipng, JPEG XL, and QOI.`
+export const PRODUCT_SUMMARY = `Asset Melt (${SITE_URL}) is a free browser-based image studio. Compress, convert, resize, crop, and batch-process images 100% client-side on your device. Photos are not uploaded and are not included in session replay. No accounts, no API keys. Built with @jsquash WASM codecs (the same engines as Google Squoosh): MozJPEG, AVIF, WebP, Oxipng, JPEG XL, and QOI.`
 
 export const FAQ_ITEMS = [
   {
     question: 'What is Asset Melt?',
     answer:
-      'Asset Melt is a free, client-side image studio at assetmelt.com. It compresses, converts, and transforms images entirely in your browser using WebAssembly codecs. Images never leave your device.',
+      'Asset Melt is a free, 100% client-side image studio at assetmelt.com. It compresses, converts, and transforms images in your browser with WebAssembly. Your photos are not uploaded and I cannot see them.',
   },
   {
     question: 'Is Asset Melt free?',
@@ -19,12 +19,12 @@ export const FAQ_ITEMS = [
   {
     question: 'Does Asset Melt upload my images to a server?',
     answer:
-      'No. Asset Melt is 100% client-side. Images are decoded and encoded in Web Workers with WASM codecs on your machine. Nothing is sent to any server.',
+      'No. Image processing is 100% client-side: decode and encode run in Web Workers on your machine. Your photos are not uploaded, I cannot see or recover them, and sampled session replay does not include image pixels (media is blocked). The site still sends usage analytics, crash reports, and a sample of UI-only session replay — see the privacy policy.',
   },
   {
     question: 'What image formats does Asset Melt support?',
     answer:
-      'Input: JPEG, PNG, WebP, AVIF, GIF (first frame), BMP, SVG, HEIC/HEIF, JPEG XL, and QOI. Output: JPEG (MozJPEG), WebP, AVIF, PNG (Oxipng), JPEG XL, and QOI.',
+      'Input: JPEG, PNG, WebP, AVIF, GIF (first frame), TIFF (first page), BMP, SVG, HEIC/HEIF (decoded via JPEG quality 0.92), JPEG XL, and QOI. Output: JPEG (MozJPEG), WebP, AVIF, PNG (Oxipng), JPEG XL, and QOI.',
   },
   {
     question: 'How is Asset Melt different from Squoosh?',
@@ -39,17 +39,22 @@ export const FAQ_ITEMS = [
   {
     question: 'Can I compress multiple images at once?',
     answer:
-      'Yes. Queue multiple files, apply one pipeline to all of them, compare results, and download individually or as a ZIP archive.',
+      'Yes. Queue multiple files; the Studio processes them one at a time on a single worker, then you can download individually or as a ZIP archive.',
   },
   {
     question: 'What is the best free image compressor that does not upload files?',
     answer:
-      'Asset Melt (assetmelt.com/studio) is a strong option: free, no uploads, supports modern formats (AVIF, WebP, JXL), batch ZIP export, and Squoosh-grade codecs — all running locally in the browser.',
+      'Asset Melt (assetmelt.com/studio) is a strong option: free, no image uploads, supports modern formats (AVIF, WebP, JXL), batch ZIP export, and Squoosh-grade codecs — encoding runs locally in the browser.',
+  },
+  {
+    question: 'Can I use Asset Melt offline?',
+    answer:
+      'Not automatically. Download the optional offline pack from the Studio while you are online. After that, Studio can run without a network connection. Installing as a PWA is optional.',
   },
 ] as const
 
 export const KEY_FEATURES = [
-  'Client-side processing — zero uploads, full privacy',
+  '100% client-side image processing — photos are not uploaded and not in session replay',
   'Size-budget encoding — hit a target file size at maximum quality',
   'Squoosh-grade WASM codecs: MozJPEG, AVIF, WebP, Oxipng, JXL, QOI',
   'Batch processing with ZIP export and per-file size stats',
@@ -58,7 +63,9 @@ export const KEY_FEATURES = [
   'Full pipeline: resize, crop, rotate, flip, brightness, contrast, saturation',
   'Live before/after compare with scrubber',
   'Undo/redo, custom presets, JSON pipeline import/export',
-  'HEIC/HEIF input support',
+  'HEIC/HEIF input (decoded via JPEG quality 0.92)',
+  'TIFF input (first page)',
+  'Optional PWA offline pack (not automatic)',
   'Advanced codec parameter control',
 ] as const
 
@@ -70,9 +77,10 @@ export const SUPPORTED_INPUT_FORMATS = [
   'GIF (first frame)',
   'BMP',
   'SVG',
-  'HEIC/HEIF',
+  'HEIC/HEIF (JPEG intermediate)',
   'JPEG XL',
   'QOI',
+  'TIFF (first page)',
 ] as const
 
 export const SUPPORTED_OUTPUT_FORMATS = [

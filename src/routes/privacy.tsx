@@ -5,7 +5,7 @@ import { TrustPageShell } from '@/components/trust/trust-page-shell'
 import { buildTrustPageHead } from '@/lib/trust-pages/seo'
 import { SITE_AUTHOR, SITE_CONTACT_EMAIL, SITE_NAME, SITE_URL } from '@/lib/site'
 
-const LAST_UPDATED = 'June 11, 2026'
+const LAST_UPDATED = 'August 14, 2026'
 
 
 export const Route = createFileRoute('/privacy')({
@@ -25,10 +25,10 @@ function PrivacyPage() {
     >
       <div className="not-prose my-8 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { icon: Lock, title: 'No uploads', body: 'Your images never leave your device — ever.' },
+          { icon: Lock, title: 'No uploads', body: 'Your image files never leave your device.' },
           { icon: Eye, title: 'No image access', body: 'I cannot see, store, or access your files.' },
           { icon: UserX, title: 'No account', body: 'No sign-up, no login, no profile to track.' },
-          { icon: Server, title: 'No backend', body: 'There is no server receiving your data.' },
+          { icon: Server, title: 'No image server', body: 'Nothing here receives your photos.' },
         ].map((item) => (
           <div
             key={item.title}
@@ -46,7 +46,8 @@ function PrivacyPage() {
         <strong className="text-foreground">{SITE_NAME}</strong> ({SITE_URL}) is a free,
         client-side image compression and conversion tool built and operated by {SITE_AUTHOR}. The
         product runs in your web browser using WebAssembly codecs — there is no backend that
-        receives your image files.
+        receives your image files. The site itself still uses a host and a few measurement tools,
+        described below.
       </p>
       <p>
         If you have questions about this policy, contact me at{' '}
@@ -55,20 +56,23 @@ function PrivacyPage() {
 
       <h2 id="images">Your images and files</h2>
       <p>
-        When you drop images into {SITE_NAME} Studio, every decode, transform, and encode happens
-        locally on your device inside Web Workers. Your originals and outputs are not transmitted
-        to {SITE_NAME} or any server I operate.
+        When you drop images into {SITE_NAME} Studio, every decode, transform, and encode is 100%
+        client-side: it runs on your device inside Web Workers. Your originals and outputs are not
+        transmitted to {SITE_NAME} or any server I operate. I cannot see, store, back up, or recover
+        your files.
       </p>
       <p>
-        Because processing is local, I cannot access, store, back up, or recover your files. If you
-        close the tab or clear your browser data, in-progress work may be lost unless you have
-        exported results or used the optional offline preparation feature.
+        Because processing is local, closing the tab or clearing browser data can lose in-progress
+        work unless you have exported results or used the optional offline preparation feature.
       </p>
 
       <h2 id="analytics">Analytics and usage data</h2>
       <p>
         To improve the product and understand traffic patterns, I use the following services. These
-        tools collect <em>website usage</em> data — not the contents of your images.
+        tools collect <em>website usage</em> data — not your photos. Image processing stays 100%
+        client-side. Image bytes from Studio are not uploaded. I do not receive or view your files.
+        UI telemetry (analytics, crash reports, and sampled session replay of the website chrome)
+        does leave the browser.
       </p>
 
       <h3>Google Analytics 4</h3>
@@ -77,6 +81,26 @@ function PrivacyPage() {
         processing completed, and exports. Google may set cookies and process data according to its
         own privacy policy. You can opt out via browser extensions such as the Google Analytics
         Opt-out Add-on, or by adjusting your browser&apos;s cookie settings.
+      </p>
+
+      <h3>Sentry (errors, performance, and session replay)</h3>
+      <p>
+        I use Sentry to diagnose crashes, measure performance, and — on a sample of visits — record
+        session replay so I can see how the <em>website UI</em> failed, not your pictures. Replay is
+        sampled at 10% of sessions and 100% of sessions that hit an error. Performance traces are
+        also collected.
+      </p>
+      <p>
+        Session replay is not a recording of your photos. I do not get image files, pixels, or
+        previews. Replay uses Sentry&apos;s default privacy settings, which block media elements
+        (photos, video, SVG) before a recording is sent. Studio previews use local blob URLs that
+        are not fetched from Sentry&apos;s servers. What can be included is UI structure and
+        interaction telemetry (for example, which buttons you clicked). Sentry processes this data
+        according to{' '}
+        <a href="https://sentry.io/privacy/" target="_blank" rel="noopener noreferrer">
+          its privacy policy
+        </a>
+        .
       </p>
 
       <h3>Vercel Analytics &amp; Speed Insights</h3>
@@ -132,6 +156,14 @@ function PrivacyPage() {
           </a>
           )
         </li>
+        <li>
+          <strong className="text-foreground">Sentry</strong> — error monitoring, performance
+          tracing, and sampled session replay (
+          <a href="https://sentry.io/privacy/" target="_blank" rel="noopener noreferrer">
+            privacy policy
+          </a>
+          )
+        </li>
       </ul>
       <p>
         I do not use advertising networks, data brokers, or social login providers. Optional crypto
@@ -146,7 +178,7 @@ function PrivacyPage() {
       </p>
       <ul>
         <li>Block or delete cookies in your browser settings</li>
-        <li>Use browser privacy modes or extensions to limit analytics</li>
+        <li>Use browser privacy modes or extensions to limit analytics, Sentry, and replay</li>
         <li>Clear site data to remove locally stored preferences and offline packs</li>
         <li>Use the Studio without installing the PWA or enabling offline preparation</li>
       </ul>
@@ -184,7 +216,7 @@ function PrivacyPage() {
         {[
           { icon: Lock, label: 'No uploads' },
           { icon: Eye, label: 'No image access' },
-          { icon: Server, label: 'No backend' },
+          { icon: Server, label: 'No image server' },
           { icon: Cookie, label: 'Analytics only' },
           { icon: HardDrive, label: 'Local-first' },
           { icon: Mail, label: 'Reachable by email' },

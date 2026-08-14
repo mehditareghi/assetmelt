@@ -9,6 +9,7 @@ export type InputFormat =
   | 'heic'
   | 'jxl'
   | 'qoi'
+  | 'tiff'
   | 'unknown'
 
 /** ISO BMFF major brands used by HEIC/HEIF still images (not AVIF). */
@@ -49,6 +50,8 @@ const SIGNATURES: Array<{ format: InputFormat; bytes: number[]; offset?: number 
   { format: 'jxl', bytes: [0x00, 0x00, 0x00, 0x0c, 0x4a, 0x58, 0x4c, 0x20] },
   { format: 'jxl', bytes: [0x6a, 0x78, 0x6c], offset: 8 },
   { format: 'qoi', bytes: [0x71, 0x6f, 0x69, 0x66] },
+  { format: 'tiff', bytes: [0x49, 0x49, 0x2a, 0x00] },
+  { format: 'tiff', bytes: [0x4d, 0x4d, 0x00, 0x2a] },
 ]
 
 export function detectFormatFromBuffer(buffer: ArrayBuffer, fileName?: string): InputFormat {
@@ -83,6 +86,8 @@ export function detectFormatFromBuffer(buffer: ArrayBuffer, fileName?: string): 
       heif: 'heic',
       jxl: 'jxl',
       qoi: 'qoi',
+      tif: 'tiff',
+      tiff: 'tiff',
     }
     if (ext && extMap[ext]) return extMap[ext]
   }

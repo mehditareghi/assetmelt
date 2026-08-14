@@ -16,7 +16,7 @@ Built with Vite, React, shadcn/ui, and Squoosh-grade WASM codecs (@jsquash).
 
 ## Supported input formats
 
-JPEG, PNG, WebP, AVIF, GIF (first frame), BMP, SVG, HEIC/HEIF, JXL, QOI
+JPEG, PNG, WebP, AVIF, GIF (first frame), TIFF (first page), BMP, SVG, HEIC/HEIF (JPEG intermediate), JXL, QOI
 
 ## Getting started
 
@@ -180,7 +180,7 @@ If these secrets are missing, the notify job skips sending (the pipeline still s
 
 ## Privacy
 
-Your images never leave your browser. All processing happens locally via Web Workers and WebAssembly.
+Your image files never leave the browser. Encode and decode are 100% client-side via Web Workers and WebAssembly — I cannot see or recover your photos. The hosted site still uses analytics and Sentry sampled session replay of the website UI only (image pixels are not recorded; media is blocked). See `/privacy`.
 
 ## License
 

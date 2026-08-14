@@ -364,9 +364,9 @@ export function StudioPage({ search }: { search: StudioSearch }) {
 function StudioPrivacyStrip() {
   return (
     <p className="mx-auto max-w-2xl text-center font-mono text-[11px] leading-relaxed text-muted-foreground">
-      Files never uploaded · Processed in your browser · No account needed ·{' '}
+      Files never uploaded · 100% client-side · I cannot see your photos ·{' '}
       <Link to="/privacy" className="text-primary/90 underline-offset-2 hover:underline">
-        Nothing stored or shared
+        Privacy policy
       </Link>
       <Lock className="ml-1 inline size-3 align-text-top text-primary/70" aria-hidden />
     </p>

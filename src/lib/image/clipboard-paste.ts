@@ -10,6 +10,8 @@ const MIME_EXTENSION: Record<string, string> = {
   'image/svg+xml': 'svg',
   'image/heic': 'heic',
   'image/heif': 'heif',
+  'image/tiff': 'tiff',
+  'image/tif': 'tif',
 }
 
 function pastedImageFilename(mimeType: string, index: number): string {

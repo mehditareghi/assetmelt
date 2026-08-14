@@ -1,5 +1,5 @@
 /** Accept attribute shared by DropZone, Add files, and paste handlers. */
-export const STUDIO_IMAGE_ACCEPT = 'image/*,.heic,.heif,.jxl,.qoi'
+export const STUDIO_IMAGE_ACCEPT = 'image/*,.heic,.heif,.jxl,.qoi,.tif,.tiff'
 
 /**
  * Open a hidden file input and resolve with the selected image files.

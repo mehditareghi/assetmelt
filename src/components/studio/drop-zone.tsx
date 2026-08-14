@@ -65,7 +65,7 @@ export function DropZone({ className }: { className?: string }) {
         Drop, paste, or click to browse
       </p>
       <p className="mt-2 font-mono text-xs text-muted-foreground">
-        JPEG · PNG · WebP · AVIF · HEIC · SVG · GIF · JXL
+        JPEG · PNG · WebP · AVIF · HEIC · SVG · GIF · JXL · TIFF
       </p>
       <span className="mt-6 inline-flex max-w-full items-center gap-1.5 rounded-full border border-border/60 bg-background/40 px-3 py-1 font-mono text-[11px] text-muted-foreground">
         <span className="truncate text-foreground/80">{name}</span>

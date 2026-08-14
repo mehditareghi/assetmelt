@@ -48,17 +48,17 @@ const DEFAULT_FAQ: StudioFaqItem[] = [
   {
     question: 'Does Asset Melt upload my images to a server?',
     answer:
-      'No. Every operation — compression, conversion, resizing, and cropping — runs entirely inside your browser using WebAssembly. Your files never leave your device.',
+      'No. Image processing is 100% client-side in your browser with WebAssembly. Your photos are not uploaded, I cannot see or recover them, and sampled session replay does not include image pixels (media is blocked). The site still sends usage analytics, crash reports, and a sample of UI-only session replay — details are on the privacy page.',
   },
   {
     question: 'Which image formats does the Studio support?',
     answer:
-      'You can open JPEG, PNG, WebP, AVIF, GIF, TIFF, BMP, SVG, HEIC/HEIF, JPEG XL, and QOI. For output you can choose JPEG (MozJPEG), PNG (Oxipng), WebP, AVIF, JPEG XL, or QOI.',
+      'You can open JPEG, PNG, WebP, AVIF, GIF (first frame), TIFF (first page), BMP, SVG, HEIC/HEIF, JPEG XL, and QOI. For output you can choose JPEG (MozJPEG), PNG (Oxipng), WebP, AVIF, JPEG XL, or QOI. HEIC/HEIF is decoded through a high-quality JPEG (quality 0.92) before the rest of the pipeline, so HEIC→PNG is not a lossless round-trip from the original file.',
   },
   {
     question: 'Can I compress multiple images at once?',
     answer:
-      'Yes. Drag and drop as many files as you like (or paste from clipboard) and the Studio processes them all in parallel. You can download each result individually or grab a ZIP of everything.',
+      'Yes. Drag and drop as many files as you like (or paste from clipboard). The Studio queues them and processes one file at a time on a single worker. You can download each result individually or grab a ZIP of everything.',
   },
   {
     question: 'What is "size budget" encoding?',
@@ -78,7 +78,7 @@ const DEFAULT_FAQ: StudioFaqItem[] = [
   {
     question: 'Can I use the Studio offline?',
     answer:
-      'Yes. After your first visit the Studio installs as a Progressive Web App. You can add it to your home screen or desktop and open it with no internet connection.',
+      'Not automatically. Install the app if you want, then download the optional offline pack from the Studio while you are online. After that, Studio can run without a network connection.',
   },
 ]
 
@@ -96,19 +96,19 @@ const PAIR_TIPS: Partial<
   'webp->avif':
     'If you already ship WebP, AVIF is the next step for LCP-critical images — keep WebP as a fallback.',
   'heic->jpeg':
-    'iPhone Camera rolls default to HEIC; JPG remains the universal share and CMS upload format.',
+    'iPhone Camera rolls default to HEIC; JPG remains the universal share and CMS upload format. HEIC is decoded through a JPEG intermediate (quality 0.92) before MozJPEG encode.',
   'heic->png':
-    'Choose PNG when you need a lossless-friendly handoff into design tools after a HEIC export.',
+    'HEIC is decoded through a JPEG intermediate (quality 0.92), so HEIC→PNG is not lossless from the original HEIC — it is a portable handoff after that decode.',
   'heic->webp':
-    'Convert HEIC straight to WebP when the destination is a website rather than email or print.',
+    'HEIC is decoded through a JPEG intermediate first, then encoded to WebP locally — useful when the destination is a website rather than email or print.',
   'heic->avif':
-    'Private HEIC→AVIF conversion is useful for personal photo libraries you still want tiny on the web.',
+    'HEIC is decoded through a JPEG intermediate first, then encoded to AVIF. Private, local, but not a lossless HEIC round-trip.',
   'gif->webp':
     'Asset Melt processes the first GIF frame as a still — perfect for converting old meme stills or UI captures.',
   'svg->png':
     'Rasterizing SVG is handy for email clients and platforms that reject SVG uploads.',
   'tiff->jpeg':
-    'Scanned TIFF archives compress dramatically as JPG for sharing while originals stay offline.',
+    'Scanned TIFF archives compress dramatically as JPG for sharing while originals stay offline. Multi-page TIFFs use the first page, same as GIF.',
 }
 
 function tipFor(from: StudioInputIntent, to: StudioOutputIntent): string {
@@ -163,7 +163,7 @@ function pairContent(pair: StudioFormatPair): Omit<
     faq: [
       {
         question: `Can I convert ${fromLabel} to ${toLabel} without uploading?`,
-        answer: `Yes. Asset Melt converts ${fromLong} to ${toLong} with WebAssembly codecs in your browser. Nothing is sent to a server.`,
+        answer: `Yes. Conversion is 100% client-side with WebAssembly in your browser. Your photos are not uploaded, I cannot see them, and session replay does not include image pixels.`,
       },
       {
         question: `Does this only accept ${fromLabel} files?`,
@@ -171,7 +171,7 @@ function pairContent(pair: StudioFormatPair): Omit<
       },
       {
         question: `Can I batch convert ${fromLabel} to ${toLabel}?`,
-        answer: `Yes. Queue many files, keep ${toLabel} as the output format, preview savings, and download individually or as a ZIP.`,
+        answer: `Yes. Queue many files, keep ${toLabel} as the output format, and the Studio processes them one at a time. Preview savings, then download individually or as a ZIP.`,
       },
       {
         question: `Which codec does Asset Melt use for ${toLabel}?`,
@@ -211,7 +211,7 @@ function targetContent(to: StudioOutputIntent): Omit<
       {
         question: `Is convert-to-${toLabel} private?`,
         answer:
-          'Completely. Decoding and encoding run in Web Workers with WASM — files never leave your browser.',
+          'Yes. Decoding and encoding are 100% client-side in Web Workers. Your photos are not uploaded, I cannot see them, and sampled session replay does not include image pixels. Usage analytics and UI-only replay are described on the privacy page.',
       },
       {
         question: `Does size-budget work with ${toLabel}?`,
@@ -280,7 +280,7 @@ export function buildStudioSeoContent(search: StudioSearch = {}): StudioSeoConte
     h2: 'Free image compressor & converter — right in your browser',
     paragraphs: [
       'Asset Melt Studio is a client-side image processing tool that runs entirely in your browser. There are no uploads, no accounts, and no file-size limits imposed by a server — just drag in your images and get optimised results in seconds.',
-      'The Studio supports all common formats including JPEG, PNG, WebP, AVIF, HEIC, JPEG XL, and QOI. You can compress images to a specific quality level or target file size, convert between formats, resize to exact pixel dimensions, and crop non-destructively. Batch processing means you can handle dozens of images in a single session.',
+      'The Studio supports all common formats including JPEG, PNG, WebP, AVIF, HEIC, TIFF, JPEG XL, and QOI. You can compress images to a specific quality level or target file size, convert between formats, resize to exact pixel dimensions, and crop non-destructively. Batch processing means you can handle dozens of images in a single session.',
       'Under the hood the Studio uses the same codec libraries as Google\'s Squoosh — MozJPEG, libavif, and the official WebP encoder — compiled to WebAssembly so they run at near-native speed without any server involvement. Your files stay on your device at all times.',
     ],
     faq: DEFAULT_FAQ,

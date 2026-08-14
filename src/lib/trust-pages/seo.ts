@@ -9,7 +9,7 @@ const TRUST_PAGE_META: Record<
   '/privacy': {
     title: 'Privacy Policy | Asset Melt',
     description:
-      'How Asset Melt handles your data: images stay on your device, optional analytics only, and no accounts or server uploads.',
+      'How Asset Melt handles your data: image processing is 100% client-side, I cannot see your photos, and session replay does not record image pixels. Analytics and Sentry are disclosed here — no accounts or image uploads.',
     lastmodFile: 'src/routes/privacy.tsx',
   },
   '/about': {

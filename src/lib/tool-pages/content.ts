@@ -36,7 +36,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
         icon: 'shield',
         title: 'Zero uploads',
         description:
-          'Like Squoosh, everything runs on your device. No accounts, no cloud, no privacy trade-offs.',
+          'Like Squoosh, image processing is 100% client-side. Your photos stay on your device — they are not uploaded, I cannot see them, and session replay does not include image pixels. Site telemetry is listed on the privacy policy.',
       },
     ],
     steps: [
@@ -67,7 +67,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
       {
         heading: 'What Asset Melt adds on top of Squoosh',
         paragraphs: [
-          'Asset Melt was built as a spiritual successor: same codec foundation, modern workflow. You get undo/redo, live before/after compare, JSON pipeline import/export, custom presets, and optional offline mode via PWA install.',
+          'Asset Melt was built as a spiritual successor: same codec foundation, modern workflow. You get undo/redo, live before/after compare, JSON pipeline import/export, custom presets, and an optional offline pack (not automatic after the first visit).',
           'Whether you are shrinking hero images for a landing page, converting a folder of HEIC photos, or generating favicon kits at exact dimensions — Asset Melt handles it in one client-side session.',
         ],
       },
@@ -95,7 +95,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
       {
         question: 'Does Asset Melt upload my images?',
         answer:
-          'No. Like Squoosh, all decoding and encoding happens locally in Web Workers. Your files never leave your device.',
+          'No. Like Squoosh, decoding and encoding happen locally in Web Workers. Image files are not uploaded.',
       },
       {
         question: 'Can I use Asset Melt for batch compression?',
@@ -181,7 +181,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
         heading: 'Why use a client-side converter?',
         paragraphs: [
           'Most "free HEIC to JPG" tools upload your photos to a remote server, process them in the cloud, and send back a download link. That means your personal images pass through someone else\'s infrastructure.',
-          'Asset Melt converts HEIC to JPG using WebAssembly on your own device. Nothing is uploaded. Nothing is stored. The conversion happens in a Web Worker and the result downloads directly from your browser.',
+          'Asset Melt converts HEIC to JPG using WebAssembly on your own device. Image files are not uploaded or stored. The conversion happens in a Web Worker and the result downloads directly from your browser.',
         ],
       },
     ],
@@ -189,7 +189,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
       {
         question: 'Can I convert HEIC to JPG without uploading?',
         answer:
-          'Yes. Asset Melt converts HEIC to JPG entirely in your browser. Your photos are decoded and re-encoded locally — they never leave your device.',
+          'Yes. Asset Melt converts HEIC to JPG entirely in your browser. Photos are decoded locally — they are not uploaded.',
       },
       {
         question: 'Does Asset Melt support batch HEIC conversion?',
@@ -199,7 +199,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
       {
         question: 'Will I lose quality converting HEIC to JPG?',
         answer:
-          'Some quality loss is inevitable when converting from HEIC to lossy JPEG, but MozJPEG at 85–90 quality preserves excellent detail for web and sharing use cases.',
+          'HEIC is first decoded to JPEG at quality 0.92, then MozJPEG encodes that bitmap at your chosen quality. That is two lossy JPEG steps — expected for HEIC→JPG, and it also means HEIC→PNG is not lossless from the original HEIC.',
       },
       {
         question: 'Does this work on Windows and Mac?',
@@ -389,7 +389,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
       {
         question: 'Can I compress AVIF without uploading?',
         answer:
-          'Yes. Asset Melt encodes and re-compresses AVIF entirely client-side using WebAssembly. Your images never leave your device.',
+          'Yes. Asset Melt encodes and re-compresses AVIF entirely client-side using WebAssembly. Image files are not uploaded.',
       },
       {
         question: 'What quality should I use for AVIF?',
@@ -419,7 +419,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
     path: '/privacy-first-image-compression',
     title: 'Privacy-First Image Compression — No Upload, No Server | Asset Melt',
     metaDescription:
-      'Compress and convert images without uploading them anywhere. Asset Melt processes everything in your browser using WebAssembly — your files never leave your device.',
+      'Compress and convert images without uploading them anywhere. Asset Melt processes image files in your browser using WebAssembly — they are not sent to an image server.',
     eyebrow: 'Privacy-first',
     heroBadge: 'Zero uploads · 100% local',
     h1: 'Image compression that respects your privacy',
@@ -437,7 +437,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
         icon: 'shield',
         title: 'Processed on your device',
         description:
-          'WebAssembly codec modules run in your browser\'s Web Workers. Your CPU does the work — locally, privately, offline if needed.',
+          'WebAssembly codec modules run in your browser\'s Web Workers. Your CPU does the work locally. Offline use needs the optional offline pack — it is not automatic.',
       },
       {
         icon: 'globe',
@@ -461,7 +461,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
       {
         title: 'Drop your images',
         description:
-          'Add files by drag-and-drop, click-to-browse, or paste from clipboard. Nothing is sent anywhere at this step or any step.',
+          'Add files by drag-and-drop, click-to-browse, or paste from clipboard. Image files are not sent anywhere at this step or during encode.',
       },
       {
         title: 'Compress and download',
@@ -497,7 +497,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
       competitorName: 'Upload-based tools',
       rows: [
         { feature: 'Images stay on your device', assetMelt: 'Yes — always', competitor: 'No — server upload' },
-        { feature: 'Works offline', assetMelt: 'Yes (PWA install)', competitor: 'No' },
+        { feature: 'Works offline', assetMelt: 'Optional pack (not automatic)', competitor: 'No' },
         { feature: 'Account required', assetMelt: 'No', competitor: 'Often yes' },
         { feature: 'File size limits', assetMelt: 'None', competitor: 'Usually yes' },
         { feature: 'Batch processing', assetMelt: 'Yes + ZIP export', competitor: 'Varies' },
@@ -514,22 +514,22 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
       {
         question: 'Does "no upload" mean the tool works offline?',
         answer:
-          'Yes. Once the app and codec modules are cached in your browser, Asset Melt Studio works with no internet connection. You can install it as a PWA for a dedicated offline experience.',
+          'Not by itself. Image processing is local, but Studio is not cached for offline until you download the optional offline pack while you are online. Installing as a PWA is separate and optional.',
       },
       {
         question: 'What formats does the privacy-first studio support?',
         answer:
-          'Input: JPEG, PNG, WebP, AVIF, HEIC/HEIF, GIF, TIFF, BMP, SVG, JXL, QOI. Output: JPEG (MozJPEG), PNG (Oxipng), WebP, AVIF, JXL, QOI. All conversions happen locally.',
+          'Input: JPEG, PNG, WebP, AVIF, HEIC/HEIF, GIF (first frame), TIFF (first page), BMP, SVG, JXL, QOI. Output: JPEG (MozJPEG), PNG (Oxipng), WebP, AVIF, JXL, QOI. All conversions happen locally.',
       },
       {
         question: 'Is there any analytics or tracking?',
         answer:
-          'The site uses privacy-oriented analytics to measure aggregate page usage (page views, format choices, export counts) — not the contents, filenames, or pixels of your images. Your images are never included in any analytics event.',
+          'The site uses Google Analytics, Vercel Analytics, and Sentry (errors, performance traces, and sampled session replay of the website UI). Those tools do not receive your photos: image files are not uploaded, I cannot see them, and replay blocks media so image pixels are not recorded. Details are on the privacy policy.',
       },
       {
         question: 'Can I use this for confidential or sensitive images?',
         answer:
-          'Yes. Because nothing is uploaded, Asset Melt is suitable for medical scans, legal documents, client work under NDA, or any image you would not want on a third-party server.',
+          'Yes. Image processing is 100% client-side: nothing is uploaded, I cannot see your files, and session replay does not record photo pixels. That is why Asset Melt is suitable for medical scans, legal documents, client work under NDA, or any image you would not want on a third-party server.',
       },
     ],
     relatedTools: ['squoosh-alternative', 'batch-image-compressor', 'heic-to-jpg'],

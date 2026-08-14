@@ -135,6 +135,5 @@ export function formatLabelLong(intent: StudioInputIntent | StudioOutputIntent):
 export function inputIntentToInputFormat(
   intent: StudioInputIntent,
 ): InputFormat | undefined {
-  if (intent === 'tiff') return undefined
   return intent
 }
