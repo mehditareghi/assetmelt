@@ -1,6 +1,7 @@
 import {
   Download,
   FileJson,
+  Images,
   Keyboard,
   Link2,
   MoreHorizontal,
@@ -48,6 +49,7 @@ export function StudioToolbar() {
   const isCropEditing = useStudioStore((s) => s.isCropEditing)
   const canUndo = useStudioStore((s) => s.canUndo)
   const canRedo = useStudioStore((s) => s.canRedo)
+  const setResponsiveExportOpen = useStudioChromeStore((s) => s.setResponsiveExportOpen)
 
   const doneCount = files.filter(fileHasDownloadableResult).length
   const pendingCount = files.filter(
@@ -58,6 +60,7 @@ export function StudioToolbar() {
   const needsReprocess = pendingCount > 0
   const canProcess = hasFiles && needsReprocess && !isCropEditing && !isProcessing
   const canDownload = doneCount > 0 && !isCropEditing && !isProcessing
+  const canResponsiveExport = hasFiles && !isCropEditing && !isProcessing
 
   const handleAddFiles = async () => {
     if (isCropEditing || isProcessing) return
@@ -212,8 +215,10 @@ export function StudioToolbar() {
           <CopyRecipeButton />
           <PipelineOverflowMenu
             disabled={isCropEditing}
+            responsiveDisabled={!canResponsiveExport}
             onImport={handleImportConfig}
             onExport={handleExportConfig}
+            onResponsiveExport={() => setResponsiveExportOpen(true)}
           />
           {hasFiles && (
             <Button
@@ -259,8 +264,10 @@ export function StudioToolbar() {
           </Button>
           <PipelineOverflowMenu
             disabled={isCropEditing}
+            responsiveDisabled={!canResponsiveExport}
             onImport={handleImportConfig}
             onExport={handleExportConfig}
+            onResponsiveExport={() => setResponsiveExportOpen(true)}
           />
         </div>
       ) : (
@@ -270,8 +277,10 @@ export function StudioToolbar() {
           <CopyRecipeButton />
           <PipelineOverflowMenu
             disabled={isCropEditing}
+            responsiveDisabled={!canResponsiveExport}
             onImport={handleImportConfig}
             onExport={handleExportConfig}
+            onResponsiveExport={() => setResponsiveExportOpen(true)}
           />
         </div>
       )}
@@ -375,12 +384,16 @@ function CopyRecipeButton() {
 
 function PipelineOverflowMenu({
   disabled,
+  responsiveDisabled,
   onImport,
   onExport,
+  onResponsiveExport,
 }: {
   disabled: boolean
+  responsiveDisabled: boolean
   onImport: () => void
   onExport: () => void
+  onResponsiveExport: () => void
 }) {
   return (
     <DropdownMenu>
@@ -398,6 +411,10 @@ function PipelineOverflowMenu({
         <DropdownMenuItem onClick={() => void copyStudioRecipeLink()}>
           <Link2 className="size-3.5" />
           Copy recipe link
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onResponsiveExport} disabled={responsiveDisabled}>
+          <Images className="size-3.5" />
+          Responsive export…
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onImport} disabled={disabled}>
           <Upload className="size-3.5" />

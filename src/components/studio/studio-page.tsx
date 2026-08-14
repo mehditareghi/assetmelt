@@ -40,7 +40,9 @@ import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 import { useEffect, useRef } from 'react'
 import { useStudioShortcuts } from '@/hooks/use-studio-shortcuts'
 import { ShortcutCheatsheet } from '@/components/studio/shortcut-cheatsheet'
+import { ResponsiveExportSheet } from '@/components/studio/responsive-export-sheet'
 import { exportStudioResults, studioQueueStatus } from '@/lib/studio-actions'
+import { useStudioChromeStore } from '@/stores/studio-chrome-store'
 import {
   decodeStudioRecipe,
   encodeStudioRecipe,
@@ -374,8 +376,15 @@ export function StudioPage({ search }: { search: StudioSearch }) {
         <StudioSeoSection content={seo} />
       </main>
       <ShortcutCheatsheet />
+      <ResponsiveExportSheetHost />
     </>
   )
+}
+
+function ResponsiveExportSheetHost() {
+  const open = useStudioChromeStore((s) => s.responsiveExportOpen)
+  const setOpen = useStudioChromeStore((s) => s.setResponsiveExportOpen)
+  return <ResponsiveExportSheet open={open} onOpenChange={setOpen} />
 }
 
 function StudioPrivacyStrip() {

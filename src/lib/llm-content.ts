@@ -72,6 +72,11 @@ export const FAQ_ITEMS = [
       'Yes. In Studio Format settings, use Also export to add extra codecs. One process run encodes every selected format. Download is a ZIP with a folder per format (avif/, webp/, jpeg/). A single-file queue downloads name-formats.zip; a multi-file queue downloads one assetmelt-batch.zip. JPEG fallback is optional and flattens transparency. Not available with favicon kits.',
   },
   {
+    question: 'Can I export responsive widths and copy picture / next/image code?',
+    answer:
+      'Yes. Studio → Responsive export (⋯ menu or under the preview) encodes the current file at N widths × formats into a ZIP with folders named by width, and copies <picture> HTML or a next/image snippet. Primary Download stays simple.',
+  },
+  {
     question: 'What is in the favicon kit?',
     answer:
       'PNG icons at 16, 32, 180 (apple-touch), and 512 px, plus a multi-size favicon.ico (16+32+48) in the same ZIP.',
@@ -92,6 +97,7 @@ export const KEY_FEATURES = [
   'Filename tokens {name} {ext} {width} {height} {quality} {date}',
   'Shareable recipe URLs (?recipe= preset or compact pipeline; no images)',
   'Multi-format one-run (Also export AVIF / WebP / JPEG; ZIP folders per format)',
+  'Responsive export — width ladder ZIP + <picture> / next/image snippets (current file)',
   'HEIC/HEIF input (decoded via JPEG quality 0.92)',
   'TIFF input (first page)',
   'Optional PWA offline pack (not automatic)',

@@ -101,6 +101,11 @@ const DEFAULT_FAQ: StudioFaqItem[] = [
       'Yes. Under Format → Also export, toggle extra codecs (AVIF, WebP, and optional JPEG fallback). Process once; download is a ZIP with folders like avif/, webp/, jpeg/. One image in the queue → name-formats.zip; several images → one batch ZIP. JPEG fallback flattens transparency. Unavailable while a favicon kit is active.',
   },
   {
+    question: 'Can I export responsive widths and copy <picture> / next/image code?',
+    answer:
+      'Yes. Open Responsive export from the Studio overflow menu (⋯) or the quiet link under the preview. It encodes the current file at multiple widths × formats into a ZIP with folders named by width, and lets you copy <picture> HTML or a next/image snippet. Normal Download stays a single output — this kit is optional.',
+  },
+  {
     question: 'What is in the favicon kit?',
     answer:
       'The Favicon kit recipe exports PNG icons at 16, 32, 180 (apple-touch), and 512 px, plus a classic multi-size favicon.ico (16+32+48 embedded). Everything lands in one ZIP.',

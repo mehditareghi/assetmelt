@@ -4,6 +4,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Crop as CropIcon,
+  Images,
   Loader2,
   Target as TargetIcon,
   X,
@@ -19,6 +20,7 @@ import { CompareScrubber } from '@/components/studio/compare-scrubber'
 import { CropOverlay } from '@/components/studio/crop-overlay'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { useStudioChromeStore } from '@/stores/studio-chrome-store'
 import { cn } from '@/lib/utils'
 
 export function PreviewPanel() {
@@ -30,6 +32,7 @@ export function PreviewPanel() {
   const commitCropEdit = useStudioStore((s) => s.commitCropEdit)
   const cancelCropEdit = useStudioStore((s) => s.cancelCropEdit)
   const beginCropEdit = useStudioStore((s) => s.beginCropEdit)
+  const setResponsiveExportOpen = useStudioChromeStore((s) => s.setResponsiveExportOpen)
   const [comparePos, setComparePos] = useState(50)
   const [variantCompareIndex, setVariantCompareIndex] = useState(0)
   const [previewLayoutKey, setPreviewLayoutKey] = useState(0)
@@ -332,6 +335,22 @@ export function PreviewPanel() {
           </div>
         </div>
       )}
+
+      {activeFile && !isCropEditing ? (
+        <div className="flex justify-center">
+          <button
+            type="button"
+            onClick={() => setResponsiveExportOpen(true)}
+            className="group inline-flex items-center gap-2 rounded-full border border-transparent px-3 py-1.5 font-mono text-[11px] text-muted-foreground transition-colors hover:border-border/60 hover:bg-muted/40 hover:text-foreground"
+          >
+            <Images className="size-3.5 opacity-70 transition-opacity group-hover:opacity-100" />
+            Responsive export
+            <span className="text-muted-foreground/70 group-hover:text-muted-foreground">
+              — widths, ZIP &amp; code
+            </span>
+          </button>
+        </div>
+      ) : null}
     </div>
   )
 }
