@@ -4,7 +4,7 @@ export const SETTING_HELP = {
   alsoExportFormats:
     'Encode additional AVIF, WebP, and/or JPEG in the same run. The primary format stays the preview. Download is a ZIP with a folder per format (avif/, webp/, jpeg/). One file in the queue → name-formats.zip; several files → one assetmelt-batch.zip. JPEG fallback flattens transparency. Not available with favicon kits.',
   stripMetadata:
-    'Strip all (default) drops EXIF, GPS, and ICC. Strip GPS keeps camera and color-profile data but removes location. Keep writes a lossy-safe subset (orientation already applied, no thumbnail) into JPEG, WebP, and PNG. AVIF, JXL, and QOI always export pixels only.',
+    'Strip all (default) drops EXIF, GPS, and ICC. Strip GPS keeps camera and color-profile data but removes location. Keep writes a lossy-safe subset (orientation already applied, no thumbnail) into JPEG, WebP, and PNG. AVIF, JXL, and QOI always export pixels only. The inspector under this control shows camera, date, and GPS from the source file before encode — Keep with GPS on JPEG/WebP/PNG will warn.',
   filenamePattern:
     'Output naming template. Tokens: {name} original basename, {ext} new extension, {width} and {height} output pixels, {quality} encode quality (blank for PNG/QOI), {date} local YYYY-MM-DD. Applies to single downloads, ZIP batches, favicon kits, and multi-format exports ({ext} is required so formats do not collide).',
 

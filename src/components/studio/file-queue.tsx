@@ -7,6 +7,7 @@ import {
   Loader2,
   Folder,
   GripVertical,
+  MapPin,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useStudioStore } from '@/stores/studio-store'
@@ -154,6 +155,15 @@ function QueueRow({
                 · {file.originalWidth}×{file.originalHeight}
               </>
             )}
+            {file.exif?.hasGps ? (
+              <span
+                className="ml-1 inline-flex items-center gap-0.5 text-amber-600 dark:text-amber-400"
+                aria-label="Contains GPS"
+              >
+                <MapPin className="size-2.5" aria-hidden />
+                GPS
+              </span>
+            ) : null}
           </p>
           {file.status === 'processing' && (
             <>

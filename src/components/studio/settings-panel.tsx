@@ -13,6 +13,7 @@ import { FilenamePatternField } from '@/components/studio/filename-pattern-field
 import { SizeBudgetSettings } from '@/components/studio/size-budget-settings'
 import { AlsoExportFormatsSettings } from '@/components/studio/also-export-formats-settings'
 import { PngPaletteSettings } from '@/components/studio/png-palette-settings'
+import { ActiveFileExifInspector } from '@/components/studio/exif-inspector'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -163,6 +164,7 @@ export function SettingsPanel() {
                 <SelectItem value="keep">Keep (lossy-safe)</SelectItem>
               </SelectContent>
             </Select>
+            <ActiveFileExifInspector />
           </div>
 
           <FilenamePatternField />

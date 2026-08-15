@@ -267,7 +267,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
       {
         title: 'Configure the pipeline',
         description:
-          'Pick a preset like Web Optimized, or set format (WebP/AVIF/JPEG), quality, max dimensions, and metadata stripping.',
+          'Pick a preset like Web Optimized, or set format (WebP/AVIF/JPEG), quality, max dimensions, and metadata. Studio shows camera, date, and GPS before you strip or keep.',
       },
       {
         title: 'Export the batch',
@@ -531,6 +531,11 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
         question: 'Is there any analytics or tracking?',
         answer:
           'The site uses Google Analytics, Vercel Analytics, and Sentry (errors, performance traces, and sampled session replay of the website UI). Those tools do not receive your photos: image files are not uploaded, I cannot see them, and replay blocks media so image pixels are not recorded. Details are on the privacy policy.',
+      },
+      {
+        question: 'Can I see EXIF and GPS before I strip metadata?',
+        answer:
+          'Yes. Studio Format → Metadata shows camera, date, and GPS from the source file (HEIC is read before the JPEG bounce). Keep on JPEG, WebP, or PNG warns if GPS would be written. Strip GPS drops location only. AVIF, JXL, and QOI always export pixels only. Tags stay on your device.',
       },
       {
         question: 'Can I use this for confidential or sensitive images?',

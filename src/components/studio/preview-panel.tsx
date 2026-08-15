@@ -18,6 +18,7 @@ import { usePreCropPreview } from '@/hooks/use-pre-crop-preview'
 import { useVisualPreview } from '@/hooks/use-visual-preview'
 import { CompareScrubber } from '@/components/studio/compare-scrubber'
 import { CropOverlay } from '@/components/studio/crop-overlay'
+import { ExifPreviewStrip } from '@/components/studio/exif-inspector'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useStudioChromeStore } from '@/stores/studio-chrome-store'
@@ -295,6 +296,8 @@ export function PreviewPanel() {
           )}
         </p>
       )}
+
+      {!showCropOverlay ? <ExifPreviewStrip summary={activeFile.exif} /> : null}
 
       {compareStats && (
         <div className="space-y-3">

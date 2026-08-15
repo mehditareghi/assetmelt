@@ -1,5 +1,6 @@
 import type { PipelineConfig } from '@/lib/schemas/pipeline-schema'
 import type { InputFormat } from '@/lib/image/format-detection'
+import type { ExifInspectSummary } from '@/lib/image/exif-inspect'
 
 export type ProcessableFileStatus = 'pending' | 'processing' | 'done' | 'error'
 
@@ -53,6 +54,8 @@ export interface ProcessableFile {
   resultBlob?: Blob
   resultName?: string
   stats?: ProcessStats
+  /** Source EXIF summary (camera / date / GPS). Session-only; not persisted. */
+  exif?: ExifInspectSummary
   /** Populated when processing under a platform workflow preset (e.g. favicon kit). */
   workflowResults?: WorkflowVariantResult[]
 }

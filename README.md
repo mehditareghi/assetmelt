@@ -19,7 +19,7 @@ Built with Vite, React, shadcn/ui, and Squoosh-grade WASM codecs (@jsquash).
 - **Multi-format one-run** — Also export AVIF / WebP / optional JPEG; ZIP download uses a folder per format (`avif/`, `webp/`, `jpeg/`)
 - **Responsive export** — optional Studio kit: N widths × formats ZIP (folders named by width) + copy `<picture>` / next/image
 - **Advanced mode** — Full codec parameter control
-- **Privacy** — 100% client-side, no server, no accounts
+- **Metadata** — Strip all / Strip GPS / Keep (JPEG, WebP, PNG). Studio shows camera, date, and GPS from the source before encode and warns if Keep would write location into JPEG, WebP, or PNG. AVIF, JXL, and QOI always export pixels only
 
 ## Supported input formats
 

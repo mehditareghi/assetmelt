@@ -39,6 +39,7 @@ import {
 import { normalizeMozJpegOptions } from '@/lib/image/jpeg-encode'
 import { createFullImageCrop } from '@/lib/image/crop-math'
 import { getCropSpaceDimensions } from '@/lib/image/transform-space'
+import { inspectExif } from '@/lib/image/exif-inspect'
 import { prepareFileForProcessing, resolveHeicInputFormat } from '@/lib/image/heic'
 import type { ProcessableFile } from '@/lib/image/types'
 import type { PipelineHistoryState } from '@/lib/pipeline-history'
@@ -369,6 +370,7 @@ export const useStudioStore = create<StudioState>()(
           let inputFormat = detectFormatFromBuffer(buffer, file.name)
           inputFormat = await resolveHeicInputFormat(file, inputFormat)
           let sourceByteSize: number | undefined
+          const exif = inspectExif(buffer)
 
           if (inputFormat === 'heic') {
             try {
@@ -389,6 +391,7 @@ export const useStudioStore = create<StudioState>()(
                 status: 'error',
                 progress: 0,
                 error: message,
+                exif,
               })
               continue
             }
@@ -431,6 +434,7 @@ export const useStudioStore = create<StudioState>()(
             originalUrl,
             originalWidth,
             originalHeight,
+            exif,
           })
         }
 

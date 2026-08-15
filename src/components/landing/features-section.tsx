@@ -44,7 +44,7 @@ const features: Array<{
     icon: Zap,
     title: 'Modern format conversion',
     description:
-      'Compress to AVIF or WebP, export lossless PNG (or reduce the palette for TinyPNG-small logos), or convert HEIC to JPG in the browser. MozJPEG, Oxipng, JXL, and QOI — the same WASM engines as Google Squoosh.',
+      'Compress to AVIF or WebP, export lossless PNG (or reduce the palette for TinyPNG-small logos), or convert HEIC to JPG in the browser. MozJPEG, Oxipng, JXL, and QOI — the same WASM engines as Google Squoosh. Studio shows camera, date, and GPS before you strip or keep metadata.',
   },
   {
     icon: SlidersHorizontal,

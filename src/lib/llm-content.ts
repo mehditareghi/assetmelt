@@ -67,6 +67,11 @@ export const FAQ_ITEMS = [
       'Yes. PNG is lossless Oxipng by default (the Lossless PNG preset). Turn on Reduce palette in Format settings to quantize colors with dither (lossy PNG-8, same idea as Squoosh Reduce Palette / TinyPNG), then Oxipng. Best for logos and icons. Size-budget encoding still skips PNG.',
   },
   {
+    question: 'Can I see EXIF before stripping metadata?',
+    answer:
+      'Yes. In Studio Format settings, the metadata inspector shows camera, date, and GPS from the source file before encode (HEIC is inspected before the JPEG bounce). Keep on JPEG/WebP/PNG warns if GPS is present. Strip GPS drops location only. AVIF, JXL, and QOI always export pixels only. Tags stay on your device.',
+  },
+  {
     question: 'Can I share my Studio settings?',
     answer:
       'Yes. Copy the recipe link in Studio. It puts the pipeline in a ?recipe= query — named preset or compact settings, never the image. Opening the link restores those settings locally.',
@@ -107,6 +112,7 @@ export const KEY_FEATURES = [
   'TIFF input (first page)',
   'Optional PWA offline pack (not automatic)',
   'Advanced codec parameter control',
+  'EXIF inspector — camera, date, and GPS from the source file before strip; Keep warns if GPS would be written',
 ] as const
 
 export const SUPPORTED_INPUT_FORMATS = [

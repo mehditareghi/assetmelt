@@ -96,6 +96,11 @@ const DEFAULT_FAQ: StudioFaqItem[] = [
       'Yes. The filename pattern field accepts {name}, {ext}, {width}, {height}, {quality}, and {date} (local YYYY-MM-DD). The same tokens apply to ZIP downloads and favicon-kit files. {quality} is the encode quality used — including size-budget results — and stays blank for PNG and QOI.',
   },
   {
+    question: 'Can I see EXIF before stripping metadata?',
+    answer:
+      'Yes. Format → Metadata shows camera, capture date, and GPS from the source file (HEIC is read before the JPEG bounce). Keep on JPEG, WebP, or PNG warns if the photo has GPS. Strip GPS removes location and keeps camera/ICC. AVIF, JXL, and QOI always export pixels only. Inspection is local — tags are not uploaded.',
+  },
+  {
     question: 'Can I share my Studio settings?',
     answer:
       'Yes. Copy the recipe link from the Studio toolbar. It stores the pipeline (preset or compact settings) in ?recipe= — photos never go in the URL. Opening the link restores those settings on this device.',
