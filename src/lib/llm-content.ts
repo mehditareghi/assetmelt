@@ -39,7 +39,7 @@ export const FAQ_ITEMS = [
   {
     question: 'Can I compress multiple images at once?',
     answer:
-      'Yes. Drop files or a folder (nested images are queued; non-images skipped), click to choose images, or paste. Drops still work after the queue already has images. The Studio encodes in parallel on a worker pool sized to your CPU (up to 4), with live per-file progress and cancel. Download individually or as a ZIP that keeps the source folder tree.',
+      'Yes. Drop files or a folder (nested images are queued; non-images skipped), click to choose images, or paste. Drops still work after the queue already has images, including while a batch is encoding. Drag queue rows to reorder — a batch ZIP follows that list. The Studio encodes in parallel on a worker pool sized to your CPU (up to 4), with live per-file progress and cancel. Download individually or as a ZIP that keeps the source folder tree. Files are not saved across reloads.',
   },
   {
     question: 'What is the best free image compressor that does not upload files?',
@@ -92,7 +92,7 @@ export const KEY_FEATURES = [
   '100% client-side image processing — photos are not uploaded and not in session replay',
   'Size-budget encoding — hit a target file size at maximum quality',
   'Squoosh-grade WASM codecs: MozJPEG, AVIF, WebP, Oxipng, JXL, QOI (optional imagequant palette for PNG)',
-  'Batch processing with parallel worker pool (up to 4), folder drop (recursive), ZIP export that keeps relative paths, and per-file size stats',
+  'Batch processing with parallel worker pool (up to 4), folder drop (recursive), drag-to-reorder queue (ZIP follows that order), ZIP export that keeps relative paths, and per-file size stats',
   'Platform presets: OG images, social sizes, favicon kits (PNG sizes + favicon.ico + apple-touch)',
   'General presets: Web Optimized, Dev Assets, Lossless PNG, Thumbnail',
   'Full pipeline: resize, crop, rotate, flip, brightness, contrast, saturation',

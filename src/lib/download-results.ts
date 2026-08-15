@@ -47,7 +47,7 @@ function addWorkflowVariantsToZip(
   return count
 }
 
-/** Download processed files — single blobs or workflow variant zips. */
+/** Download processed files — single blobs or workflow variant zips. ZIP member order follows `done` (queue order). */
 export async function downloadProcessedFiles(
   done: ProcessableFile[],
   activePresetId: string,

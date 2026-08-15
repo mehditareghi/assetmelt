@@ -39,7 +39,7 @@ const features = [
     icon: Layers,
     title: 'Batch compress online',
     description:
-      'Drop a folder, queue dozens of files, and compress images online in one pass. Compare before/after, then download individually or as a ZIP with per-file byte savings.',
+      'Drop a folder, queue dozens of files, drag to reorder, and compress images online in one pass. Compare before/after, then download individually or as a ZIP that follows queue order.',
   },
   {
     icon: Smartphone,

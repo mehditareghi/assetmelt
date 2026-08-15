@@ -104,7 +104,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
       {
         question: 'Can I use Asset Melt for batch compression?',
         answer:
-          'Yes. Drop multiple files, apply one pipeline to the entire queue, compare results, and download as a ZIP — a major advantage over Squoosh.',
+          'Yes. Drop multiple files, apply one pipeline to the entire queue, drag rows to reorder, compare results, and download as a ZIP that follows queue order — a major advantage over Squoosh.',
       },
       {
         question: 'Is Asset Melt free?',

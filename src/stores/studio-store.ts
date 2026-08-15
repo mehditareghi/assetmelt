@@ -23,6 +23,7 @@ import {
   normalizeIncomingImages,
   type IncomingImage,
 } from '@/lib/image/folder-drop'
+import { applyIdOrder, idsInSameOrder } from '@/lib/queue-order'
 import { createPreviewObjectUrl, needsWasmPreview } from '@/lib/image/browser-display'
 import { getImageDimensions } from '@/lib/image/dimensions'
 import { normalizeResizeConfig } from '@/lib/image/resize-compute'
@@ -162,6 +163,7 @@ interface StudioState {
 
   addFiles: (files: FileList | File[] | IncomingImage[]) => Promise<void>
   removeFile: (id: string) => void
+  reorderFiles: (orderedIds: string[]) => void
   clearFiles: () => void
   setActiveFile: (id: string | null) => void
   syncResizeFromActiveFile: () => void
@@ -240,21 +242,48 @@ function invalidateDoneResults(set: SetState, get: () => StudioState) {
   }))
 }
 
+/** Live encode queue so files added mid-batch join the current worker pool. */
+const processIdQueue: string[] = []
+let processPumpRunning = false
+
+function enqueueProcessIds(ids: string[]): void {
+  const queued = new Set(processIdQueue)
+  for (const id of ids) {
+    if (queued.has(id)) continue
+    processIdQueue.push(id)
+    queued.add(id)
+  }
+}
+
+function clearProcessIdQueue(): void {
+  processIdQueue.length = 0
+}
+
 async function processPendingByIds(
   get: () => StudioState,
   set: SetState,
   ids: string[],
 ): Promise<void> {
   if (get().isCropEditing || ids.length === 0) return
-  if (get().isProcessing) return
+  enqueueProcessIds(ids)
+  await pumpProcessQueue(get, set)
+}
 
+async function pumpProcessQueue(get: () => StudioState, set: SetState): Promise<void> {
+  if (processPumpRunning) return
+  if (get().isCropEditing) {
+    clearProcessIdQueue()
+    return
+  }
+  if (processIdQueue.length === 0) return
+
+  processPumpRunning = true
   const token = get().processingToken + 1
   set({ isProcessing: true, processingToken: token })
 
   let succeeded = 0
   let failed = 0
   let attempted = 0
-  const queue = [...ids]
   const concurrency = resolveWorkerPoolSize()
 
   const runOne = async (id: string) => {
@@ -269,20 +298,38 @@ async function processPendingByIds(
     else if (updated?.status === 'error') failed += 1
   }
 
-  const workers = Array.from({ length: Math.min(concurrency, queue.length) }, async () => {
-    while (queue.length > 0) {
-      if (get().processingToken !== token || get().isCropEditing) break
-      const id = queue.shift()
-      if (!id) break
+  const drain = async () => {
+    while (get().processingToken === token && !get().isCropEditing) {
+      const id = processIdQueue.shift()
+      if (!id) return
       await runOne(id)
     }
-  })
+  }
 
-  await Promise.all(workers)
+  try {
+    do {
+      if (get().processingToken !== token || get().isCropEditing) break
+      await Promise.all(Array.from({ length: concurrency }, () => drain()))
+    } while (
+      processIdQueue.length > 0 &&
+      get().processingToken === token &&
+      !get().isCropEditing
+    )
+  } finally {
+    if (get().processingToken === token) {
+      processPumpRunning = false
+      set({ isProcessing: false })
+    }
+  }
 
-  if (get().processingToken !== token) return
-
-  set({ isProcessing: false })
+  if (
+    processIdQueue.length > 0 &&
+    get().processingToken === token &&
+    !get().isCropEditing
+  ) {
+    await pumpProcessQueue(get, set)
+    return
+  }
 
   if (attempted === 0) return
 
@@ -452,9 +499,22 @@ export const useStudioStore = create<StudioState>()(
         })
       },
 
+      reorderFiles: (orderedIds) => {
+        if (get().isCropEditing) return
+        set((state) => {
+          const files = applyIdOrder(state.files, orderedIds)
+          if (idsInSameOrder(state.files.map((file) => file.id), files.map((file) => file.id))) {
+            return state
+          }
+          return { files }
+        })
+      },
+
       clearFiles: () => {
         endCropEditSession()
         discardDebouncedHistory()
+        clearProcessIdQueue()
+        processPumpRunning = false
         if (get().isProcessing) {
           cancelStudioWorkerJobs()
         }
@@ -912,6 +972,8 @@ export const useStudioStore = create<StudioState>()(
 
       cancelProcessing: () => {
         if (!get().isProcessing) return
+        clearProcessIdQueue()
+        processPumpRunning = false
         cancelStudioWorkerJobs()
         set((s) => ({
           processingToken: s.processingToken + 1,

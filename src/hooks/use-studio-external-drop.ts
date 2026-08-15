@@ -41,13 +41,9 @@ export function useStudioExternalDrop(): boolean {
       depth = 0
       setActive(false)
 
-      const { isCropEditing, isProcessing } = useStudioStore.getState()
-      if (isCropEditing || isProcessing) {
-        toast.error(
-          isCropEditing
-            ? 'Finish crop before adding more images'
-            : 'Wait for processing to finish before adding more',
-        )
+      const { isCropEditing } = useStudioStore.getState()
+      if (isCropEditing) {
+        toast.error('Finish crop before adding more images')
         return
       }
 

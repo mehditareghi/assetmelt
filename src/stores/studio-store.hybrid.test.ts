@@ -224,6 +224,87 @@ describe('studio hybrid processing', () => {
 
     await Promise.race([addPromise, new Promise((resolve) => setTimeout(resolve, 50))])
   })
+
+  it('processes files added while a batch is already running', async () => {
+    let releaseFirst!: () => void
+    const firstGate = new Promise<void>((resolve) => {
+      releaseFirst = resolve
+    })
+    let started = 0
+    vi.mocked(processImageInWorker).mockImplementation(async () => {
+      started += 1
+      if (started === 1) await firstGate
+      return {
+        type: 'result' as const,
+        id: 'mock',
+        buffer: new ArrayBuffer(8),
+        mimeType: 'image/webp',
+        outputName: 'out.webp',
+        stats: {
+          originalSize: 100,
+          outputSize: 40,
+          originalWidth: 10,
+          originalHeight: 10,
+          outputWidth: 10,
+          outputHeight: 10,
+          savingsPercent: 60,
+        },
+      }
+    })
+
+    void useStudioStore.getState().addFiles([tinyJpegFile('first.jpg')])
+    await vi.waitFor(() => {
+      expect(useStudioStore.getState().isProcessing).toBe(true)
+    })
+
+    await useStudioStore.getState().addFiles([tinyJpegFile('second.jpg')])
+    expect(useStudioStore.getState().files.map((file) => file.name)).toEqual([
+      'first.jpg',
+      'second.jpg',
+    ])
+
+    releaseFirst()
+    await vi.waitFor(() => {
+      expect(useStudioStore.getState().files.every((file) => file.status === 'done')).toBe(true)
+      expect(useStudioStore.getState().isProcessing).toBe(false)
+    })
+    expect(processImageInWorker).toHaveBeenCalledTimes(2)
+  })
+
+  it('reorderFiles permutes the session queue and ZIP filter order', () => {
+    useStudioStore.setState({
+      files: [
+        {
+          id: 'a',
+          file: tinyJpegFile('a.jpg'),
+          name: 'a.jpg',
+          inputFormat: 'jpeg',
+          status: 'done',
+          progress: 100,
+          resultBlob: new Blob(['a']),
+          resultName: 'a.webp',
+        },
+        {
+          id: 'b',
+          file: tinyJpegFile('b.jpg'),
+          name: 'b.jpg',
+          inputFormat: 'jpeg',
+          status: 'done',
+          progress: 100,
+          resultBlob: new Blob(['b']),
+          resultName: 'b.webp',
+        },
+      ],
+      isCropEditing: false,
+    })
+
+    useStudioStore.getState().reorderFiles(['b', 'a'])
+    expect(useStudioStore.getState().files.map((file) => file.id)).toEqual(['b', 'a'])
+
+    useStudioStore.setState({ isCropEditing: true })
+    useStudioStore.getState().reorderFiles(['a', 'b'])
+    expect(useStudioStore.getState().files.map((file) => file.id)).toEqual(['b', 'a'])
+  })
 })
 
 describe('studioQueueStatus', () => {

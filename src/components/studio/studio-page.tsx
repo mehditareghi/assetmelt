@@ -287,13 +287,11 @@ export function StudioPage({ search }: { search: StudioSearch }) {
             ) : null}
 
             <div className="lg:hidden">
-              <div className="overflow-x-auto pb-1">
-                <FileQueue />
-              </div>
+              <FileQueue />
             </div>
 
-            <div className="grid flex-1 gap-5 pb-24 lg:grid-cols-[240px_1fr_320px] lg:pb-0">
-              <aside className="hidden lg:block">
+            <div className="grid flex-1 gap-5 pb-24 lg:grid-cols-[18rem_minmax(0,1fr)_20rem] lg:pb-0">
+              <aside className="hidden min-w-0 lg:block">
                 <FileQueue />
               </aside>
 
@@ -301,7 +299,7 @@ export function StudioPage({ search }: { search: StudioSearch }) {
                 <PreviewPanel />
               </section>
 
-              <aside className="hidden lg:block">
+              <aside className="hidden min-w-0 lg:block">
                 <div className="glass-surface sticky top-[4.5rem] rounded-2xl p-4">
                   <h3 className="mb-4 font-mono text-xs uppercase tracking-wider text-muted-foreground">
                     Settings

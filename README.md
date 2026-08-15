@@ -10,7 +10,7 @@ Built with Vite, React, shadcn/ui, and Squoosh-grade WASM codecs (@jsquash).
 - **Lossy PNG** — optional Reduce palette (imagequant + dither), then Oxipng; off keeps lossless. Size budget still skips PNG
 - **Transforms** — Resize (Lanczos3, Mitchell, Magic Kernel, HQX…), crop, rotate, flip
 - **Filters** — Brightness, contrast, saturation, grayscale, sharpen
-- **Batch processing** — Drop files or a folder (recursive; non-images skipped), encode in parallel (worker pool up to 4), cancel mid-batch, ZIP export keeps relative paths
+- **Batch processing** — Drop files or a folder (recursive; non-images skipped), drag the queue to reorder (ZIP follows that list), encode in parallel (worker pool up to 4), cancel mid-batch, ZIP export keeps relative paths
 - **Presets + JSON config** — Web Optimized, Dev Assets, Lossless PNG, Thumbnail, custom presets; import/export pipeline as a JSON file
 - **Keyboard shortcuts** — `?` cheatsheet in Studio; Cmd/Ctrl+Enter process, S download, K recipes
 - **Filename tokens** — `{name}` `{ext}` `{width}` `{height}` `{quality}` `{date}` in the pattern field, ZIP, and favicon kits

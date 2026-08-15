@@ -189,7 +189,7 @@ export function StudioToolbar() {
           {hasFiles ? (
             <AddImagesButton
               label="Add images"
-              disabled={isCropEditing || isProcessing}
+              disabled={isCropEditing}
               className="hidden shrink-0 lg:inline-flex"
             />
           ) : null}
@@ -228,7 +228,7 @@ export function StudioToolbar() {
         <div className="flex items-center gap-2 lg:hidden">
           <AddImagesButton
             label="Add images"
-            disabled={isCropEditing || isProcessing}
+            disabled={isCropEditing}
             expand
             className="h-9"
           />

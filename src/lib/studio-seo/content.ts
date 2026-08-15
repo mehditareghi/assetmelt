@@ -63,7 +63,7 @@ const DEFAULT_FAQ: StudioFaqItem[] = [
   {
     question: 'Can I compress multiple images at once?',
     answer:
-      'Yes. Drag and drop files or a folder (nested images are queued; other files are skipped), click to choose images, or paste from the clipboard. Drops still work after the queue already has images. The Studio encodes in parallel on a worker pool sized to your CPU (up to 4), with live per-file progress and a Cancel button. Download each result or a ZIP — folder trees keep relative paths like products/a/hero.webp.',
+      'Yes. Drag and drop files or a folder (nested images are queued; other files are skipped), click to choose images, or paste from the clipboard. Drops still work after the queue already has images, including while a batch is encoding. Drag queue rows to reorder; a batch ZIP follows that list for this session (files are not saved across reloads). The Studio encodes in parallel on a worker pool sized to your CPU (up to 4), with live per-file progress and a Cancel button. Download each result or a ZIP — folder trees keep relative paths like products/a/hero.webp.',
   },
   {
     question: 'What is "size budget" encoding?',
