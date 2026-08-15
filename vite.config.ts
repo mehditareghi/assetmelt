@@ -122,6 +122,11 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      // Package exports hide the Emscripten glue; Vite needs a static WASM URL.
+      "@squoosh-kit/imagequant-wasm": path.resolve(
+        __dirname,
+        "node_modules/@squoosh-kit/imagequant/dist/wasm/imagequant/imagequant.js",
+      ),
     },
   },
   optimizeDeps: {
@@ -135,6 +140,8 @@ export default defineConfig({
       "@jsquash/jxl",
       "@jsquash/qoi",
       "@jsquash/resize",
+      "@squoosh-kit/imagequant",
+      "@squoosh-kit/imagequant-wasm",
     ],
   },
   worker: {

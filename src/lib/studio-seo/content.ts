@@ -53,7 +53,12 @@ const DEFAULT_FAQ: StudioFaqItem[] = [
   {
     question: 'Which image formats does the Studio support?',
     answer:
-      'You can open JPEG, PNG, WebP, AVIF, GIF (first frame), TIFF (first page), BMP, SVG, HEIC/HEIF, JPEG XL, and QOI. For output you can choose JPEG (MozJPEG), PNG (Oxipng), WebP, AVIF, JPEG XL, or QOI. HEIC/HEIF is decoded through a high-quality JPEG (quality 0.92) before the rest of the pipeline, so HEIC→PNG is not a lossless round-trip from the original file.',
+      'You can open JPEG, PNG, WebP, AVIF, GIF (first frame), TIFF (first page), BMP, SVG, HEIC/HEIF, JPEG XL, and QOI. For output you can choose JPEG (MozJPEG), PNG (Oxipng, optional Reduce palette), WebP, AVIF, JPEG XL, or QOI. HEIC/HEIF is decoded through a high-quality JPEG (quality 0.92) before the rest of the pipeline, so HEIC→PNG is not a lossless round-trip from the original file.',
+  },
+  {
+    question: 'Can I make PNGs as small as TinyPNG?',
+    answer:
+      'Yes. PNG is lossless Oxipng unless you turn on Reduce palette in Format settings. That quantizes to 2–256 colors with dither (lossy PNG-8), then Oxipng — the same trick TinyPNG and Squoosh Reduce Palette use. Best for logos and icons. Size budget still skips PNG.',
   },
   {
     question: 'Can I compress multiple images at once?',
@@ -117,8 +122,8 @@ const PAIR_TIPS: Partial<
 > = {
   'png->webp':
     'WebP usually beats PNG on photos and soft gradients while still supporting alpha — ideal for product cutouts and UI chrome.',
-  'jpeg->webp':
-    'WebP typically saves 25–35% versus MozJPEG at similar visual quality for photographs and blog hero images.',
+  'jpeg->png':
+    'PNG is lossless Oxipng by default. For logos and icons, Reduce palette (lossy PNG-8) can get TinyPNG-small files; photos usually still prefer WebP or AVIF.',
   'png->avif':
     'AVIF often wins on screenshots and illustrations where PNG files balloon; preview carefully around sharp text.',
   'jpeg->avif':
@@ -153,7 +158,7 @@ function codecBlurb(to: StudioOutputIntent): string {
     case 'jpeg':
       return 'MozJPEG'
     case 'png':
-      return 'Oxipng'
+      return 'Oxipng (optional imagequant palette)'
     case 'webp':
       return 'the official WebP encoder'
     case 'avif':
@@ -230,7 +235,11 @@ function targetContent(to: StudioOutputIntent): Omit<
     h2: `Free convert-to-${toLabel} studio — any input welcome`,
     paragraphs: [
       `This Studio link pre-selects ${toLong} as the output format so you can start converting immediately. Bring JPEG, PNG, WebP, AVIF, HEIC, GIF, SVG, and more — input format is never blocked.`,
-      `Encoding uses ${codecBlurb(to)}. Tune quality, hit a size budget, resize for Core Web Vitals, then export one file or a full ZIP — all on your device.`,
+      `Encoding uses ${codecBlurb(to)}. ${
+        to === 'png'
+          ? 'PNG is lossless Oxipng unless you turn on Reduce palette (lossy PNG-8). Size budget still skips PNG — use color count and Oxipng level instead.'
+          : 'Tune quality, hit a size budget, resize for Core Web Vitals, then export one file or a full ZIP — all on your device.'
+      }`,
       `Looking for a specific source format? Use deep links like PNG→${toLabel} or HEIC→${toLabel} for conversion-focused copy, or stay here when your batch is mixed.`,
     ],
     faq: [
@@ -246,8 +255,10 @@ function targetContent(to: StudioOutputIntent): Omit<
       {
         question: `Does size-budget work with ${toLabel}?`,
         answer:
-          to === 'png' || to === 'qoi'
-            ? `Size-budget encoding targets lossy codecs (WebP, AVIF, JPEG, JXL). For ${toLabel}, use quality/effort controls and resize instead.`
+          to === 'png'
+            ? `Size-budget encoding targets lossy codecs (WebP, AVIF, JPEG, JXL). For PNG, turn on Reduce palette and lower the color count, or resize — binary-search-to-bytes is not wired yet.`
+            : to === 'qoi'
+              ? `Size-budget encoding targets lossy codecs (WebP, AVIF, JPEG, JXL). For ${toLabel}, use quality/effort controls and resize instead.`
             : `Yes. Set a target KB and Asset Melt searches for the highest ${toLabel} quality that fits.`,
       },
       {

@@ -1,6 +1,6 @@
 export const SETTING_HELP = {
   outputFormat:
-    'Target file format for export. WebP and AVIF usually give the smallest files; PNG is lossless.',
+    'Target file format for export. WebP and AVIF usually give the smallest files. PNG is lossless Oxipng unless Reduce palette is on.',
   alsoExportFormats:
     'Encode additional AVIF, WebP, and/or JPEG in the same run. The primary format stays the preview. Download is a ZIP with a folder per format (avif/, webp/, jpeg/). One file in the queue → name-formats.zip; several files → one assetmelt-batch.zip. JPEG fallback flattens transparency. Not available with favicon kits.',
   stripMetadata:
@@ -48,7 +48,13 @@ export const SETTING_HELP = {
 
   quality: 'Lossy quality trade-off. Higher values look better but produce larger files.',
   oxipngLevel:
-    'PNG optimization effort (0–6). Higher levels squeeze more bytes but take longer.',
+    'PNG optimization effort (0–6). Higher levels squeeze more bytes but take longer. Runs after palette reduction when Reduce palette is on.',
+  pngPalette:
+    'Lossy PNG-8: quantize to a limited palette (imagequant), then Oxipng. Off keeps a lossless PNG. Best for logos, icons, and flat illustration — photos usually prefer WebP or AVIF. Size budget still skips PNG.',
+  pngNumColors:
+    'Palette size (2–256). Fewer colors make smaller files. 256 is the PNG-8 maximum; try 32–64 for icons.',
+  pngDither:
+    'Floyd–Steinberg dithering (0–100%). Softens banding on gradients. Use 0 for hard-edged logos and pixel art.',
   webpMethod: 'WebP encoder effort (0–6). Higher values compress better but are slower.',
   avifSpeed: 'AVIF encode speed (0–10). Higher is faster with slightly larger files.',
   avifLossless: 'Encode AVIF without lossy compression. Files are larger but pixel-perfect.',

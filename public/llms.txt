@@ -24,4 +24,5 @@ Asset Melt is a browser-based image studio for developers and creators who need 
 - Shareable recipes: copy `?recipe=` from Studio (preset or compact pipeline; photos are not in the URL)
 - Multi-format one-run: Also export AVIF / WebP / optional JPEG; ZIP uses a folder per format (batch = one ZIP for the whole queue)
 - Responsive export: Studio overflow / preview link — width × format ZIP (folders by width) + copy `<picture>` / next/image
+- PNG: lossless Oxipng by default; optional Reduce palette (lossy PNG-8 via imagequant + dither). Size budget still skips PNG
 - Folder drop: recursive walk of nested images; non-images skipped; batch ZIP keeps relative paths (`products/a/hero.webp`)

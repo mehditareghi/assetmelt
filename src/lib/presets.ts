@@ -64,7 +64,7 @@ export const GENERAL_BUILT_IN_PRESETS: Preset[] = [
   {
     id: 'lossless-png',
     name: 'Lossless PNG',
-    description: 'Sharp PNG — Oxipng level 4, keeps EXIF/ICC',
+    description: 'Sharp lossless PNG — Oxipng level 4, keeps EXIF/ICC',
     category: 'general',
     config: {
       outputFormat: 'png',
@@ -138,6 +138,12 @@ export function getCustomPresetSummary(config: Partial<PipelineConfig>): string 
   const format = config.outputFormat?.toUpperCase() ?? 'Unknown format'
   if (config.sizeBudget?.enabled) {
     return `${format} · under ${formatSizeBudgetTarget(config.sizeBudget.targetBytes)}`
+  }
+  if (
+    config.encode?.format === 'png' &&
+    config.encode.options.paletteEnabled
+  ) {
+    return `PNG · ${config.encode.options.numColors} colors`
   }
   if (config.resize?.enabled) {
     const mode = config.resize.mode

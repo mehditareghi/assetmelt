@@ -157,6 +157,10 @@ export const avifOptionsSchema = z.object({
 export const oxipngOptionsSchema = z.object({
   level: z.number().int().min(0).max(6).default(2),
   interlace: z.boolean().default(false),
+  /** Lossy PNG-8 via imagequant. Off keeps Oxipng lossless. */
+  paletteEnabled: z.boolean().default(false),
+  numColors: z.number().int().min(2).max(256).default(256),
+  dither: z.number().min(0).max(1).default(1),
 })
 
 export const sizeBudgetSchema = z.object({

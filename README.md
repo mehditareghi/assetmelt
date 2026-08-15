@@ -6,7 +6,8 @@ Built with Vite, React, shadcn/ui, and Squoosh-grade WASM codecs (@jsquash).
 
 ## Features
 
-- **Format conversion** — JPEG (MozJPEG), WebP, AVIF, PNG (Oxipng), JPEG XL, QOI
+- **Format conversion** — JPEG (MozJPEG), WebP, AVIF, PNG (Oxipng; optional lossy palette), JPEG XL, QOI
+- **Lossy PNG** — optional Reduce palette (imagequant + dither), then Oxipng; off keeps lossless. Size budget still skips PNG
 - **Transforms** — Resize (Lanczos3, Mitchell, Magic Kernel, HQX…), crop, rotate, flip
 - **Filters** — Brightness, contrast, saturation, grayscale, sharpen
 - **Batch processing** — Drop files or a folder (recursive; non-images skipped), encode in parallel (worker pool up to 4), cancel mid-batch, ZIP export keeps relative paths

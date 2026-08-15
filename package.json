@@ -34,6 +34,7 @@
     "@jsquash/webp": "^1.5.0",
     "@radix-ui/colors": "^3.0.0",
     "@sentry/tanstackstart-react": "^10.65.0",
+    "@squoosh-kit/imagequant": "^0.2.7",
     "@tanstack/react-router": "^1.170.11",
     "@tanstack/react-router-devtools": "^1.167.0",
     "@tanstack/react-start": "^1.168.19",

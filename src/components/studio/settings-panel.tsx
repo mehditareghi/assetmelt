@@ -12,6 +12,7 @@ import { CropSettings, ResizeSettings } from '@/components/studio/resize-setting
 import { FilenamePatternField } from '@/components/studio/filename-pattern-field'
 import { SizeBudgetSettings } from '@/components/studio/size-budget-settings'
 import { AlsoExportFormatsSettings } from '@/components/studio/also-export-formats-settings'
+import { PngPaletteSettings } from '@/components/studio/png-palette-settings'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -461,6 +462,10 @@ function CodecOptions({
   if (format === 'png' && encode.format === 'png') {
     return (
       <div className="space-y-4">
+        <PngPaletteSettings
+          options={encode.options}
+          onChange={(options) => onChange({ format: 'png', options })}
+        />
         <div className="space-y-2">
           <div className="flex justify-between">
             <SettingLabel label="Oxipng level" help={SETTING_HELP.oxipngLevel} />

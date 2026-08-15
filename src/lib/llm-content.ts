@@ -24,12 +24,12 @@ export const FAQ_ITEMS = [
   {
     question: 'What image formats does Asset Melt support?',
     answer:
-      'Input: JPEG, PNG, WebP, AVIF, GIF (first frame), TIFF (first page), BMP, SVG, HEIC/HEIF (decoded via JPEG quality 0.92), JPEG XL, and QOI. Output: JPEG (MozJPEG), WebP, AVIF, PNG (Oxipng), JPEG XL, and QOI.',
+      'Input: JPEG, PNG, WebP, AVIF, GIF (first frame), TIFF (first page), BMP, SVG, HEIC/HEIF (decoded via JPEG quality 0.92), JPEG XL, and QOI. Output: JPEG (MozJPEG), WebP, AVIF, PNG (Oxipng; optional lossy palette), JPEG XL, and QOI.',
   },
   {
     question: 'How is Asset Melt different from Squoosh?',
     answer:
-      'Asset Melt uses the same @jsquash WASM codec stack as Google Squoosh, but adds batch processing, size-budget encoding, platform presets (OG images, social sizes, favicon kits), shareable recipe URLs, live before/after compare, undo/redo, JSON pipeline file import/export, and a full transform pipeline (resize, crop, rotate, filters).',
+      'Asset Melt uses the same @jsquash WASM codec stack as Google Squoosh, but adds batch processing, size-budget encoding, platform presets (OG images, social sizes, favicon kits), shareable recipe URLs, live before/after compare, undo/redo, JSON pipeline file import/export, optional PNG palette reduction, and a full transform pipeline (resize, crop, rotate, filters).',
   },
   {
     question: 'What is size-budget encoding?',
@@ -62,6 +62,11 @@ export const FAQ_ITEMS = [
       'Yes. In Studio settings, set a filename pattern with {name}, {ext}, {width}, {height}, {quality}, and {date}. The same tokens apply to ZIP downloads and favicon kits. {quality} is blank for PNG and QOI.',
   },
   {
+    question: 'Can I compress PNG like TinyPNG?',
+    answer:
+      'Yes. PNG is lossless Oxipng by default (the Lossless PNG preset). Turn on Reduce palette in Format settings to quantize colors with dither (lossy PNG-8, same idea as Squoosh Reduce Palette / TinyPNG), then Oxipng. Best for logos and icons. Size-budget encoding still skips PNG.',
+  },
+  {
     question: 'Can I share my Studio settings?',
     answer:
       'Yes. Copy the recipe link in Studio. It puts the pipeline in a ?recipe= query — named preset or compact settings, never the image. Opening the link restores those settings locally.',
@@ -86,7 +91,7 @@ export const FAQ_ITEMS = [
 export const KEY_FEATURES = [
   '100% client-side image processing — photos are not uploaded and not in session replay',
   'Size-budget encoding — hit a target file size at maximum quality',
-  'Squoosh-grade WASM codecs: MozJPEG, AVIF, WebP, Oxipng, JXL, QOI',
+  'Squoosh-grade WASM codecs: MozJPEG, AVIF, WebP, Oxipng, JXL, QOI (optional imagequant palette for PNG)',
   'Batch processing with parallel worker pool (up to 4), folder drop (recursive), ZIP export that keeps relative paths, and per-file size stats',
   'Platform presets: OG images, social sizes, favicon kits (PNG sizes + favicon.ico + apple-touch)',
   'General presets: Web Optimized, Dev Assets, Lossless PNG, Thumbnail',
@@ -122,7 +127,7 @@ export const SUPPORTED_OUTPUT_FORMATS = [
   'JPEG (MozJPEG)',
   'WebP',
   'AVIF',
-  'PNG (Oxipng)',
+  'PNG (Oxipng; optional palette)',
   'JPEG XL',
   'QOI',
 ] as const

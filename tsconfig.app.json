@@ -25,7 +25,10 @@
     "noFallthroughCasesInSwitch": true,
 
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@squoosh-kit/imagequant-wasm": [
+        "./node_modules/@squoosh-kit/imagequant/dist/wasm/imagequant/imagequant.js"
+      ]
     }
   },
   "include": ["src"],

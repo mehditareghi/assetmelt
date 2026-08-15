@@ -50,6 +50,9 @@ importers:
       '@sentry/tanstackstart-react':
         specifier: ^10.65.0
         version: 10.65.0(@opentelemetry/core@2.9.0(@opentelemetry/api@1.9.1))(react@19.2.6)(rollup@4.61.1)
+      '@squoosh-kit/imagequant':
+        specifier: ^0.2.7
+        version: 0.2.7
       '@tanstack/react-router':
         specifier: ^1.170.11
         version: 1.170.11(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
@@ -2578,6 +2581,12 @@ packages:
   '@sindresorhus/merge-streams@4.0.0':
     resolution: {integrity: sha512-tlqY9xq5ukxTUZBmoOp+m61cqwQD5pHJtFY3Mn8CA8ps6yghLH/Hw8UPdqg4OLmFW3IFlcXnQNmo/dh8HzXYIQ==}
     engines: {node: '>=18'}
+
+  '@squoosh-kit/imagequant@0.2.7':
+    resolution: {integrity: sha512-TFcvzWkHs4j/WCHPSt6BKrYn0jAzXbMEnQo3U7JaLPToMUGBD3DXrvmLyDr3agBi1xsGZFhnemwVElNHF2jspA==}
+
+  '@squoosh-kit/runtime@0.2.7':
+    resolution: {integrity: sha512-YhCF09AH+/6xgOFgUm5KIPh2itKmA6u1kxDRa0+TTMdbRZ2MuD9OCxBts4iJZNTQDQZkz3KVpkJtfvQYg+78pg==}
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
@@ -8855,6 +8864,14 @@ snapshots:
   '@sindresorhus/is@4.6.0': {}
 
   '@sindresorhus/merge-streams@4.0.0': {}
+
+  '@squoosh-kit/imagequant@0.2.7':
+    dependencies:
+      '@squoosh-kit/runtime': 0.2.7
+
+  '@squoosh-kit/runtime@0.2.7':
+    dependencies:
+      wasm-feature-detect: 1.8.0
 
   '@standard-schema/spec@1.1.0': {}
 

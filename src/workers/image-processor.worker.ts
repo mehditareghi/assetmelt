@@ -14,6 +14,8 @@ import {
   isSizeBudgetSupported,
 } from '@/lib/image/size-budget-encode'
 import { toMozJpegWasmOptions } from '@/lib/image/jpeg-encode'
+import { isPngPaletteEnabled, toOxipngWasmOptions } from '@/lib/image/png-encode'
+import { quantizeImageData } from '@/lib/image/png-quantize'
 import { encodeQualityForFilename, formatOutputFilename } from '@/lib/filename-pattern'
 import { orientImageDataFromExif } from '@/lib/image/exif-orientation'
 import { applyCrop, applyFilters, applyRotateFlip } from '@/lib/image/image-transforms'
@@ -155,8 +157,18 @@ async function encodeImage(
     }
     case 'png': {
       const { optimise } = await import('@jsquash/oxipng')
-      const opts = encode.format === 'png' ? encode.options : { level: 2 }
-      const buffer = await optimise(imageData, opts)
+      const opts =
+        encode.format === 'png'
+          ? encode.options
+          : { level: 2, interlace: false, paletteEnabled: false, numColors: 256, dither: 1 }
+      let pixels = imageData
+      if (isPngPaletteEnabled(opts)) {
+        pixels = await quantizeImageData(imageData, {
+          numColors: opts.numColors,
+          dither: opts.dither,
+        })
+      }
+      const buffer = await optimise(pixels, toOxipngWasmOptions(opts))
       return { buffer, mimeType: 'image/png' }
     }
     case 'jxl': {
@@ -203,6 +215,14 @@ async function processImage(
   if (pipeline.resize.enabled) {
     postProgress(id, 65, 'Resizing')
     imageData = await applyResize(imageData, pipeline.resize)
+  }
+
+  if (
+    pipeline.outputFormat === 'png' &&
+    pipeline.encode.format === 'png' &&
+    isPngPaletteEnabled(pipeline.encode.options)
+  ) {
+    postProgress(id, 78, 'Reducing palette')
   }
 
   postProgress(id, 80, 'Encoding')

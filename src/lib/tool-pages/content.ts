@@ -84,6 +84,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
         { feature: 'Shareable recipe URL', assetMelt: 'Yes (?recipe=)', competitor: '#settings hash' },
         { feature: 'Multi-format one-run ZIP', assetMelt: 'Yes (Also export)', competitor: 'No' },
         { feature: 'Responsive export + snippets', assetMelt: 'Yes (widths ZIP + code)', competitor: 'No' },
+        { feature: 'Lossy PNG / Reduce palette', assetMelt: 'Yes (imagequant + Oxipng)', competitor: 'Yes' },
         { feature: 'Transform pipeline (crop, resize, filters)', assetMelt: 'Full pipeline', competitor: 'Basic' },
         { feature: 'Actively maintained', assetMelt: 'Yes', competitor: 'Unmaintained' },
         { feature: 'Price', assetMelt: 'Free', competitor: 'Free' },
@@ -93,7 +94,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
       {
         question: 'Is Asset Melt a good Squoosh replacement?',
         answer:
-          'Yes. Asset Melt uses the same @jsquash WASM codec stack as Squoosh and adds batch processing, size-budget encoding, HEIC support, and platform presets — all still 100% client-side.',
+          'Yes. Asset Melt uses the same @jsquash WASM codec stack as Squoosh and adds batch processing, size-budget encoding, HEIC support, and platform presets — all still 100% client-side. PNG Reduce palette (imagequant + Oxipng) matches Squoosh’s palette preprocessor.',
       },
       {
         question: 'Does Asset Melt upload my images?',
@@ -522,7 +523,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
       {
         question: 'What formats does the privacy-first studio support?',
         answer:
-          'Input: JPEG, PNG, WebP, AVIF, HEIC/HEIF, GIF (first frame), TIFF (first page), BMP, SVG, JXL, QOI. Output: JPEG (MozJPEG), PNG (Oxipng), WebP, AVIF, JXL, QOI. All conversions happen locally.',
+          'Input: JPEG, PNG, WebP, AVIF, HEIC/HEIF, GIF (first frame), TIFF (first page), BMP, SVG, JXL, QOI. Output: JPEG (MozJPEG), PNG (Oxipng; optional palette), WebP, AVIF, JXL, QOI. All conversions happen locally.',
       },
       {
         question: 'Is there any analytics or tracking?',

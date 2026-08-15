@@ -11,6 +11,10 @@ export default defineConfig({
     resolve: {
         alias: {
             '@': path.resolve(__dirname, './src'),
+            '@squoosh-kit/imagequant-wasm': path.resolve(
+                __dirname,
+                'node_modules/@squoosh-kit/imagequant/dist/wasm/imagequant/imagequant.js',
+            ),
         }
     }
 })
