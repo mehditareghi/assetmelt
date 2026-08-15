@@ -8,6 +8,7 @@ Asset Melt is a browser-based image studio for developers and creators who need 
 
 - [Open Studio](https://assetmelt.com/studio): Main tool — drop images, configure pipeline, export individually or as ZIP
 - [Landing page](https://assetmelt.com/): Overview, features, and how it works
+- [Under 50 KB](https://assetmelt.com/compress/under-50kb), [under 100 KB](https://assetmelt.com/compress/under-100kb), [under 200 KB](https://assetmelt.com/compress/under-200kb): Size-budget landing pages — open Studio with that cap already on (JPEG / WebP / AVIF / JXL; not PNG)
 
 ## Reference
 

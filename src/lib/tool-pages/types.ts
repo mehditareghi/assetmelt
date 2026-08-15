@@ -4,6 +4,9 @@ export type ToolPageId =
   | 'batch-image-compressor'
   | 'avif-compressor'
   | 'privacy-first-image-compression'
+  | 'compress-under-50kb'
+  | 'compress-under-100kb'
+  | 'compress-under-200kb'
 
 export type ToolPagePath =
   | '/squoosh-alternative'
@@ -11,6 +14,9 @@ export type ToolPagePath =
   | '/tools/batch-image-compressor'
   | '/compress/avif'
   | '/privacy-first-image-compression'
+  | '/compress/under-50kb'
+  | '/compress/under-100kb'
+  | '/compress/under-200kb'
 
 export type ToolPageIcon =
   | 'shield'
@@ -74,10 +80,11 @@ export interface ToolPageContent {
     rows: ToolPageComparisonRow[]
   }
   ctaLabel?: string
-  /** Deep-link Studio with format intent (`?from=` / `?to=`). */
+  /** Deep-link Studio with format intent (`?from=` / `?to=`) and/or a size budget (`?budget=100kb`). */
   studioSearch?: {
     from?: string
     to?: string
+    budget?: string
   }
   keywords: string
   breadcrumbLabel: string

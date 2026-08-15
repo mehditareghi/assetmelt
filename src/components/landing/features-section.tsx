@@ -1,4 +1,6 @@
+import { Link } from '@tanstack/react-router'
 import { motion } from 'motion/react'
+import type { ReactNode } from 'react'
 import {
   Bookmark,
   Layers,
@@ -10,12 +12,33 @@ import {
 } from 'lucide-react'
 import { LandingSectionHeader } from '@/components/landing/landing-section-header'
 
-const features = [
+const features: Array<{
+  icon: typeof Target
+  title: string
+  description: ReactNode
+}> = [
   {
     icon: Target,
     title: 'Hit a target file size',
-    description:
-      'Need a 200 KB JPEG or a sub-100 KB WebP? Set a size budget and Asset Melt finds the highest-quality online compression that fits — resizing only when it has to.',
+    description: (
+      <>
+        Need a 200 KB JPEG or a sub-100 KB WebP? Open{' '}
+        <Link
+          to="/compress/under-100kb"
+          className="font-medium text-primary underline-offset-4 hover:underline"
+        >
+          under 100 KB
+        </Link>
+        {' or '}
+        <Link
+          to="/compress/under-200kb"
+          className="font-medium text-primary underline-offset-4 hover:underline"
+        >
+          under 200 KB
+        </Link>
+        {' — size-budget encoding finds the highest-quality compress that fits, resizing only when it has to.'}
+      </>
+    ),
   },
   {
     icon: Zap,

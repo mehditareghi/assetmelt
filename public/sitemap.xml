@@ -271,6 +271,24 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://assetmelt.com/compress/under-50kb</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://assetmelt.com/compress/under-100kb</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://assetmelt.com/compress/under-200kb</loc>
+    <lastmod>2026-08-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://assetmelt.com/privacy</loc>
     <lastmod>2026-08-14</lastmod>
     <changefreq>yearly</changefreq>

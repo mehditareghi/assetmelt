@@ -6,7 +6,7 @@ import { resolveLastmod } from './lib/git-lastmod.mjs'
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)))
 const SITE_URL = 'https://assetmelt.com'
 const GENERATED_META = join(ROOT, 'src/generated/blog-meta.json')
-const TOOL_CONTENT = join(ROOT, 'src/lib/tool-pages/content.ts')
+const TOOL_CONTENT_DIR = join(ROOT, 'src/lib/tool-pages')
 const SITE_MODULE = join(ROOT, 'src/lib/site.ts')
 const STUDIO_PAIRS = join(ROOT, 'src/lib/studio-seo/pairs.ts')
 const STUDIO_FORMATS = join(ROOT, 'src/lib/studio-seo/formats.ts')
@@ -86,10 +86,20 @@ function readBlogMeta() {
 }
 
 function readToolPagePaths() {
-  if (!existsSync(TOOL_CONTENT)) return []
-  const source = readFileSync(TOOL_CONTENT, 'utf8')
-  const paths = [...source.matchAll(/path:\s*'(\/[^']+)'/g)].map((match) => match[1])
-  return [...new Set(paths)]
+  const typesFile = join(TOOL_CONTENT_DIR, 'types.ts')
+  if (!existsSync(typesFile)) return []
+  const source = readFileSync(typesFile, 'utf8')
+  const block = source.match(/export type ToolPagePath =([\s\S]*?)export type ToolPageIcon/)
+  if (!block) return []
+  return [...new Set([...block[1].matchAll(/'(\/[^']+)'/g)].map((match) => match[1]))]
+}
+
+function toolPagesLastmod() {
+  return maxDate([
+    resolveLastmod(join(TOOL_CONTENT_DIR, 'content.ts')),
+    resolveLastmod(join(TOOL_CONTENT_DIR, 'size-budget-pages.ts')),
+    resolveLastmod(join(TOOL_CONTENT_DIR, 'types.ts')),
+  ])
 }
 
 function readTrustPagePaths() {
@@ -180,7 +190,7 @@ function generateSitemap() {
     })),
     ...toolPaths.map((path) => ({
       loc: `${SITE_URL}${path}`,
-      lastmod: resolveLastmod(TOOL_CONTENT),
+      lastmod: toolPagesLastmod(),
       changefreq: 'monthly',
       priority: '0.8',
     })),

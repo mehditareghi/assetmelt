@@ -1,6 +1,8 @@
 import type { ToolPageContent, ToolPageId } from '@/lib/tool-pages/types'
+import { SIZE_BUDGET_TOOL_PAGES } from '@/lib/tool-pages/size-budget-pages'
 
 export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
+  ...SIZE_BUDGET_TOOL_PAGES,
   'squoosh-alternative': {
     id: 'squoosh-alternative',
     path: '/squoosh-alternative',
@@ -247,7 +249,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
         icon: 'target',
         title: 'Size-budget per file',
         description:
-          'Need every image under 200 KB? Enable size-budget mode and Asset Melt optimizes each file individually to hit your target.',
+          'Need every image under 200 KB? Open the under-200 KB page, or enable size-budget mode in Studio — Asset Melt optimizes each file individually to hit your target.',
       },
       {
         icon: 'shield',
@@ -311,7 +313,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
           'Yes. Asset Melt batch compression is free with no account required and no usage limits.',
       },
     ],
-    relatedTools: ['squoosh-alternative', 'heic-to-jpg', 'avif-compressor'],
+    relatedTools: ['compress-under-100kb', 'avif-compressor', 'squoosh-alternative'],
     studioSearch: { to: 'webp' },
     keywords:
       'batch image compressor, compress multiple images, bulk image compression, batch photo optimizer, zip export',
@@ -549,6 +551,10 @@ export const TOOL_PAGE_LIST = Object.values(TOOL_PAGES)
 
 export function getToolPage(id: ToolPageId): ToolPageContent {
   return TOOL_PAGES[id]
+}
+
+export function getToolPageByPath(path: string): ToolPageContent | undefined {
+  return TOOL_PAGE_LIST.find((page) => page.path === path)
 }
 
 export function getRelatedToolPages(ids: ToolPageId[]): ToolPageContent[] {

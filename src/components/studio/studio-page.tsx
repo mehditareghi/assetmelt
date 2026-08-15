@@ -49,6 +49,7 @@ import {
   encodeStudioRecipe,
   studioRecipeSearch,
 } from '@/lib/studio-recipe'
+import { parseBudgetParam, pipelinePatchForSizeBudget } from '@/lib/studio-budget'
 
 function applyOutputFromSearch(toSlug: string | undefined) {
   const to = studioSearchIntents({ to: toSlug }).to
@@ -59,6 +60,13 @@ function applyOutputFromSearch(toSlug: string | undefined) {
     outputFormat: to,
     encode: getDefaultEncodeOptions(to),
   })
+}
+
+function applyBudgetFromSearch(budgetSlug: string | undefined) {
+  const kb = parseBudgetParam(budgetSlug)
+  if (!kb) return
+  const { pipeline, updatePipeline } = useStudioStore.getState()
+  updatePipeline(pipelinePatchForSizeBudget(pipeline, kb))
 }
 
 function applyRecipeOrFormat(search: StudioSearch) {
@@ -75,6 +83,7 @@ function applyRecipeOrFormat(search: StudioSearch) {
     }
   }
   applyOutputFromSearch(search.to)
+  applyBudgetFromSearch(search.budget)
 }
 
 function pathFromLocation(pathname: string): string {
@@ -120,6 +129,7 @@ export function StudioPage({ search }: { search: StudioSearch }) {
   /** Only rewrite the URL when outputFormat changes from a user action. */
   const lastSyncedFormatRef = useRef<string | null>(null)
   const lastWrittenRecipeRef = useRef<string | null | undefined>(undefined)
+  const lastAppliedBudgetRef = useRef<string | null>(null)
 
   useEffect(() => {
     searchRef.current = search
@@ -129,10 +139,11 @@ export function StudioPage({ search }: { search: StudioSearch }) {
     warmUpWorker()
   }, [])
 
-  // Recipe (or route `to`) wins over persisted localStorage settings after rehydration.
+  // Recipe, route `to`, or `?budget=` wins over persisted localStorage after rehydration.
   useEffect(() => {
     if (
       lastWrittenRecipeRef.current === (search.recipe ?? null) &&
+      lastAppliedBudgetRef.current === (search.budget ?? null) &&
       lastSyncedFormatRef.current !== null
     ) {
       return
@@ -143,15 +154,17 @@ export function StudioPage({ search }: { search: StudioSearch }) {
       applyRecipeOrFormat(search)
       lastSyncedFormatRef.current = useStudioStore.getState().pipeline.outputFormat
       lastWrittenRecipeRef.current = search.recipe ?? null
+      lastAppliedBudgetRef.current = search.budget ?? null
       requestAnimationFrame(() => {
         applyingFromRouteRef.current = false
       })
     }
     const persist = useStudioStore.persist
 
-    if (!search.recipe && !search.to) {
+    if (!search.recipe && !search.to && !search.budget) {
       lastSyncedFormatRef.current = useStudioStore.getState().pipeline.outputFormat
       lastWrittenRecipeRef.current = encodeStudioRecipe(useStudioStore.getState().pipeline)
+      lastAppliedBudgetRef.current = null
       return
     }
 
@@ -161,7 +174,7 @@ export function StudioPage({ search }: { search: StudioSearch }) {
     }
 
     return persist.onFinishHydration(apply)
-  }, [search, search.recipe, search.to])
+  }, [search, search.recipe, search.to, search.budget])
 
   // Keep the shareable URL aligned with output format only (not quality/toggles).
   // Only runs when the user changes format in settings — not when related SEO

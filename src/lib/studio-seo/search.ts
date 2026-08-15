@@ -18,16 +18,19 @@ import {
   pairConversionSlug,
   targetConversionSlug,
 } from '@/lib/studio-seo/paths'
-import { parseRecipeParam } from '@/lib/studio-recipe'
+import { parseRecipeParam, studioRecipeSearch } from '@/lib/studio-recipe'
+import { parseBudgetParam, studioBudgetSearch } from '@/lib/studio-budget'
 
 /**
  * Format intent used across Studio SEO (URL slugs like `jpg`, not `jpeg`).
  * `recipe` is a shareable pipeline token — never indexed, never contains images.
+ * `budget` is a one-shot size-budget landing intent (`50kb` / `100kb` / `200kb`).
  */
 export interface StudioSearch {
   from?: string
   to?: string
   recipe?: string
+  budget?: string
 }
 
 export function parseStudioSearch(raw: Record<string, unknown>): StudioSearch {
@@ -38,6 +41,8 @@ export function parseStudioSearch(raw: Record<string, unknown>): StudioSearch {
   if (toIntent) search.to = OUTPUT_URL_SLUG[toIntent]
   const recipe = parseRecipeParam(raw.recipe)
   if (recipe) search.recipe = recipe
+  const budget = parseBudgetParam(raw.budget)
+  if (budget) search.budget = `${budget}kb`
   return search
 }
 
@@ -51,15 +56,27 @@ export function studioSearchIntents(search: StudioSearch): {
   }
 }
 
-/** Normalize loose from/to into URL-facing slugs. */
+/** Normalize loose from/to/budget into URL-facing slugs. */
 export function toStudioSearchParams(search: {
   from?: string
   to?: string
+  budget?: string
 }): StudioSearch {
   return parseStudioSearch({
     from: search.from,
     to: search.to,
+    budget: search.budget,
   })
+}
+
+export function studioIntentSearch(search: StudioSearch = {}): {
+  recipe?: string
+  budget?: string
+} {
+  return {
+    ...studioRecipeSearch(search.recipe),
+    ...studioBudgetSearch(search.budget),
+  }
 }
 
 /**
@@ -113,7 +130,7 @@ export function resolveStudioSeoMode(search: StudioSearch): StudioSeoMode {
 }
 
 export function isStudioSearchIndexable(search: StudioSearch): boolean {
-  if (search.recipe) return false
+  if (search.recipe || search.budget) return false
   const mode = resolveStudioSeoMode(search)
   return mode.kind === 'pair' || mode.kind === 'target'
 }
@@ -143,9 +160,19 @@ export function listIndexableStudioPaths(): string[] {
 
 /** TanStack Link target for a Studio SEO intent. */
 export function studioLinkOptions(search: StudioSearch = {}):
-  | { to: '/studio' }
-  | { to: '/studio/$conversion'; params: { conversion: string } } {
-  const slug = buildConversionSlug(toStudioSearchParams(search))
-  if (!slug) return { to: '/studio' }
-  return { to: '/studio/$conversion', params: { conversion: slug } }
+  | { to: '/studio'; search: { recipe?: string; budget?: string } }
+  | {
+      to: '/studio/$conversion'
+      params: { conversion: string }
+      search: { recipe?: string; budget?: string }
+    } {
+  const params = toStudioSearchParams(search)
+  const slug = buildConversionSlug(params)
+  const query = studioIntentSearch(params)
+  if (!slug) return { to: '/studio', search: query }
+  return {
+    to: '/studio/$conversion',
+    params: { conversion: slug },
+    search: query,
+  }
 }

@@ -9,9 +9,12 @@ import {
 import { createFileRoute, notFound } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/studio/$conversion')({
-  validateSearch: (search: Record<string, unknown>): { recipe?: string } => {
-    const recipe = parseStudioSearch(search).recipe
-    return recipe ? { recipe } : {}
+  validateSearch: (search: Record<string, unknown>): { recipe?: string; budget?: string } => {
+    const parsed = parseStudioSearch(search)
+    const next: { recipe?: string; budget?: string } = {}
+    if (parsed.recipe) next.recipe = parsed.recipe
+    if (parsed.budget) next.budget = parsed.budget
+    return next
   },
   beforeLoad: ({ params }) => {
     if (!parseConversionSlug(params.conversion)) {
@@ -20,6 +23,7 @@ export const Route = createFileRoute('/studio/$conversion')({
   },
   head: ({ params, match }) => {
     const recipe = match.search.recipe
+    const budget = match.search.budget
     const parsed = parseConversionSlug(params.conversion)
     if (!parsed) {
       return buildSeoHead({
@@ -34,9 +38,9 @@ export const Route = createFileRoute('/studio/$conversion')({
       title: content.title,
       description: content.description,
       path: content.canonicalPath as `/${string}`,
-      llmDiscovery: !recipe,
+      llmDiscovery: !recipe && !budget,
       jsonLd: buildStudioJsonLd(content),
-      noindex: Boolean(recipe),
+      noindex: Boolean(recipe || budget),
     })
   },
   component: function StudioConversion() {

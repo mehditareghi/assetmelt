@@ -5,9 +5,9 @@ import {
   buildStudioPath,
   buildStudioSeoContent,
   parseStudioSearch,
+  studioIntentSearch,
   type StudioSearch,
 } from '@/lib/studio-seo'
-import { studioRecipeSearch } from '@/lib/studio-recipe'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/studio/')({
@@ -18,28 +18,29 @@ export const Route = createFileRoute('/studio/')({
     if (!search.from && !search.to) return
 
     const path = buildStudioPath(search)
-    const recipeSearch = studioRecipeSearch(search.recipe)
+    const intentSearch = studioIntentSearch(search)
     if (path === '/studio') {
-      throw redirect({ to: '/studio', search: recipeSearch, replace: true })
+      throw redirect({ to: '/studio', search: intentSearch, replace: true })
     }
 
     throw redirect({
       to: '/studio/$conversion',
       params: { conversion: path.replace(/^\/studio\//, '') },
-      search: recipeSearch,
+      search: intentSearch,
       replace: true,
     })
   },
   head: ({ match }) => {
     const recipe = match.search.recipe
+    const budget = match.search.budget
     const content = buildStudioSeoContent({})
     return buildSeoHead({
       title: content.title,
       description: content.description,
       path: '/studio',
-      llmDiscovery: !recipe,
+      llmDiscovery: !recipe && !budget,
       jsonLd: buildStudioJsonLd(content),
-      noindex: Boolean(recipe),
+      noindex: Boolean(recipe || budget),
     })
   },
   component: function StudioIndex() {

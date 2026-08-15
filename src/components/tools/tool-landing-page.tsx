@@ -41,18 +41,23 @@ function StudioCtaLink({
 }) {
   const link = content.studioSearch
     ? studioLinkOptions(toStudioSearchParams(content.studioSearch))
-    : ({ to: '/studio' } as const)
+    : ({ to: '/studio', search: {} } as const)
 
   if (link.to === '/studio') {
     return (
-      <Link to="/studio" className={className}>
+      <Link to="/studio" search={link.search} className={className}>
         {children}
       </Link>
     )
   }
 
   return (
-    <Link to="/studio/$conversion" params={link.params} className={className}>
+    <Link
+      to="/studio/$conversion"
+      params={link.params}
+      search={link.search}
+      className={className}
+    >
       {children}
     </Link>
   )

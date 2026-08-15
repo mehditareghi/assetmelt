@@ -68,7 +68,7 @@ const DEFAULT_FAQ: StudioFaqItem[] = [
   {
     question: 'What is "size budget" encoding?',
     answer:
-      'Size budget lets you set a target file size (e.g. 100 KB) and the Studio automatically finds the highest quality that still fits within that limit. Useful when an upload form has a strict size cap.',
+      'Size budget lets you set a target file size (e.g. 100 KB) and the Studio automatically finds the highest quality that still fits within that limit. Dedicated entry pages at /compress/under-50kb, /compress/under-100kb, and /compress/under-200kb open Studio with the budget already on. JPEG, WebP, AVIF, and JPEG XL only — PNG and QOI are skipped. Useful when an upload form has a strict size cap.',
   },
   {
     question: 'How does Asset Melt compare to Squoosh?',

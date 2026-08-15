@@ -13,6 +13,7 @@ cluster: image-compression
 heroImage: hero
 heroImageAlt: "Tiny glowing optimized image tile emerging from a larger image card"
 relatedTools:
+  - compress-under-100kb
   - batch-image-compressor
   - avif-compressor
 faq:
@@ -36,7 +37,7 @@ A 100KB image budget is strict but realistic for thumbnails, inline blog images,
 6. If still too large, reduce dimensions by 10–20%.
 7. Compare against the original at the final rendered size.
 
-The <ToolLink tool="batch-image-compressor">batch image compressor</ToolLink> can run this as a repeatable local workflow. For photos, the <ToolLink tool="avif-compressor">AVIF compressor</ToolLink> is often the best path to a hard byte target.
+The <ToolLink tool="compress-under-100kb">under 100 KB compressor</ToolLink> opens Studio with a 100 KB size budget already on. The <ToolLink tool="batch-image-compressor">batch image compressor</ToolLink> can run this as a repeatable local workflow. For photos, the <ToolLink tool="avif-compressor">AVIF compressor</ToolLink> is often the best path to a hard byte target.
 
 ## Dimension targets
 
@@ -96,10 +97,10 @@ If the image needs to persuade someone, do not chase 100KB blindly. Use the targ
 
 ## Size-budget workflow
 
-A good size-budget workflow searches for the highest quality that fits your target. That is better than manually exporting ten files and guessing. In Asset Melt, set your target, keep resizing reasonable, and compare the output before publishing.
+A good size-budget workflow searches for the highest quality that fits your target. That is better than manually exporting ten files and guessing. Open the <ToolLink tool="compress-under-100kb">under 100 KB page</ToolLink> to land in Studio with the budget already on, keep resizing reasonable, and compare the output before publishing.
 
 For repeated work, save the settings as a preset: “Article image under 100KB,” “Product grid under 100KB,” or “Social preview under 200KB.” Named presets turn a stressful one-off into a repeatable publishing habit.
 
 For social previews, see [best image sizes for Open Graph and social media](/blog/performance-seo/best-image-sizes-open-graph-social-media). For general settings, read [best image compression settings for web](/blog/image-compression/best-image-compression-settings-for-web).
 
-<StudioCta label="Target a smaller image size" to="webp" />
+<StudioCta label="Open Studio — under 100 KB" budget="100kb" />

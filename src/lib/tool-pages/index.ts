@@ -14,6 +14,7 @@ export {
   TOOL_PAGE_LIST,
   getRelatedToolPages,
   getToolPage,
+  getToolPageByPath,
 } from '@/lib/tool-pages/content'
 
 export { buildToolPageHead, buildToolPageJsonLd } from '@/lib/tool-pages/seo'

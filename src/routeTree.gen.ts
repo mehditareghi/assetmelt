@@ -21,6 +21,9 @@ import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as ToolsBatchImageCompressorRouteImport } from './routes/tools/batch-image-compressor'
 import { Route as StudioConversionRouteImport } from './routes/studio/$conversion'
 import { Route as ConvertHeicToJpgRouteImport } from './routes/convert/heic-to-jpg'
+import { Route as CompressUnder50kbRouteImport } from './routes/compress/under-50kb'
+import { Route as CompressUnder200kbRouteImport } from './routes/compress/under-200kb'
+import { Route as CompressUnder100kbRouteImport } from './routes/compress/under-100kb'
 import { Route as CompressAvifRouteImport } from './routes/compress/avif'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 import { Route as ApiSentryExampleRouteImport } from './routes/api/sentry-example'
@@ -88,6 +91,21 @@ const ConvertHeicToJpgRoute = ConvertHeicToJpgRouteImport.update({
   path: '/convert/heic-to-jpg',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CompressUnder50kbRoute = CompressUnder50kbRouteImport.update({
+  id: '/compress/under-50kb',
+  path: '/compress/under-50kb',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompressUnder200kbRoute = CompressUnder200kbRouteImport.update({
+  id: '/compress/under-200kb',
+  path: '/compress/under-200kb',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompressUnder100kbRoute = CompressUnder100kbRouteImport.update({
+  id: '/compress/under-100kb',
+  path: '/compress/under-100kb',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CompressAvifRoute = CompressAvifRouteImport.update({
   id: '/compress/avif',
   path: '/compress/avif',
@@ -120,6 +138,9 @@ export interface FileRoutesByFullPath {
   '/api/sentry-example': typeof ApiSentryExampleRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/compress/avif': typeof CompressAvifRoute
+  '/compress/under-100kb': typeof CompressUnder100kbRoute
+  '/compress/under-200kb': typeof CompressUnder200kbRoute
+  '/compress/under-50kb': typeof CompressUnder50kbRoute
   '/convert/heic-to-jpg': typeof ConvertHeicToJpgRoute
   '/studio/$conversion': typeof StudioConversionRoute
   '/tools/batch-image-compressor': typeof ToolsBatchImageCompressorRoute
@@ -138,6 +159,9 @@ export interface FileRoutesByTo {
   '/api/sentry-example': typeof ApiSentryExampleRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/compress/avif': typeof CompressAvifRoute
+  '/compress/under-100kb': typeof CompressUnder100kbRoute
+  '/compress/under-200kb': typeof CompressUnder200kbRoute
+  '/compress/under-50kb': typeof CompressUnder50kbRoute
   '/convert/heic-to-jpg': typeof ConvertHeicToJpgRoute
   '/studio/$conversion': typeof StudioConversionRoute
   '/tools/batch-image-compressor': typeof ToolsBatchImageCompressorRoute
@@ -157,6 +181,9 @@ export interface FileRoutesById {
   '/api/sentry-example': typeof ApiSentryExampleRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/compress/avif': typeof CompressAvifRoute
+  '/compress/under-100kb': typeof CompressUnder100kbRoute
+  '/compress/under-200kb': typeof CompressUnder200kbRoute
+  '/compress/under-50kb': typeof CompressUnder50kbRoute
   '/convert/heic-to-jpg': typeof ConvertHeicToJpgRoute
   '/studio/$conversion': typeof StudioConversionRoute
   '/tools/batch-image-compressor': typeof ToolsBatchImageCompressorRoute
@@ -177,6 +204,9 @@ export interface FileRouteTypes {
     | '/api/sentry-example'
     | '/blog/$slug'
     | '/compress/avif'
+    | '/compress/under-100kb'
+    | '/compress/under-200kb'
+    | '/compress/under-50kb'
     | '/convert/heic-to-jpg'
     | '/studio/$conversion'
     | '/tools/batch-image-compressor'
@@ -195,6 +225,9 @@ export interface FileRouteTypes {
     | '/api/sentry-example'
     | '/blog/$slug'
     | '/compress/avif'
+    | '/compress/under-100kb'
+    | '/compress/under-200kb'
+    | '/compress/under-50kb'
     | '/convert/heic-to-jpg'
     | '/studio/$conversion'
     | '/tools/batch-image-compressor'
@@ -213,6 +246,9 @@ export interface FileRouteTypes {
     | '/api/sentry-example'
     | '/blog/$slug'
     | '/compress/avif'
+    | '/compress/under-100kb'
+    | '/compress/under-200kb'
+    | '/compress/under-50kb'
     | '/convert/heic-to-jpg'
     | '/studio/$conversion'
     | '/tools/batch-image-compressor'
@@ -232,6 +268,9 @@ export interface RootRouteChildren {
   ApiSentryExampleRoute: typeof ApiSentryExampleRoute
   BlogSlugRoute: typeof BlogSlugRoute
   CompressAvifRoute: typeof CompressAvifRoute
+  CompressUnder100kbRoute: typeof CompressUnder100kbRoute
+  CompressUnder200kbRoute: typeof CompressUnder200kbRoute
+  CompressUnder50kbRoute: typeof CompressUnder50kbRoute
   ConvertHeicToJpgRoute: typeof ConvertHeicToJpgRoute
   StudioConversionRoute: typeof StudioConversionRoute
   ToolsBatchImageCompressorRoute: typeof ToolsBatchImageCompressorRoute
@@ -326,6 +365,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ConvertHeicToJpgRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/compress/under-50kb': {
+      id: '/compress/under-50kb'
+      path: '/compress/under-50kb'
+      fullPath: '/compress/under-50kb'
+      preLoaderRoute: typeof CompressUnder50kbRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compress/under-200kb': {
+      id: '/compress/under-200kb'
+      path: '/compress/under-200kb'
+      fullPath: '/compress/under-200kb'
+      preLoaderRoute: typeof CompressUnder200kbRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compress/under-100kb': {
+      id: '/compress/under-100kb'
+      path: '/compress/under-100kb'
+      fullPath: '/compress/under-100kb'
+      preLoaderRoute: typeof CompressUnder100kbRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/compress/avif': {
       id: '/compress/avif'
       path: '/compress/avif'
@@ -368,6 +428,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiSentryExampleRoute: ApiSentryExampleRoute,
   BlogSlugRoute: BlogSlugRoute,
   CompressAvifRoute: CompressAvifRoute,
+  CompressUnder100kbRoute: CompressUnder100kbRoute,
+  CompressUnder200kbRoute: CompressUnder200kbRoute,
+  CompressUnder50kbRoute: CompressUnder50kbRoute,
   ConvertHeicToJpgRoute: ConvertHeicToJpgRoute,
   StudioConversionRoute: StudioConversionRoute,
   ToolsBatchImageCompressorRoute: ToolsBatchImageCompressorRoute,

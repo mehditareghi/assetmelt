@@ -34,7 +34,7 @@ export const FAQ_ITEMS = [
   {
     question: 'What is size-budget encoding?',
     answer:
-      'Set a maximum output file size (e.g. 200 KB) and Asset Melt searches for the highest-quality encode that fits — adjusting quality and resizing only when necessary.',
+      'Set a maximum output file size (e.g. 200 KB) and Asset Melt searches for the highest-quality encode that fits — adjusting quality and resizing only when necessary. JPEG, WebP, AVIF, and JPEG XL only (PNG and QOI are skipped). Start from /compress/under-50kb, /compress/under-100kb, or /compress/under-200kb to open Studio with that budget already on.',
   },
   {
     question: 'Can I compress multiple images at once?',
@@ -90,7 +90,7 @@ export const FAQ_ITEMS = [
 
 export const KEY_FEATURES = [
   '100% client-side image processing — photos are not uploaded and not in session replay',
-  'Size-budget encoding — hit a target file size at maximum quality',
+  'Size-budget encoding — hit a target file size at maximum quality (/compress/under-50kb, /compress/under-100kb, /compress/under-200kb)',
   'Squoosh-grade WASM codecs: MozJPEG, AVIF, WebP, Oxipng, JXL, QOI (optional imagequant palette for PNG)',
   'Batch processing with parallel worker pool (up to 4), folder drop (recursive), drag-to-reorder queue (ZIP follows that order), ZIP export that keeps relative paths, and per-file size stats',
   'Platform presets: OG images, social sizes, favicon kits (PNG sizes + favicon.ico + apple-touch)',

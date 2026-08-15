@@ -40,6 +40,7 @@ export {
   listIndexableStudioSearches,
   parseStudioSearch,
   resolveStudioSeoMode,
+  studioIntentSearch,
   studioLinkOptions,
   studioSearchFromPair,
   studioSearchIntents,

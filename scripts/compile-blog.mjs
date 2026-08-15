@@ -28,6 +28,9 @@ const VALID_TOOL_IDS = new Set([
   'batch-image-compressor',
   'avif-compressor',
   'privacy-first-image-compression',
+  'compress-under-50kb',
+  'compress-under-100kb',
+  'compress-under-200kb',
 ])
 
 const VALID_CLUSTER_IDS = new Set([

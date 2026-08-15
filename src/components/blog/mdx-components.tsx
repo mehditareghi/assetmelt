@@ -70,23 +70,24 @@ export function StudioCta({
   label = 'Open Studio — free, no uploads',
   from,
   to,
+  budget,
 }: {
   label?: string
   from?: string
   to?: string
+  budget?: string
 }) {
-  const link =
-    from || to
-      ? studioLinkOptions(toStudioSearchParams({ from, to }))
-      : ({ to: '/studio' } as const)
+  const link = studioLinkOptions(toStudioSearchParams({ from, to, budget }))
 
   return (
     <div className="my-8 flex justify-center not-prose">
       <Button size="lg" asChild className="gap-2">
         {link.to === '/studio' ? (
-          <Link to="/studio">{label}</Link>
+          <Link to="/studio" search={link.search}>
+            {label}
+          </Link>
         ) : (
-          <Link to="/studio/$conversion" params={link.params}>
+          <Link to="/studio/$conversion" params={link.params} search={link.search}>
             {label}
           </Link>
         )}
