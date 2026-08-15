@@ -29,7 +29,7 @@ export const FAQ_ITEMS = [
   {
     question: 'How is Asset Melt different from Squoosh?',
     answer:
-      'Asset Melt uses the same @jsquash WASM codec stack as Google Squoosh, but adds batch processing, size-budget encoding, platform presets (OG images, social sizes, favicon kits), shareable recipe URLs, live before/after compare, undo/redo, JSON pipeline file import/export, optional PNG palette reduction, and a full transform pipeline (resize, crop, rotate, filters).',
+      'Asset Melt uses the same @jsquash WASM codec stack as Google Squoosh, but adds batch processing, size-budget encoding, platform presets (OG, X cards, Instagram, YouTube, App Store screenshot kits, newsletter 600px, favicon kits), shareable recipe URLs, live before/after compare, undo/redo, JSON pipeline file import/export, optional PNG palette reduction, and a full transform pipeline (resize, crop, rotate, filters).',
   },
   {
     question: 'What is size-budget encoding?',
@@ -59,7 +59,7 @@ export const FAQ_ITEMS = [
   {
     question: 'Can I customize output filenames?',
     answer:
-      'Yes. In Studio settings, set a filename pattern with {name}, {ext}, {width}, {height}, {quality}, and {date}. The same tokens apply to ZIP downloads and favicon kits. {quality} is blank for PNG and QOI.',
+      'Yes. In Studio settings, set a filename pattern with {name}, {ext}, {width}, {height}, {quality}, and {date}. The same tokens apply to ZIP downloads and platform kits. {quality} is blank for PNG and QOI.',
   },
   {
     question: 'Can I compress PNG like TinyPNG?',
@@ -79,7 +79,7 @@ export const FAQ_ITEMS = [
   {
     question: 'Can I export AVIF, WebP, and JPEG in one run?',
     answer:
-      'Yes. In Studio Format settings, use Also export to add extra codecs. One process run encodes every selected format. Download is a ZIP with a folder per format (avif/, webp/, jpeg/). A single-file queue downloads name-formats.zip; a multi-file queue downloads one assetmelt-batch.zip. JPEG fallback is optional and flattens transparency. Not available with favicon kits.',
+      'Yes. In Studio Format settings, use Also export to add extra codecs. One process run encodes every selected format. Download is a ZIP with a folder per format (avif/, webp/, jpeg/). A single-file queue downloads name-formats.zip; a multi-file queue downloads one assetmelt-batch.zip. JPEG fallback is optional and flattens transparency. Not available with platform kits (favicon, App Store, newsletter).',
   },
   {
     question: 'Can I export responsive widths and copy picture / next/image code?',
@@ -91,6 +91,11 @@ export const FAQ_ITEMS = [
     answer:
       'PNG icons at 16, 32, 180 (apple-touch), and 512 px, plus a multi-size favicon.ico (16+32+48) in the same ZIP.',
   },
+  {
+    question: 'Can I export X cards, App Store screenshots, or newsletter images?',
+    answer:
+      'Yes. Fit to size includes an X card (1200×600), a newsletter kit (600px wide + 1200px 2× JPEG), and an App Store screenshot kit (portrait iPhone 6.9" 1320×2868 and iPad 13" 2064×2752 in one ZIP). App Store is portrait only; the iPad size recenters to 3:4 from the source.',
+  },
 ] as const
 
 export const KEY_FEATURES = [
@@ -98,7 +103,7 @@ export const KEY_FEATURES = [
   'Size-budget encoding — hit a target file size at maximum quality (/compress/under-50kb, /compress/under-100kb, /compress/under-200kb)',
   'Squoosh-grade WASM codecs: MozJPEG, AVIF, WebP, Oxipng, JXL, QOI (optional imagequant palette for PNG)',
   'Batch processing with parallel worker pool (up to 4), folder drop (recursive), drag-to-reorder queue (ZIP follows that order), ZIP export that keeps relative paths, and per-file size stats',
-  'Platform presets: OG images, social sizes, favicon kits (PNG sizes + favicon.ico + apple-touch)',
+  'Platform presets: OG images, X cards (1200×600), Instagram, YouTube, App Store screenshot kit (iPhone 6.9" + iPad 13" portrait ZIP), newsletter kit (600 + 1200px), favicon kits (PNG sizes + favicon.ico + apple-touch)',
   'General presets: Web Optimized, Dev Assets, Lossless PNG, Thumbnail',
   'Full pipeline: resize, crop, rotate, flip, brightness, contrast, saturation',
   'Live before/after compare with scrubber',

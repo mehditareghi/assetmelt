@@ -867,7 +867,7 @@ export const useStudioStore = create<StudioState>()(
               workflowResults,
               multiFormatWorkflow
                 ? multiFormatPrimaryVariantId(pipeline.outputFormat)
-                : undefined,
+                : platformWorkflow?.previewVariantId,
             )
 
             set((s) => ({

@@ -59,7 +59,7 @@ export function AlsoExportFormatsSettings({
 
       {platformWorkflow ? (
         <div className="callout-warning rounded-md px-3 py-2 text-xs">
-          Multi-format is unavailable while a platform kit (e.g. favicon) is active.
+          Multi-format is unavailable while a platform kit (favicon, App Store, or newsletter) is active.
         </div>
       ) : (
         <div className="space-y-2 pl-11">

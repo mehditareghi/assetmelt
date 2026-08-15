@@ -7,7 +7,7 @@
     "dev": "vite dev",
     "prebuild": "node scripts/generate-version.mjs && node scripts/prebuild-content.mjs",
     "dev:clean": "rm -rf node_modules/.vite && vite dev",
-    "build": "vite build && node scripts/validate-prerender-output.mjs && node scripts/build-pwa.mjs && tsc -b",
+    "build": "tsc -b && vite build && node scripts/validate-prerender-output.mjs && node scripts/build-pwa.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "start": "node .output/server/index.mjs",

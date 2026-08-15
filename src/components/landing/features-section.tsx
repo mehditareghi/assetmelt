@@ -56,7 +56,7 @@ const features: Array<{
     icon: Bookmark,
     title: 'Platform & social presets',
     description:
-      'One-click OG images, Instagram sizes, and favicon kits (PNG sizes, apple-touch, and favicon.ico). Save your own presets or import a JSON pipeline for repeatable client-side compression.',
+      'One-click OG images, X cards, Instagram sizes, App Store screenshot kits, newsletter 600px, and favicon kits (PNG sizes, apple-touch, and favicon.ico). Save your own presets or import a JSON pipeline for repeatable client-side compression.',
   },
   {
     icon: Layers,

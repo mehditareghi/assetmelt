@@ -62,8 +62,12 @@ function AspectThumb({
 
 function canvasDims(preset: PlatformPreset): { width: number; height: number } | null {
   const resize = preset.config.resize
-  if (!resize?.enabled || resize.mode !== 'exact') return null
-  return { width: resize.width, height: resize.height }
+  if (!resize?.enabled) return null
+  if (resize.mode === 'exact') return { width: resize.width, height: resize.height }
+  if (resize.mode === 'maxWidth') {
+    return { width: resize.width, height: Math.max(1, Math.round(resize.width * 0.5)) }
+  }
+  return null
 }
 
 export function FitToSizeSheet({
@@ -100,7 +104,7 @@ export function FitToSizeSheet({
         <SheetHeader className="shrink-0 border-b border-border/50 px-4 pt-4 pb-3">
           <SheetTitle className="font-display text-lg">Fit to size</SheetTitle>
           <SheetDescription>
-            Exact canvases for social posts, link previews, and site icons. Crop adjusts to match.
+            Exact canvases for social posts, link previews, App Store screenshots, email, and site icons. Crop adjusts to match.
           </SheetDescription>
         </SheetHeader>
 

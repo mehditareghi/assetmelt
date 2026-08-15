@@ -17,7 +17,8 @@ export interface ExifInspectSummary {
 export type GpsKeepRisk = 'write' | 'pixels-only'
 
 const EXIF_LOAD_OPTIONS = {
-  expanded: true as const,
+  expanded: true,
+  async: false,
   excludeTags: {
     thumbnail: true,
     icc: true,
@@ -27,7 +28,7 @@ const EXIF_LOAD_OPTIONS = {
     makerNotes: true,
     mpf: true,
   },
-}
+} as const
 
 function tagText(tag: { description?: string; value?: unknown } | undefined): string | null {
   if (!tag) return null

@@ -37,13 +37,30 @@ export function platformExactResize(
   }
 }
 
+/** Cap width; height follows the source (email / newsletter). */
+export function platformMaxWidth(width: number): ResizeConfig {
+  return {
+    enabled: true,
+    mode: 'maxWidth',
+    width,
+    height: width,
+    percentage: 100,
+    lockAspectRatio: true,
+    lockTargetDimensions: true,
+    method: 'lanczos3',
+    fitMethod: 'contain',
+    premultiply: true,
+    linearRGB: true,
+  }
+}
+
 export interface PlatformPresetOptions {
   suggestedCropAspect?: CropAspectRatio
   /** When true, enables a centered crop for the aspect ratio after a file is loaded. */
   autoCrop?: boolean
 }
 
-export type PlatformPresetGroup = 'link' | 'instagram' | 'video' | 'site'
+export type PlatformPresetGroup = 'link' | 'instagram' | 'video' | 'store' | 'email' | 'site'
 
 export const PLATFORM_PRESET_GROUPS: Array<{
   id: PlatformPresetGroup
@@ -52,6 +69,8 @@ export const PLATFORM_PRESET_GROUPS: Array<{
   { id: 'link', label: 'Link preview' },
   { id: 'instagram', label: 'Instagram' },
   { id: 'video', label: 'Video' },
+  { id: 'store', label: 'App Store' },
+  { id: 'email', label: 'Email' },
   { id: 'site', label: 'Site assets' },
 ]
 
@@ -85,6 +104,8 @@ export interface PlatformWorkflow {
   description: string
   /** Built-in preset id used for studio preview / apply. */
   previewPresetId: string
+  /** Variant shown in the studio preview after Export. */
+  previewVariantId?: string
   variants: PlatformWorkflowVariant[]
 }
 
@@ -102,6 +123,21 @@ export const PLATFORM_BUILT_IN_PRESETS: PlatformPreset[] = [
       metadataMode: 'strip',
       resize: platformExactResize(1200, 630),
       crop: cropHint('40:21'),
+    },
+  },
+  {
+    id: 'x-card',
+    category: 'platform',
+    group: 'link',
+    name: 'X card',
+    description: '1200×600 · summary large image (2:1)',
+    platform: { suggestedCropAspect: '2:1', autoCrop: true },
+    config: {
+      outputFormat: 'jpeg',
+      filenamePattern: '{name}-x-card.{ext}',
+      metadataMode: 'strip',
+      resize: platformExactResize(1200, 600),
+      crop: cropHint('2:1'),
     },
   },
   {
@@ -193,6 +229,34 @@ export const PLATFORM_BUILT_IN_PRESETS: PlatformPreset[] = [
       crop: cropHint('1:1'),
     },
   },
+  {
+    id: 'app-store-kit',
+    category: 'platform',
+    group: 'store',
+    name: 'App Store screenshots',
+    description: 'iPhone 6.9" 1320×2868 + iPad 13" 2064×2752 · portrait JPEG zip',
+    platform: { suggestedCropAspect: '6:13', autoCrop: true },
+    config: {
+      outputFormat: 'jpeg',
+      filenamePattern: '{name}-app-store-iphone.{ext}',
+      metadataMode: 'strip',
+      resize: platformExactResize(1320, 2868),
+      crop: cropHint('6:13'),
+    },
+  },
+  {
+    id: 'newsletter-kit',
+    category: 'platform',
+    group: 'email',
+    name: 'Newsletter',
+    description: '600px wide + 1200px (2×) JPEG zip · height follows the photo',
+    config: {
+      outputFormat: 'jpeg',
+      filenamePattern: '{name}-email-{width}.{ext}',
+      metadataMode: 'strip',
+      resize: platformMaxWidth(600),
+    },
+  },
 ]
 
 const faviconVariant = (size: number): Partial<PipelineConfig> => ({
@@ -208,6 +272,7 @@ export const PLATFORM_WORKFLOWS: PlatformWorkflow[] = [
     name: 'Favicon kit',
     description: 'PNG sizes 16–512, apple-touch, and multi-size favicon.ico',
     previewPresetId: 'favicon-kit',
+    previewVariantId: 'favicon-512',
     variants: [
       {
         id: 'favicon-16',
@@ -232,6 +297,66 @@ export const PLATFORM_WORKFLOWS: PlatformWorkflow[] = [
         label: '512×512 (PWA)',
         filenamePattern: '{name}-favicon-{width}.{ext}',
         config: faviconVariant(512),
+      },
+    ],
+  },
+  {
+    id: 'app-store-kit',
+    name: 'App Store screenshots',
+    description: 'Portrait iPhone 6.9" and iPad 13" JPEGs — the sizes App Store Connect requires',
+    previewPresetId: 'app-store-kit',
+    previewVariantId: 'app-store-iphone',
+    variants: [
+      {
+        id: 'app-store-iphone',
+        label: 'iPhone 6.9" (1320×2868)',
+        filenamePattern: '{name}-app-store-iphone.{ext}',
+        config: {
+          outputFormat: 'jpeg',
+          metadataMode: 'strip',
+          resize: platformExactResize(1320, 2868),
+          crop: cropHint('6:13'),
+        },
+      },
+      {
+        id: 'app-store-ipad',
+        label: 'iPad 13" (2064×2752)',
+        filenamePattern: '{name}-app-store-ipad.{ext}',
+        config: {
+          outputFormat: 'jpeg',
+          metadataMode: 'strip',
+          resize: platformExactResize(2064, 2752),
+          crop: cropHint('3:4'),
+        },
+      },
+    ],
+  },
+  {
+    id: 'newsletter-kit',
+    name: 'Newsletter',
+    description: '600px-wide JPEG plus a 1200px 2× sibling for retina mail clients',
+    previewPresetId: 'newsletter-kit',
+    previewVariantId: 'newsletter-600',
+    variants: [
+      {
+        id: 'newsletter-600',
+        label: '600px wide',
+        filenamePattern: '{name}-email-{width}.{ext}',
+        config: {
+          outputFormat: 'jpeg',
+          metadataMode: 'strip',
+          resize: platformMaxWidth(600),
+        },
+      },
+      {
+        id: 'newsletter-1200',
+        label: '1200px wide (2×)',
+        filenamePattern: '{name}-email-{width}.{ext}',
+        config: {
+          outputFormat: 'jpeg',
+          metadataMode: 'strip',
+          resize: platformMaxWidth(1200),
+        },
       },
     ],
   },

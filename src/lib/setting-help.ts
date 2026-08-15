@@ -2,11 +2,11 @@ export const SETTING_HELP = {
   outputFormat:
     'Target file format for export. WebP and AVIF usually give the smallest files. PNG is lossless Oxipng unless Reduce palette is on.',
   alsoExportFormats:
-    'Encode additional AVIF, WebP, and/or JPEG in the same run. The primary format stays the preview. Download is a ZIP with a folder per format (avif/, webp/, jpeg/). One file in the queue → name-formats.zip; several files → one assetmelt-batch.zip. JPEG fallback flattens transparency. Not available with favicon kits.',
+    'Encode additional AVIF, WebP, and/or JPEG in the same run. The primary format stays the preview. Download is a ZIP with a folder per format (avif/, webp/, jpeg/). One file in the queue → name-formats.zip; several files → one assetmelt-batch.zip. JPEG fallback flattens transparency. Not available with platform kits (favicon, App Store, newsletter).',
   stripMetadata:
     'Strip all (default) drops EXIF, GPS, and ICC. Strip GPS keeps camera and color-profile data but removes location. Keep writes a lossy-safe subset (orientation already applied, no thumbnail) into JPEG, WebP, and PNG. AVIF, JXL, and QOI always export pixels only. The inspector under this control shows camera, date, and GPS from the source file before encode — Keep with GPS on JPEG/WebP/PNG will warn.',
   filenamePattern:
-    'Output naming template. Tokens: {name} original basename, {ext} new extension, {width} and {height} output pixels, {quality} encode quality (blank for PNG/QOI), {date} local YYYY-MM-DD. Applies to single downloads, ZIP batches, favicon kits, and multi-format exports ({ext} is required so formats do not collide).',
+    'Output naming template. Tokens: {name} original basename, {ext} new extension, {width} and {height} output pixels, {quality} encode quality (blank for PNG/QOI), {date} local YYYY-MM-DD. Applies to single downloads, ZIP batches, platform kits, and multi-format exports ({ext} is required so formats do not collide).',
 
   resizeEnabled: 'Scale images before encoding. Reduces file size and dimensions.',
   resizeMode:

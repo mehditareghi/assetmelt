@@ -19,6 +19,7 @@ Built with Vite, React, shadcn/ui, and Squoosh-grade WASM codecs (@jsquash).
 - **Multi-format one-run** — Also export AVIF / WebP / optional JPEG; ZIP download uses a folder per format (`avif/`, `webp/`, `jpeg/`)
 - **Responsive export** — optional Studio kit: N widths × formats ZIP (folders named by width) + copy `<picture>` / next/image
 - **Advanced mode** — Full codec parameter control
+- **Platform kits** — OG / X cards, Instagram, YouTube, App Store screenshots (iPhone 6.9" + iPad 13" portrait ZIP), newsletter 600+1200px ZIP, favicon kit (PNG sizes + favicon.ico). App Store is portrait only
 - **Metadata** — Strip all / Strip GPS / Keep (JPEG, WebP, PNG). Studio shows camera, date, and GPS from the source before encode and warns if Keep would write location into JPEG, WebP, or PNG. AVIF, JXL, and QOI always export pixels only
 
 ## Supported input formats

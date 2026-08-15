@@ -93,7 +93,7 @@ const DEFAULT_FAQ: StudioFaqItem[] = [
   {
     question: 'Can I customize output filenames?',
     answer:
-      'Yes. The filename pattern field accepts {name}, {ext}, {width}, {height}, {quality}, and {date} (local YYYY-MM-DD). The same tokens apply to ZIP downloads and favicon-kit files. {quality} is the encode quality used — including size-budget results — and stays blank for PNG and QOI.',
+      'Yes. The filename pattern field accepts {name}, {ext}, {width}, {height}, {quality}, and {date} (local YYYY-MM-DD). The same tokens apply to ZIP downloads and platform-kit files. {quality} is the encode quality used — including size-budget results — and stays blank for PNG and QOI.',
   },
   {
     question: 'Can I see EXIF before stripping metadata?',
@@ -108,7 +108,7 @@ const DEFAULT_FAQ: StudioFaqItem[] = [
   {
     question: 'Can I export AVIF, WebP, and JPEG in one run?',
     answer:
-      'Yes. Under Format → Also export, toggle extra codecs (AVIF, WebP, and optional JPEG fallback). Process once; download is a ZIP with folders like avif/, webp/, jpeg/. One image in the queue → name-formats.zip; several images → one batch ZIP. JPEG fallback flattens transparency. Unavailable while a favicon kit is active.',
+      'Yes. Under Format → Also export, toggle extra codecs (AVIF, WebP, and optional JPEG fallback). Process once; download is a ZIP with folders like avif/, webp/, jpeg/. One image in the queue → name-formats.zip; several images → one batch ZIP. JPEG fallback flattens transparency. Unavailable while a platform kit (favicon, App Store, newsletter) is active.',
   },
   {
     question: 'Can I export responsive widths and copy <picture> / next/image code?',
@@ -119,6 +119,11 @@ const DEFAULT_FAQ: StudioFaqItem[] = [
     question: 'What is in the favicon kit?',
     answer:
       'The Favicon kit recipe exports PNG icons at 16, 32, 180 (apple-touch), and 512 px, plus a classic multi-size favicon.ico (16+32+48 embedded). Everything lands in one ZIP.',
+  },
+  {
+    question: 'Can I export X cards, App Store screenshots, or newsletter images?',
+    answer:
+      'Yes. Fit to size includes an X card (1200×600, 2:1), a newsletter kit (600px-wide JPEG plus a 1200px 2× sibling), and an App Store screenshot kit (portrait iPhone 6.9" 1320×2868 and iPad 13" 2064×2752 in one ZIP). App Store is portrait only; Apple also accepts other 6.9" pixel sizes. The iPad size uses a centered 3:4 crop from the source, not the iPhone crop you edited.',
   },
 ]
 

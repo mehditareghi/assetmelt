@@ -58,8 +58,10 @@ export const cropAspectRatioSchema = z.enum([
   '4:5',
   '3:2',
   '16:9',
+  '2:1',
   '40:21',
   '9:16',
+  '6:13',
   '3:4',
   '2:3',
 ])
@@ -240,7 +242,7 @@ export const pipelineSchema = z.object({
   }),
   /**
    * Extra codecs to encode in the same run (ZIP). Primary `outputFormat` is always first.
-   * Ignored under platform workflows (e.g. favicon kit).
+   * Ignored under platform workflows (favicon, App Store, newsletter kits).
    */
   alsoExportFormats: z.array(alsoExportFormatSchema).default([]),
   metadataMode: metadataModeSchema.optional(),
