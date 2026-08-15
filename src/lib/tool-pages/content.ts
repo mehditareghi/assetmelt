@@ -24,7 +24,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
         icon: 'layers',
         title: 'Batch processing',
         description:
-          'Queue dozens of files, apply one pipeline to all of them, and export as a ZIP. Squoosh handled one image at a time.',
+          'Queue dozens of files — or drop a folder — apply one pipeline, and export as a ZIP that keeps relative paths. Squoosh handled one image at a time.',
       },
       {
         icon: 'target',
@@ -77,7 +77,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
       rows: [
         { feature: 'Client-side (no uploads)', assetMelt: 'Yes', competitor: 'Yes' },
         { feature: 'WASM codecs (MozJPEG, AVIF, WebP)', assetMelt: 'Yes', competitor: 'Yes' },
-        { feature: 'Batch processing + ZIP export', assetMelt: 'Yes', competitor: 'No' },
+        { feature: 'Batch processing + ZIP export', assetMelt: 'Yes (folder drop)', competitor: 'No' },
         { feature: 'Size-budget encoding', assetMelt: 'Yes', competitor: 'No' },
         { feature: 'HEIC / HEIF input', assetMelt: 'Yes', competitor: 'No' },
         { feature: 'Platform presets (OG, favicon)', assetMelt: 'Yes (+ favicon.ico)', competitor: 'No' },
@@ -269,7 +269,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
       {
         title: 'Export the batch',
         description:
-          'Review before/after for any file, check total savings, then download all compressed images as a single ZIP archive.',
+          'Review before/after for any file, check total savings, then download all compressed images as a single ZIP. Folder drops keep paths like products/a/hero.webp.',
       },
     ],
     contentSections: [
@@ -464,7 +464,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
       {
         title: 'Drop your images',
         description:
-          'Add files by drag-and-drop, click-to-browse, or paste from clipboard. Image files are not sent anywhere at this step or during encode.',
+          'Add images by drag-and-drop (files or a folder), click-to-browse, or paste from the clipboard. Image files are not sent anywhere at this step or during encode.',
       },
       {
         title: 'Compress and download',

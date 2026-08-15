@@ -1,7 +1,8 @@
-import { X, FileImage, AlertCircle, CheckCircle2, Loader2, Plus } from 'lucide-react'
+import { X, FileImage, AlertCircle, CheckCircle2, Loader2, Folder } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useStudioStore } from '@/stores/studio-store'
-import { pickImageFiles } from '@/lib/image/pick-image-files'
+import { sourceRelativeDir } from '@/lib/image/folder-drop'
+import { AddImagesButton } from '@/components/studio/add-images-button'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { filesize } from 'filesize'
@@ -13,16 +14,8 @@ export function FileQueue() {
   const isProcessing = useStudioStore((s) => s.isProcessing)
   const setActiveFile = useStudioStore((s) => s.setActiveFile)
   const removeFile = useStudioStore((s) => s.removeFile)
-  const addFiles = useStudioStore((s) => s.addFiles)
 
   if (files.length === 0) return null
-
-  const handleAddFiles = async () => {
-    if (isCropEditing || isProcessing) return
-    const picked = await pickImageFiles()
-    if (picked.length === 0) return
-    await addFiles(picked)
-  }
 
   return (
     <div className="glass-surface flex flex-col gap-2 rounded-2xl p-3 lg:p-4">
@@ -30,17 +23,12 @@ export function FileQueue() {
         <h3 className="font-mono text-xs uppercase tracking-wider text-muted-foreground">
           Queue ({files.length})
         </h3>
-        <Button
-          type="button"
+        <AddImagesButton
+          label="Add"
           variant="ghost"
-          size="sm"
-          className="h-7 gap-1 px-2 font-mono text-[11px]"
-          onClick={() => void handleAddFiles()}
           disabled={isCropEditing || isProcessing}
-        >
-          <Plus className="size-3" />
-          Add
-        </Button>
+          className="h-7 px-2 font-mono text-[11px]"
+        />
       </div>
 
       <div className="flex flex-col gap-1.5 lg:max-h-[calc(100vh-280px)] lg:overflow-y-auto">
@@ -78,6 +66,11 @@ export function FileQueue() {
 
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{file.name}</p>
+                {sourceRelativeDir(file.relativePath) ? (
+                  <p className="truncate font-mono text-[10px] text-muted-foreground/80">
+                    {sourceRelativeDir(file.relativePath)}
+                  </p>
+                ) : null}
                 <p className="font-mono text-xs text-muted-foreground">
                   {filesize(file.file.size)} · {file.inputFormat}
                   {file.originalWidth != null && file.originalHeight != null && (
@@ -140,6 +133,11 @@ export function FileQueue() {
           </div>
         ))}
       </div>
+
+      <p className="mt-1 flex items-center gap-1.5 rounded-lg border border-dashed border-border/60 px-2.5 py-2 font-mono text-[10px] leading-snug text-muted-foreground">
+        <Folder className="size-3 shrink-0 opacity-70" />
+        Drop files or a folder anywhere to add
+      </p>
     </div>
   )
 }

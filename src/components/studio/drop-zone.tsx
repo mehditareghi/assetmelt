@@ -2,6 +2,7 @@ import { Upload } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { ShortcutKeycaps } from '@/components/studio/shortcut-cheatsheet'
 import { STUDIO_IMAGE_ACCEPT } from '@/lib/image/pick-image-files'
+import { ingestIncomingImages } from '@/lib/studio-ingest'
 import { getCustomPresetSummary, getPresetDisplayName } from '@/lib/presets'
 import { useAppleModifier } from '@/lib/studio-shortcuts'
 import { cn } from '@/lib/utils'
@@ -20,32 +21,17 @@ function usePresetChipLabel() {
 }
 
 export function DropZone({ className }: { className?: string }) {
-  const addFiles = useStudioStore((s) => s.addFiles)
   const openShortcuts = useStudioChromeStore((s) => s.setShortcutsOpen)
   const apple = useAppleModifier()
   const [isDragging, setIsDragging] = useState(false)
   const { name, summary } = usePresetChipLabel()
 
-  const handleDrop = useCallback(
-    async (e: React.DragEvent) => {
-      e.preventDefault()
-      setIsDragging(false)
-      if (e.dataTransfer.files.length) {
-        await addFiles(e.dataTransfer.files)
-      }
-    },
-    [addFiles],
-  )
-
-  const handleFileInput = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (e.target.files?.length) {
-        await addFiles(e.target.files)
-        e.target.value = ''
-      }
-    },
-    [addFiles],
-  )
+  const handleFileInput = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files?.length) {
+      await ingestIncomingImages(e.target.files)
+      e.target.value = ''
+    }
+  }, [])
 
   return (
     <div
@@ -61,10 +47,13 @@ export function DropZone({ className }: { className?: string }) {
         setIsDragging(true)
       }}
       onDragLeave={() => setIsDragging(false)}
-      onDrop={handleDrop}
+      onDrop={(e) => {
+        e.preventDefault()
+        setIsDragging(false)
+      }}
     >
-      <label className="absolute inset-0 cursor-pointer rounded-2xl">
-        <span className="sr-only">Browse images</span>
+      <label className="absolute inset-0 z-0 cursor-pointer rounded-2xl">
+        <span className="sr-only">Choose images</span>
         <input
           type="file"
           multiple
@@ -79,7 +68,7 @@ export function DropZone({ className }: { className?: string }) {
           <Upload className="size-6 text-primary" />
         </div>
         <p className="font-display text-lg font-semibold tracking-tight sm:text-xl">
-          Drop, paste, or click to browse
+          Drop a folder, or click to choose images
         </p>
         <p className="mt-2 font-mono text-xs text-muted-foreground">
           JPEG · PNG · WebP · AVIF · HEIC · SVG · GIF · JXL · TIFF

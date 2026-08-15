@@ -6,7 +6,6 @@ import {
   Link2,
   MoreHorizontal,
   Play,
-  Plus,
   Redo2,
   Square,
   Trash2,
@@ -18,8 +17,8 @@ import { OfflinePrepRestoreLink } from '@/components/pwa/offline-prep-restore-li
 import { useOptionalOfflinePrepContext } from '@/lib/pwa/offline-prep-context'
 import { useStudioStore } from '@/stores/studio-store'
 import { fileHasDownloadableResult } from '@/lib/download-results'
-import { pickImageFiles } from '@/lib/image/pick-image-files'
 import { PresetPicker } from '@/components/studio/preset-picker'
+import { AddImagesButton } from '@/components/studio/add-images-button'
 import { ShortcutHint } from '@/components/studio/shortcut-cheatsheet'
 import { Button } from '@/components/ui/button'
 import {
@@ -42,7 +41,6 @@ export function StudioToolbar() {
   const processAll = useStudioStore((s) => s.processAll)
   const cancelProcessing = useStudioStore((s) => s.cancelProcessing)
   const clearFiles = useStudioStore((s) => s.clearFiles)
-  const addFiles = useStudioStore((s) => s.addFiles)
   const importPipelineConfig = useStudioStore((s) => s.importPipelineConfig)
   const undo = useStudioStore((s) => s.undo)
   const redo = useStudioStore((s) => s.redo)
@@ -61,13 +59,6 @@ export function StudioToolbar() {
   const canProcess = hasFiles && needsReprocess && !isCropEditing && !isProcessing
   const canDownload = doneCount > 0 && !isCropEditing && !isProcessing
   const canResponsiveExport = hasFiles && !isCropEditing && !isProcessing
-
-  const handleAddFiles = async () => {
-    if (isCropEditing || isProcessing) return
-    const picked = await pickImageFiles()
-    if (picked.length === 0) return
-    await addFiles(picked)
-  }
 
   const handleExportAll = () => {
     void exportStudioResults()
@@ -196,16 +187,11 @@ export function StudioToolbar() {
           {!hideOfflineChrome ? <OfflinePrepRestoreLink variant="toolbar" /> : null}
 
           {hasFiles ? (
-            <Button
-              variant="outline"
-              size="sm"
-              className="hidden shrink-0 gap-1.5 lg:inline-flex"
-              onClick={() => void handleAddFiles()}
+            <AddImagesButton
+              label="Add images"
               disabled={isCropEditing || isProcessing}
-            >
-              <Plus className="size-3.5" />
-              Add files
-            </Button>
+              className="hidden shrink-0 lg:inline-flex"
+            />
           ) : null}
         </div>
 
@@ -240,16 +226,12 @@ export function StudioToolbar() {
       {/* Phone / tablet: Add files when queue has items (sticky bar owns primary CTAs) */}
       {hasFiles ? (
         <div className="flex items-center gap-2 lg:hidden">
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-9 flex-1 gap-1.5"
-            onClick={() => void handleAddFiles()}
+          <AddImagesButton
+            label="Add images"
             disabled={isCropEditing || isProcessing}
-          >
-            <Plus className="size-3.5" />
-            Add files
-          </Button>
+            expand
+            className="h-9"
+          />
           <HistoryButtons canUndo={canUndo()} canRedo={canRedo()} onUndo={undo} onRedo={redo} />
           <ShortcutsButton />
           <CopyRecipeButton />

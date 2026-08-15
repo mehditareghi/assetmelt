@@ -39,6 +39,7 @@ import { fileHasDownloadableResult } from '@/lib/download-results'
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 import { useEffect, useRef } from 'react'
 import { useStudioShortcuts } from '@/hooks/use-studio-shortcuts'
+import { useStudioExternalDrop } from '@/hooks/use-studio-external-drop'
 import { ShortcutCheatsheet } from '@/components/studio/shortcut-cheatsheet'
 import { ResponsiveExportSheet } from '@/components/studio/responsive-export-sheet'
 import { exportStudioResults, studioQueueStatus } from '@/lib/studio-actions'
@@ -97,6 +98,7 @@ export function StudioPage({ search }: { search: StudioSearch }) {
   const offlinePrep = useOptionalOfflinePrepContext()
   const hideOfflinePanels = offlinePrep?.offlineStudioChrome ?? false
   useStudioShortcuts()
+  const fileDropActive = useStudioExternalDrop()
 
   const doneCount = files.filter(fileHasDownloadableResult).length
   const pendingCount = files.filter(
@@ -254,7 +256,14 @@ export function StudioPage({ search }: { search: StudioSearch }) {
       <div className="mesh-gradient studio-page-bg pointer-events-none fixed inset-0 -z-10" />
       <div className="landing-hero-grid pointer-events-none fixed inset-0 -z-10 opacity-25" />
 
-      <main className="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-4 px-4 py-5 sm:gap-5 sm:px-6 sm:py-6 lg:px-8">
+      <main className="relative mx-auto flex w-full max-w-7xl flex-1 flex-col gap-4 px-4 py-5 sm:gap-5 sm:px-6 sm:py-6 lg:px-8">
+        {fileDropActive && files.length > 0 ? (
+          <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-background/55 backdrop-blur-[2px]">
+            <p className="rounded-2xl border-2 border-dashed border-primary/40 bg-background/90 px-6 py-4 font-display text-lg font-semibold tracking-tight shadow-lg">
+              Drop to add to the queue
+            </p>
+          </div>
+        ) : null}
         {!hideOfflinePanels ? <OfflinePrepPanel /> : null}
         {!hideOfflinePanels ? <AppUpdatePanel /> : null}
         <div className="glass-surface overflow-visible rounded-2xl p-3 sm:p-4">

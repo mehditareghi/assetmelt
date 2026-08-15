@@ -1,5 +1,6 @@
 import JSZip from 'jszip'
 import type { ProcessableFile } from '@/lib/image/types'
+import { joinSourceRelativePath, uniqueZipPath } from '@/lib/image/folder-drop'
 import {
   isMultiFormatVariantId,
   MULTI_FORMAT_KIT_ID,
@@ -38,19 +39,8 @@ function addWorkflowVariantsToZip(
   const sourceBase = file.name.replace(/\.[^.]+$/, '') || 'image'
   let count = 0
   for (const variant of variants) {
-    let path = workflowZipEntryPath(variant, { sourceBase })
-    if (usedPaths.has(path)) {
-      const slash = path.lastIndexOf('/')
-      const dir = slash >= 0 ? path.slice(0, slash + 1) : ''
-      const name = slash >= 0 ? path.slice(slash + 1) : path
-      const dot = name.lastIndexOf('.')
-      const stem = dot >= 0 ? name.slice(0, dot) : name
-      const ext = dot >= 0 ? name.slice(dot) : ''
-      let n = 2
-      while (usedPaths.has(`${dir}${stem}-${n}${ext}`)) n += 1
-      path = `${dir}${stem}-${n}${ext}`
-    }
-    usedPaths.add(path)
+    const raw = workflowZipEntryPath(variant, { sourceBase })
+    const path = uniqueZipPath(joinSourceRelativePath(file.relativePath, raw), usedPaths)
     zip.file(path, variant.blob)
     count += 1
   }
@@ -90,16 +80,8 @@ export async function downloadProcessedFiles(
     if (file.workflowResults && file.workflowResults.length > 0) {
       fileCount += addWorkflowVariantsToZip(zip, file, usedPaths)
     } else if (file.resultBlob) {
-      let path = file.resultName ?? file.name
-      if (usedPaths.has(path)) {
-        const dot = path.lastIndexOf('.')
-        const stem = dot >= 0 ? path.slice(0, dot) : path
-        const ext = dot >= 0 ? path.slice(dot) : ''
-        let n = 2
-        while (usedPaths.has(`${stem}-${n}${ext}`)) n += 1
-        path = `${stem}-${n}${ext}`
-      }
-      usedPaths.add(path)
+      const raw = file.resultName ?? file.name
+      const path = uniqueZipPath(joinSourceRelativePath(file.relativePath, raw), usedPaths)
       zip.file(path, file.resultBlob)
       fileCount += 1
     }

@@ -36,6 +36,8 @@ export interface ProcessableFile {
   id: string
   file: File
   name: string
+  /** Folder-relative path when the file came from a dropped tree (`products/a/hero.jpg`). */
+  relativePath?: string
   inputFormat: InputFormat
   /** Original on-disk size before HEIC→JPEG normalization (for savings stats). */
   sourceByteSize?: number

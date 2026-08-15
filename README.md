@@ -9,7 +9,7 @@ Built with Vite, React, shadcn/ui, and Squoosh-grade WASM codecs (@jsquash).
 - **Format conversion** — JPEG (MozJPEG), WebP, AVIF, PNG (Oxipng), JPEG XL, QOI
 - **Transforms** — Resize (Lanczos3, Mitchell, Magic Kernel, HQX…), crop, rotate, flip
 - **Filters** — Brightness, contrast, saturation, grayscale, sharpen
-- **Batch processing** — Queue multiple files in parallel (worker pool up to 4), cancel mid-batch, export as zip
+- **Batch processing** — Drop files or a folder (recursive; non-images skipped), encode in parallel (worker pool up to 4), cancel mid-batch, ZIP export keeps relative paths
 - **Presets + JSON config** — Web Optimized, Dev Assets, Lossless PNG, Thumbnail, custom presets; import/export pipeline as a JSON file
 - **Keyboard shortcuts** — `?` cheatsheet in Studio; Cmd/Ctrl+Enter process, S download, K recipes
 - **Filename tokens** — `{name}` `{ext}` `{width}` `{height}` `{quality}` `{date}` in the pattern field, ZIP, and favicon kits

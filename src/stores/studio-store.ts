@@ -18,7 +18,11 @@ import {
   multiFormatPrimaryVariantId,
 } from '@/lib/multi-format'
 import type { WorkflowVariantResult } from '@/lib/image/types'
-import { detectFormatFromBuffer, isImageFile } from '@/lib/image/format-detection'
+import { detectFormatFromBuffer } from '@/lib/image/format-detection'
+import {
+  normalizeIncomingImages,
+  type IncomingImage,
+} from '@/lib/image/folder-drop'
 import { createPreviewObjectUrl, needsWasmPreview } from '@/lib/image/browser-display'
 import { getImageDimensions } from '@/lib/image/dimensions'
 import { normalizeResizeConfig } from '@/lib/image/resize-compute'
@@ -156,7 +160,7 @@ interface StudioState {
   processingToken: number
   customPresets: CustomPreset[]
 
-  addFiles: (files: FileList | File[]) => Promise<void>
+  addFiles: (files: FileList | File[] | IncomingImage[]) => Promise<void>
   removeFile: (id: string) => void
   clearFiles: () => void
   setActiveFile: (id: string | null) => void
@@ -308,10 +312,11 @@ export const useStudioStore = create<StudioState>()(
       customPresets: [],
 
       addFiles: async (fileList) => {
-        const incoming = Array.from(fileList).filter(isImageFile)
+        const incoming = normalizeIncomingImages(fileList)
         const newFiles: ProcessableFile[] = []
 
-        for (const file of incoming) {
+        for (const item of incoming) {
+          const file = item.file
           let workingFile = file
           let buffer = await file.arrayBuffer()
           let inputFormat = detectFormatFromBuffer(buffer, file.name)
@@ -332,6 +337,7 @@ export const useStudioStore = create<StudioState>()(
                 id: generateId(),
                 file,
                 name: file.name,
+                relativePath: item.relativePath,
                 inputFormat: 'heic',
                 status: 'error',
                 progress: 0,
@@ -370,6 +376,7 @@ export const useStudioStore = create<StudioState>()(
             id: generateId(),
             file: workingFile,
             name: workingFile.name,
+            relativePath: item.relativePath,
             inputFormat,
             sourceByteSize,
             status: 'pending',
