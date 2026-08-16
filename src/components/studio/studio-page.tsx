@@ -13,7 +13,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
-import { Download, Lock, Play, SlidersHorizontal, Square } from 'lucide-react'
+import { Lock, Pause, Play, SlidersHorizontal, Square } from 'lucide-react'
 import {
   Accordion,
   AccordionContent,
@@ -35,14 +35,15 @@ import {
   type StudioSeoContent,
 } from '@/lib/studio-seo'
 import { useStudioStore } from '@/stores/studio-store'
-import { fileHasDownloadableResult } from '@/lib/download-results'
+import { exportableResultCount } from '@/lib/download-results'
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router'
 import { useEffect, useRef } from 'react'
 import { useStudioShortcuts } from '@/hooks/use-studio-shortcuts'
 import { useStudioExternalDrop } from '@/hooks/use-studio-external-drop'
 import { ShortcutCheatsheet } from '@/components/studio/shortcut-cheatsheet'
 import { ResponsiveExportSheet } from '@/components/studio/responsive-export-sheet'
-import { exportStudioResults, studioQueueStatus } from '@/lib/studio-actions'
+import { studioQueueStatus } from '@/lib/studio-actions'
+import { StudioDownloadButton } from '@/components/studio/studio-download-button'
 import { useStudioChromeStore } from '@/stores/studio-chrome-store'
 import {
   decodeStudioRecipe,
@@ -101,26 +102,27 @@ export function StudioPage({ search }: { search: StudioSearch }) {
   const outputFormat = pipeline.outputFormat
   const addFiles = useStudioStore((s) => s.addFiles)
   const processAll = useStudioStore((s) => s.processAll)
+  const pauseProcessing = useStudioStore((s) => s.pauseProcessing)
+  const resumeProcessing = useStudioStore((s) => s.resumeProcessing)
   const cancelProcessing = useStudioStore((s) => s.cancelProcessing)
   const isProcessing = useStudioStore((s) => s.isProcessing)
+  const isPaused = useStudioStore((s) => s.isPaused)
+  const isExporting = useStudioStore((s) => s.isExporting)
+  const chunkZipParts = useStudioStore((s) => s.chunkZipParts)
   const isCropEditing = useStudioStore((s) => s.isCropEditing)
   const offlinePrep = useOptionalOfflinePrepContext()
   const hideOfflinePanels = offlinePrep?.offlineStudioChrome ?? false
   useStudioShortcuts()
   const fileDropActive = useStudioExternalDrop()
 
-  const doneCount = files.filter(fileHasDownloadableResult).length
+  const doneCount = exportableResultCount(files, chunkZipParts)
   const pendingCount = files.filter(
     (f) => f.status === 'pending' || f.status === 'error',
   ).length
-  const queueStatus = studioQueueStatus(files)
+  const queueStatus = studioQueueStatus(files, { isPaused })
   const canProcess =
-    files.length > 0 && pendingCount > 0 && !isCropEditing && !isProcessing
-  const canDownload = doneCount > 0 && !isCropEditing && !isProcessing
-
-  const handleMobileDownload = () => {
-    void exportStudioResults()
-  }
+    files.length > 0 && pendingCount > 0 && !isCropEditing && !isProcessing && !isPaused
+  const canDownload = doneCount > 0 && !isCropEditing && !isProcessing && !isExporting
 
   /** Skip URL rewrite while applying format/recipe from the route itself. */
   const applyingFromRouteRef = useRef(false)
@@ -344,16 +346,56 @@ export function StudioPage({ search }: { search: StudioSearch }) {
                   </SheetContent>
                 </Sheet>
 
-                {isProcessing ? (
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    className="h-10 flex-1 gap-2"
-                    onClick={() => cancelProcessing()}
-                  >
-                    <Square className="size-4 fill-current" />
-                    Cancel
-                  </Button>
+                {isExporting ? (
+                  <StudioDownloadButton count={doneCount} className="h-10 flex-1 gap-2" />
+                ) : isPaused ? (
+                  <>
+                    {isProcessing ? (
+                      <Button size="sm" variant="outline" disabled className="h-10 gap-2">
+                        <Pause className="size-4" />
+                        Pausing…
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        className="h-10 flex-1 gap-2"
+                        onClick={() => resumeProcessing()}
+                      >
+                        <Play className="size-4" />
+                        Resume
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="h-10 gap-2"
+                      onClick={() => cancelProcessing()}
+                    >
+                      <Square className="size-4 fill-current" />
+                      Cancel
+                    </Button>
+                  </>
+                ) : isProcessing ? (
+                  <>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-10 gap-2"
+                      onClick={() => pauseProcessing()}
+                    >
+                      <Pause className="size-4" />
+                      Pause
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="h-10 flex-1 gap-2"
+                      onClick={() => cancelProcessing()}
+                    >
+                      <Square className="size-4 fill-current" />
+                      Cancel
+                    </Button>
+                  </>
                 ) : pendingCount > 0 ? (
                   <Button
                     size="sm"
@@ -365,28 +407,16 @@ export function StudioPage({ search }: { search: StudioSearch }) {
                     Re-process ({pendingCount})
                   </Button>
                 ) : (
-                  <Button
-                    size="sm"
-                    className="h-10 flex-1 gap-2"
-                    onClick={() => void handleMobileDownload()}
-                    disabled={!canDownload}
-                  >
-                    <Download className="size-4" />
-                    Download ({doneCount})
-                  </Button>
+                  <StudioDownloadButton count={doneCount} className="h-10 flex-1 gap-2" />
                 )}
 
                 {pendingCount > 0 && canDownload ? (
-                  <Button
+                  <StudioDownloadButton
+                    count={doneCount}
                     variant="secondary"
-                    size="sm"
                     className="h-10 gap-2"
-                    onClick={() => void handleMobileDownload()}
-                    disabled={!canDownload}
-                  >
-                    <Download className="size-4" />
-                    {doneCount}
-                  </Button>
+                    showCountOnly
+                  />
                 ) : null}
               </div>
             </div>

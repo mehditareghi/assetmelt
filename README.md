@@ -11,7 +11,7 @@ Built with Vite, React, shadcn/ui, and Squoosh-grade WASM codecs (@jsquash).
 - **Size budget** — hit a target file size (JPEG / WebP / AVIF / JXL). Entry pages: `/compress/under-50kb`, `/compress/under-100kb`, `/compress/under-200kb` open Studio with the budget on
 - **Transforms** — Resize (Lanczos3, Mitchell, Magic Kernel, HQX…), crop, rotate, flip
 - **Filters** — Brightness, contrast, saturation, grayscale, sharpen
-- **Batch processing** — Drop files or a folder (recursive; non-images skipped), drag the queue to reorder (ZIP follows that list), encode in parallel (worker pool up to 4), cancel mid-batch, ZIP export keeps relative paths
+- **Batch processing** — Drop files or a folder (recursive; non-images skipped), drag the queue to reorder (ZIP follows that list), encode in parallel (worker pool up to 4), pause or cancel mid-batch, optional ZIP every 25 files to free memory, ZIP export keeps relative paths
 - **Presets + JSON config** — Web Optimized, Dev Assets, Lossless PNG, Thumbnail, custom presets; import/export pipeline as a JSON file
 - **Keyboard shortcuts** — `?` cheatsheet in Studio; Cmd/Ctrl+Enter process, S download, K recipes
 - **Filename tokens** — `{name}` `{ext}` `{width}` `{height}` `{quality}` `{date}` in the pattern field, ZIP, and favicon kits

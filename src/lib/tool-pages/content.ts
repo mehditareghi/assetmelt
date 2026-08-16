@@ -295,12 +295,12 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
       {
         question: 'How many images can I compress at once?',
         answer:
-          'There is no hard limit. Asset Melt queues files and encodes them in parallel on a worker pool sized to your CPU (capped at 4). Cancel anytime. Very large batches still depend on device memory and browser capabilities.',
+          'There is no hard 20-image cap. Asset Melt queues files and encodes them in parallel on a worker pool sized to your CPU (capped at 4). Pause to let in-flight files finish and download what is ready, or cancel anytime. Optional ZIP every 25 files (Studio Pipeline options) packs numbered ZIPs during encode; Download saves every part with progress on the button and drops result blobs to ease tab memory. Very large batches still depend on device RAM and browser capabilities.',
       },
       {
         question: 'Can I download all compressed images as one ZIP?',
         answer:
-          'Yes. After processing, export the entire batch as a ZIP archive with all optimized files inside.',
+          'Yes. After processing, export the batch as a ZIP. Turn on ZIP every 25 files in Pipeline options so Download saves numbered parts (with progress on the button) instead of one giant archive.',
       },
       {
         question: 'Can I use different settings per file?',

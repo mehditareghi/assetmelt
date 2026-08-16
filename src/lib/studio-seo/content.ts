@@ -63,7 +63,7 @@ const DEFAULT_FAQ: StudioFaqItem[] = [
   {
     question: 'Can I compress multiple images at once?',
     answer:
-      'Yes. Drag and drop files or a folder (nested images are queued; other files are skipped), click to choose images, or paste from the clipboard. Drops still work after the queue already has images, including while a batch is encoding. Drag queue rows to reorder; a batch ZIP follows that list for this session (files are not saved across reloads). The Studio encodes in parallel on a worker pool sized to your CPU (up to 4), with live per-file progress and a Cancel button. Download each result or a ZIP — folder trees keep relative paths like products/a/hero.webp.',
+      'Yes. Drag and drop files or a folder (nested images are queued; other files are skipped), click to choose images, or paste from the clipboard. Drops still work after the queue already has images, including while a batch is encoding. Drag queue rows to reorder; a batch ZIP follows that list for this session (files are not saved across reloads). The Studio encodes in parallel on a worker pool sized to your CPU (up to 4), with live per-file progress, Pause, and Cancel. Pause lets in-flight files finish so you can download what is ready. Optional “ZIP every 25 files” (Pipeline options) packs numbered ZIPs during encode; Download saves every part with a ZIP 1/N progress state on the button and drops result blobs to ease tab memory — there is still no 20-image cap; very large batches depend on device RAM. Download each result or a ZIP — folder trees keep relative paths like products/a/hero.webp.',
   },
   {
     question: 'What is "size budget" encoding?',
@@ -108,7 +108,7 @@ const DEFAULT_FAQ: StudioFaqItem[] = [
   {
     question: 'Can I export AVIF, WebP, and JPEG in one run?',
     answer:
-      'Yes. Under Format → Also export, toggle extra codecs (AVIF, WebP, and optional JPEG fallback). Process once; download is a ZIP with folders like avif/, webp/, jpeg/. One image in the queue → name-formats.zip; several images → one batch ZIP. JPEG fallback flattens transparency. Unavailable while a platform kit (favicon, App Store, newsletter) is active.',
+      'Yes. Under Format → Also export, toggle extra codecs (AVIF, WebP, and optional JPEG fallback). Process once; download is a ZIP with folders like avif/, webp/, jpeg/. One image in the queue → name-formats.zip; several images → one batch ZIP (or numbered parts if ZIP every 25 files is on). JPEG fallback flattens transparency. Unavailable while a platform kit (favicon, App Store, newsletter) is active.',
   },
   {
     question: 'Can I export responsive widths and copy <picture> / next/image code?',
@@ -216,7 +216,7 @@ function pairContent(pair: StudioFormatPair): Omit<
       },
       {
         question: `Can I batch convert ${fromLabel} to ${toLabel}?`,
-        answer: `Yes. Queue many files, keep ${toLabel} as the output format, and the Studio encodes them in parallel (worker pool up to 4). Preview savings, then download individually or as a ZIP.`,
+        answer: `Yes. Queue many files, keep ${toLabel} as the output format, and the Studio encodes them in parallel (worker pool up to 4). Pause or cancel mid-batch; optional ZIP every 25 files eases memory. Preview savings, then download individually or as a ZIP.`,
       },
       {
         question: `Which codec does Asset Melt use for ${toLabel}?`,
@@ -274,7 +274,7 @@ function targetContent(to: StudioOutputIntent): Omit<
       {
         question: 'Can I download a ZIP of converted files?',
         answer:
-          'Yes. Process the queue, then export every result as a single ZIP archive.',
+          'Yes. Process the queue, then export every result as a ZIP. Optional ZIP every 25 files (Pipeline options) makes Download save numbered parts with progress on the button.',
       },
     ],
     keywords: `convert to ${toLabel.toLowerCase()}, ${toLabel.toLowerCase()} converter, compress to ${toLabel.toLowerCase()}, free ${toLabel.toLowerCase()} encoder, no upload`,

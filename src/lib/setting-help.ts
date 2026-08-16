@@ -2,7 +2,7 @@ export const SETTING_HELP = {
   outputFormat:
     'Target file format for export. WebP and AVIF usually give the smallest files. PNG is lossless Oxipng unless Reduce palette is on.',
   alsoExportFormats:
-    'Encode additional AVIF, WebP, and/or JPEG in the same run. The primary format stays the preview. Download is a ZIP with a folder per format (avif/, webp/, jpeg/). One file in the queue → name-formats.zip; several files → one assetmelt-batch.zip. JPEG fallback flattens transparency. Not available with platform kits (favicon, App Store, newsletter).',
+    'Encode additional AVIF, WebP, and/or JPEG in the same run. The primary format stays the preview. Download is a ZIP with a folder per format (avif/, webp/, jpeg/). One file in the queue → name-formats.zip; several files → one assetmelt-batch.zip, or numbered assetmelt-batch-01.zip parts if ZIP every 25 files is on. JPEG fallback flattens transparency. Not available with platform kits (favicon, App Store, newsletter).',
   stripMetadata:
     'Strip all (default) drops EXIF, GPS, and ICC. Strip GPS keeps camera and color-profile data but removes location. Keep writes a lossy-safe subset (orientation already applied, no thumbnail) into JPEG, WebP, and PNG. AVIF, JXL, and QOI always export pixels only. The inspector under this control shows camera, date, and GPS from the source file before encode — Keep with GPS on JPEG/WebP/PNG will warn.',
   filenamePattern:

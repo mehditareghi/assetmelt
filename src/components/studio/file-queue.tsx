@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils'
 import { useStudioStore } from '@/stores/studio-store'
 import { sourceRelativeDir } from '@/lib/image/folder-drop'
 import { moveIdInOrder } from '@/lib/queue-order'
+import { BATCH_CHUNK_SIZE } from '@/lib/batch-memory'
 import { AddImagesButton } from '@/components/studio/add-images-button'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
@@ -23,6 +24,7 @@ export function FileQueue() {
   const files = useStudioStore((s) => s.files)
   const isCropEditing = useStudioStore((s) => s.isCropEditing)
   const reorderFiles = useStudioStore((s) => s.reorderFiles)
+  const chunkZipEnabled = useStudioStore((s) => s.chunkZipEnabled)
 
   if (files.length === 0) return null
 
@@ -60,9 +62,13 @@ export function FileQueue() {
       <p className="mt-1 flex min-w-0 items-start gap-1.5 rounded-lg border border-dashed border-border/60 px-2.5 py-2 font-mono text-[10px] leading-snug text-muted-foreground">
         <Folder className="mt-0.5 size-3 shrink-0 opacity-70" />
         <span className="min-w-0 text-pretty">
-          {canReorder
-            ? 'Drag to reorder · ZIP follows this list · drop anywhere to add'
-            : 'Drop files or a folder anywhere to add'}
+          {chunkZipEnabled
+            ? `Download splits into ZIPs of ${BATCH_CHUNK_SIZE} · drop anywhere to add`
+            : files.length >= BATCH_CHUNK_SIZE
+              ? `Large queue — Pipeline options can ZIP every ${BATCH_CHUNK_SIZE} files on Download`
+              : canReorder
+                ? 'Drag to reorder · ZIP follows this list · drop anywhere to add'
+                : 'Drop files or a folder anywhere to add'}
         </span>
       </p>
     </div>

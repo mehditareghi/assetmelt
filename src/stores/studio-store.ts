@@ -54,6 +54,12 @@ import {
   type PipelineChangeOptions,
 } from '@/stores/pipeline-change'
 import { trackFilesAdded, trackFilesProcessed } from '@/lib/analytics'
+import { packBatchChunk } from '@/lib/batch-export'
+import { nextWaveTakeCount } from '@/lib/batch-memory'
+import {
+  fileHasDownloadableResult,
+  type PackedBatchZip,
+} from '@/lib/download-results'
 
 const HISTORY_DEBOUNCE_MS = 400
 const CROP_HISTORY_DEBOUNCE_MS = 300
@@ -158,6 +164,13 @@ interface StudioState {
   isPipelineModified: boolean
   isAdvancedMode: boolean
   isProcessing: boolean
+  /** Stop taking new queue IDs; in-flight jobs finish. Distinct from cancel. */
+  isPaused: boolean
+  /** ZIP every N files: pack numbered ZIPs during encode; Download saves every part. */
+  chunkZipEnabled: boolean
+  chunkZipParts: PackedBatchZip[]
+  isExporting: boolean
+  exportProgress: { current: number; total: number } | null
   /** Bumped when a batch starts or is cancelled so in-flight jobs can discard results. */
   processingToken: number
   customPresets: CustomPreset[]
@@ -187,7 +200,15 @@ interface StudioState {
   setAdvancedMode: (enabled: boolean) => void
   processFile: (id: string) => Promise<void>
   processAll: () => Promise<void>
+  pauseProcessing: () => void
+  resumeProcessing: () => void
   cancelProcessing: () => void
+  setChunkZipEnabled: (enabled: boolean) => void
+  releaseResultOutputsExceptActive: (ids: string[]) => void
+  beginExport: (total: number) => void
+  setExportProgress: (current: number) => void
+  endExport: () => void
+  clearChunkZipParts: () => void
   saveCustomPreset: (name: string) => string
   updateCustomPreset: (
     id: string,
@@ -219,11 +240,101 @@ function revokeFileResults(file: ProcessableFile) {
   revokeWorkflowResults(file.workflowResults)
 }
 
+function releaseFileOutputs(file: ProcessableFile): ProcessableFile {
+  revokeFileResults(file)
+  return {
+    ...file,
+    previewUrl: undefined,
+    resultUrl: undefined,
+    resultBlob: undefined,
+    workflowResults: undefined,
+  }
+}
+
+function releaseOutputsExceptActive(set: SetState, get: () => StudioState, ids: string[]) {
+  const activeId = get().activeFileId
+  const idSet = new Set(ids)
+  set((state) => ({
+    files: state.files.map((file) => {
+      if (!idSet.has(file.id) || file.id === activeId) return file
+      return releaseFileOutputs(file)
+    }),
+  }))
+}
+
+async function createOriginalPreview(
+  file: ProcessableFile,
+): Promise<{ url: string; width?: number; height?: number }> {
+  if (needsWasmPreview(file.inputFormat)) {
+    const buffer = await file.file.arrayBuffer()
+    const preview = await createWasmPreviewInWorker(buffer, file.inputFormat)
+    return {
+      url: createPreviewObjectUrl(preview.previewBuffer),
+      width: preview.width,
+      height: preview.height,
+    }
+  }
+  let width = file.originalWidth
+  let height = file.originalHeight
+  if (width == null || height == null) {
+    try {
+      const dims = await getImageDimensions(file.file)
+      width = dims.width
+      height = dims.height
+    } catch {
+      // dimensions optional — worker decodes at process time
+    }
+  }
+  return { url: URL.createObjectURL(file.file), width, height }
+}
+
+async function hydrateActiveOriginalPreview(
+  get: () => StudioState,
+  set: SetState,
+  activeId: string | null,
+) {
+  set((state) => ({
+    files: state.files.map((file) => {
+      if (file.id === activeId || !file.originalUrl) return file
+      revokeUrl(file.originalUrl)
+      return { ...file, originalUrl: undefined }
+    }),
+  }))
+
+  if (!activeId) return
+  const file = get().files.find((item) => item.id === activeId)
+  if (!file || file.originalUrl) return
+
+  try {
+    const preview = await createOriginalPreview(file)
+    if (get().activeFileId !== activeId) {
+      revokeUrl(preview.url)
+      return
+    }
+    set((state) => ({
+      files: state.files.map((item) =>
+        item.id === activeId
+          ? {
+              ...item,
+              originalUrl: preview.url,
+              originalWidth: preview.width ?? item.originalWidth,
+              originalHeight: preview.height ?? item.originalHeight,
+            }
+          : item,
+      ),
+    }))
+  } catch {
+    // preview optional — queue falls back to the file icon
+  }
+}
+
 /** Clear processed outputs so the next Process/Re-process run uses the current pipeline. */
 function invalidateDoneResults(set: SetState, get: () => StudioState) {
   const hasDone = get().files.some((f) => f.status === 'done')
-  if (!hasDone) return
+  const hasPacked = get().chunkZipParts.length > 0
+  if (!hasDone && !hasPacked) return
   set((state) => ({
+    chunkZipParts: [],
     files: state.files.map((f) => {
       if (f.status !== 'done') return f
       revokeFileResults(f)
@@ -246,6 +357,13 @@ function invalidateDoneResults(set: SetState, get: () => StudioState) {
 /** Live encode queue so files added mid-batch join the current worker pool. */
 const processIdQueue: string[] = []
 let processPumpRunning = false
+let chunkZipPart = 0
+let chunkZipSession = false
+
+function resetChunkZipSession() {
+  chunkZipPart = 0
+  chunkZipSession = false
+}
 
 function enqueueProcessIds(ids: string[]): void {
   const queued = new Set(processIdQueue)
@@ -276,7 +394,13 @@ async function pumpProcessQueue(get: () => StudioState, set: SetState): Promise<
     clearProcessIdQueue()
     return
   }
+  if (get().isPaused) return
   if (processIdQueue.length === 0) return
+
+  if (!chunkZipSession) {
+    chunkZipPart = get().chunkZipParts.length
+    chunkZipSession = true
+  }
 
   processPumpRunning = true
   const token = get().processingToken + 1
@@ -299,22 +423,63 @@ async function pumpProcessQueue(get: () => StudioState, set: SetState): Promise<
     else if (updated?.status === 'error') failed += 1
   }
 
-  const drain = async () => {
-    while (get().processingToken === token && !get().isCropEditing) {
-      const id = processIdQueue.shift()
-      if (!id) return
-      await runOne(id)
+  const exportWave = async (waveIds: string[]) => {
+    if (!get().chunkZipEnabled || get().processingToken !== token || get().isCropEditing) {
+      return
+    }
+    const toZip = get().files.filter(
+      (file) => waveIds.includes(file.id) && fileHasDownloadableResult(file),
+    )
+    if (toZip.length === 0) return
+    chunkZipPart += 1
+    try {
+      const packed = await packBatchChunk(toZip, chunkZipPart, get().activePresetId)
+      if (get().processingToken !== token) return
+      set((state) => ({
+        chunkZipParts: [...state.chunkZipParts, packed],
+      }))
+      releaseOutputsExceptActive(
+        set,
+        get,
+        toZip.map((file) => file.id),
+      )
+    } catch {
+      // Keep blobs so the user can download manually.
     }
   }
 
   try {
     do {
-      if (get().processingToken !== token || get().isCropEditing) break
+      if (get().processingToken !== token || get().isCropEditing || get().isPaused) break
+
+      const chunkEnabled = get().chunkZipEnabled
+      let remainingInWave = chunkEnabled
+        ? nextWaveTakeCount(processIdQueue.length, true)
+        : Number.POSITIVE_INFINITY
+      const waveCompleted: string[] = []
+
+      const drain = async () => {
+        while (
+          remainingInWave > 0 &&
+          get().processingToken === token &&
+          !get().isCropEditing &&
+          !get().isPaused
+        ) {
+          const id = processIdQueue.shift()
+          if (!id) return
+          remainingInWave -= 1
+          await runOne(id)
+          waveCompleted.push(id)
+        }
+      }
+
       await Promise.all(Array.from({ length: concurrency }, () => drain()))
+      await exportWave(waveCompleted)
     } while (
       processIdQueue.length > 0 &&
       get().processingToken === token &&
-      !get().isCropEditing
+      !get().isCropEditing &&
+      !get().isPaused
     )
   } finally {
     if (get().processingToken === token) {
@@ -323,10 +488,15 @@ async function pumpProcessQueue(get: () => StudioState, set: SetState): Promise<
     }
   }
 
+  if (processIdQueue.length === 0 && !get().isPaused) {
+    chunkZipSession = false
+  }
+
   if (
     processIdQueue.length > 0 &&
     get().processingToken === token &&
-    !get().isCropEditing
+    !get().isCropEditing &&
+    !get().isPaused
   ) {
     await pumpProcessQueue(get, set)
     return
@@ -356,6 +526,11 @@ export const useStudioStore = create<StudioState>()(
       isPipelineModified: false,
       isAdvancedMode: false,
       isProcessing: false,
+      isPaused: false,
+      chunkZipEnabled: false,
+      chunkZipParts: [],
+      isExporting: false,
+      exportProgress: null,
       processingToken: 0,
       customPresets: [],
 
@@ -397,22 +572,29 @@ export const useStudioStore = create<StudioState>()(
             }
           }
 
-          let originalUrl: string
+          let originalUrl: string | undefined
           let originalWidth: number | undefined
           let originalHeight: number | undefined
+          const willBeActive = !get().activeFileId && newFiles.length === 0
 
           if (needsWasmPreview(inputFormat)) {
             try {
               const preview = await createWasmPreviewInWorker(buffer, inputFormat)
-              originalUrl = createPreviewObjectUrl(preview.previewBuffer)
               originalWidth = preview.width
               originalHeight = preview.height
+              if (willBeActive) {
+                originalUrl = createPreviewObjectUrl(preview.previewBuffer)
+              }
             } catch {
               // Fallback: file still processable; preview may be blank until output is ready
-              originalUrl = URL.createObjectURL(workingFile)
+              if (willBeActive) {
+                originalUrl = URL.createObjectURL(workingFile)
+              }
             }
           } else {
-            originalUrl = URL.createObjectURL(workingFile)
+            if (willBeActive) {
+              originalUrl = URL.createObjectURL(workingFile)
+            }
             try {
               const dims = await getImageDimensions(workingFile)
               originalWidth = dims.width
@@ -469,6 +651,8 @@ export const useStudioStore = create<StudioState>()(
           }
         })
 
+        void hydrateActiveOriginalPreview(get, set, get().activeFileId)
+
         const added = newFiles.filter((file) => file.status !== 'error')
         if (added.length > 0) {
           trackFilesAdded({
@@ -490,6 +674,7 @@ export const useStudioStore = create<StudioState>()(
 
       removeFile: (id) => {
         if (get().isCropEditing) return
+        const wasActive = get().activeFileId === id
         set((state) => {
           const file = state.files.find((f) => f.id === id)
           revokeUrl(file?.originalUrl)
@@ -501,6 +686,9 @@ export const useStudioStore = create<StudioState>()(
               state.activeFileId === id ? (files[0]?.id ?? null) : state.activeFileId,
           }
         })
+        if (wasActive) {
+          void hydrateActiveOriginalPreview(get, set, get().activeFileId)
+        }
       },
 
       reorderFiles: (orderedIds) => {
@@ -519,6 +707,7 @@ export const useStudioStore = create<StudioState>()(
         discardDebouncedHistory()
         clearProcessIdQueue()
         processPumpRunning = false
+        resetChunkZipSession()
         if (get().isProcessing) {
           cancelStudioWorkerJobs()
         }
@@ -531,6 +720,10 @@ export const useStudioStore = create<StudioState>()(
           activeFileId: null,
           isCropEditing: false,
           isProcessing: false,
+          isPaused: false,
+          isExporting: false,
+          exportProgress: null,
+          chunkZipParts: [],
           processingToken: get().processingToken + 1,
         })
       },
@@ -539,6 +732,7 @@ export const useStudioStore = create<StudioState>()(
         if (get().isCropEditing && id !== get().activeFileId) return
         const file = get().files.find((f) => f.id === id)
         set({ activeFileId: id })
+        void hydrateActiveOriginalPreview(get, set, id)
 
         if (!file?.originalWidth || !file.originalHeight) return
 
@@ -968,26 +1162,70 @@ export const useStudioStore = create<StudioState>()(
 
       processAll: async () => {
         if (get().isCropEditing) return
+        if (get().isPaused) set({ isPaused: false })
         const pendingIds = get()
           .files.filter((f) => f.status === 'pending' || f.status === 'error')
           .map((f) => f.id)
         await processPendingByIds(get, set, pendingIds)
       },
 
+      pauseProcessing: () => {
+        if (!get().isProcessing || get().isPaused) return
+        set({ isPaused: true })
+      },
+
+      resumeProcessing: () => {
+        if (!get().isPaused) return
+        set({ isPaused: false })
+        void pumpProcessQueue(get, set)
+      },
+
       cancelProcessing: () => {
-        if (!get().isProcessing) return
+        if (!get().isProcessing && !get().isPaused) return
         clearProcessIdQueue()
         processPumpRunning = false
+        chunkZipSession = false
+        chunkZipPart = get().chunkZipParts.length
         cancelStudioWorkerJobs()
         set((s) => ({
           processingToken: s.processingToken + 1,
           isProcessing: false,
+          isPaused: false,
           files: s.files.map((f) =>
             f.status === 'processing'
               ? { ...f, status: 'pending' as const, progress: 0, error: undefined }
               : f,
           ),
         }))
+      },
+
+      setChunkZipEnabled: (enabled) => {
+        set({ chunkZipEnabled: enabled })
+      },
+
+      releaseResultOutputsExceptActive: (ids) => {
+        releaseOutputsExceptActive(set, get, ids)
+      },
+
+      beginExport: (total) => {
+        set({ isExporting: true, exportProgress: { current: 0, total } })
+      },
+
+      setExportProgress: (current) => {
+        set((state) => ({
+          exportProgress: {
+            current,
+            total: state.exportProgress?.total ?? current,
+          },
+        }))
+      },
+
+      endExport: () => {
+        set({ isExporting: false, exportProgress: null })
+      },
+
+      clearChunkZipParts: () => {
+        set({ chunkZipParts: [] })
       },
 
       saveCustomPreset: (name) => {
@@ -1053,6 +1291,7 @@ export const useStudioStore = create<StudioState>()(
         isPipelineModified: state.isPipelineModified,
         isAdvancedMode: state.isAdvancedMode,
         customPresets: state.customPresets,
+        chunkZipEnabled: state.chunkZipEnabled,
       }),
       onRehydrateStorage: () => (state) => {
         if (!state) return
@@ -1124,6 +1363,9 @@ export const useStudioStore = create<StudioState>()(
           state.customPresets.some((preset) => preset.id === state.activePresetId)
         if (!presetExists) {
           state.activePresetId = 'web-optimized'
+        }
+        if (typeof state.chunkZipEnabled !== 'boolean') {
+          state.chunkZipEnabled = false
         }
       },
     },

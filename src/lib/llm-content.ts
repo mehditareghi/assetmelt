@@ -39,7 +39,7 @@ export const FAQ_ITEMS = [
   {
     question: 'Can I compress multiple images at once?',
     answer:
-      'Yes. Drop files or a folder (nested images are queued; non-images skipped), click to choose images, or paste. Drops still work after the queue already has images, including while a batch is encoding. Drag queue rows to reorder — a batch ZIP follows that list. The Studio encodes in parallel on a worker pool sized to your CPU (up to 4), with live per-file progress and cancel. Download individually or as a ZIP that keeps the source folder tree. Files are not saved across reloads.',
+      'Yes. Drop files or a folder (nested images are queued; non-images skipped), click to choose images, or paste. Drops still work after the queue already has images, including while a batch is encoding. Drag queue rows to reorder — a batch ZIP follows that list. The Studio encodes in parallel on a worker pool sized to your CPU (up to 4), with live per-file progress, pause, and cancel. Optional ZIP every 25 files (Pipeline options) packs numbered ZIPs during encode; Download saves every part (progress on the button) and frees result blobs so large queues are less likely to OOM; there is no 20-image cap, but device RAM still limits how far a tab can go. Download individually or as a ZIP that keeps the source folder tree. Files are not saved across reloads.',
   },
   {
     question: 'What is the best free image compressor that does not upload files?',
@@ -79,7 +79,7 @@ export const FAQ_ITEMS = [
   {
     question: 'Can I export AVIF, WebP, and JPEG in one run?',
     answer:
-      'Yes. In Studio Format settings, use Also export to add extra codecs. One process run encodes every selected format. Download is a ZIP with a folder per format (avif/, webp/, jpeg/). A single-file queue downloads name-formats.zip; a multi-file queue downloads one assetmelt-batch.zip. JPEG fallback is optional and flattens transparency. Not available with platform kits (favicon, App Store, newsletter).',
+      'Yes. In Studio Format settings, use Also export to add extra codecs. One process run encodes every selected format. Download is a ZIP with a folder per format (avif/, webp/, jpeg/). A single-file queue downloads name-formats.zip; a multi-file queue downloads one assetmelt-batch.zip, or numbered assetmelt-batch-01.zip parts if ZIP every 25 files is on. JPEG fallback is optional and flattens transparency. Not available with platform kits (favicon, App Store, newsletter).',
   },
   {
     question: 'Can I export responsive widths and copy picture / next/image code?',

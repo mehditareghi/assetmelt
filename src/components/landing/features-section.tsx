@@ -62,7 +62,7 @@ const features: Array<{
     icon: Layers,
     title: 'Batch compress online',
     description:
-      'Drop a folder, queue dozens of files, drag to reorder, and compress images online in one pass. Compare before/after, then download individually or as a ZIP that follows queue order.',
+      'Drop a folder, queue dozens of files, drag to reorder, and compress images online in one pass. Pause or cancel mid-batch. Optional ZIP every 25 files frees memory on large queues. Compare before/after, then download individually or as a ZIP that follows queue order.',
   },
   {
     icon: Smartphone,

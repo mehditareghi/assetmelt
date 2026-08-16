@@ -17,6 +17,10 @@ function downloadBlob(blob: Blob, filename: string) {
   URL.revokeObjectURL(url)
 }
 
+export function downloadNamedBlob(blob: Blob, filename: string) {
+  downloadBlob(blob, filename)
+}
+
 function baseNameFromFile(file: ProcessableFile): string {
   return file.name.replace(/\.[^.]+$/, '') || 'images'
 }
@@ -47,29 +51,23 @@ function addWorkflowVariantsToZip(
   return count
 }
 
-/** Download processed files — single blobs or workflow variant zips. ZIP member order follows `done` (queue order). */
-export async function downloadProcessedFiles(
-  done: ProcessableFile[],
-  activePresetId: string,
-): Promise<{ kind: 'single' | 'zip'; count: number }> {
-  if (done.length === 0) {
-    throw new Error('No processed files to export')
-  }
+export type DownloadProcessedOptions = {
+  /** When set, always ZIP (even a single file) and use this filename. */
+  zipName?: string
+}
 
-  if (done.length === 1) {
-    const file = done[0]
-    if (file.workflowResults && file.workflowResults.length > 0) {
-      const zip = new JSZip()
-      const usedPaths = new Set<string>()
-      const count = addWorkflowVariantsToZip(zip, file, usedPaths)
-      const blob = await zip.generateAsync({ type: 'blob' })
-      downloadBlob(blob, `${baseNameFromFile(file)}-${kitZipSuffix(activePresetId, file)}.zip`)
-      return { kind: 'zip', count }
-    }
-    if (file.resultBlob) {
-      downloadBlob(file.resultBlob, file.resultName ?? file.name)
-      return { kind: 'single', count: 1 }
-    }
+export type PackedBatchZip = {
+  name: string
+  blob: Blob
+  count: number
+  fileIds: string[]
+}
+
+export async function buildProcessedZip(
+  done: ProcessableFile[],
+  _activePresetId: string,
+): Promise<{ blob: Blob; count: number }> {
+  if (done.length === 0) {
     throw new Error('No processed files to export')
   }
 
@@ -88,8 +86,41 @@ export async function downloadProcessedFiles(
   }
 
   const blob = await zip.generateAsync({ type: 'blob' })
-  downloadBlob(blob, 'assetmelt-batch.zip')
-  return { kind: 'zip', count: fileCount }
+  return { blob, count: fileCount }
+}
+
+/** Download processed files — single blobs or workflow variant zips. ZIP member order follows `done` (queue order). */
+export async function downloadProcessedFiles(
+  done: ProcessableFile[],
+  activePresetId: string,
+  options?: DownloadProcessedOptions,
+): Promise<{ kind: 'single' | 'zip'; count: number }> {
+  if (done.length === 0) {
+    throw new Error('No processed files to export')
+  }
+
+  const forceZipName = options?.zipName
+
+  if (done.length === 1 && !forceZipName) {
+    const file = done[0]
+    if (file.workflowResults && file.workflowResults.length > 0) {
+      const zip = new JSZip()
+      const usedPaths = new Set<string>()
+      const count = addWorkflowVariantsToZip(zip, file, usedPaths)
+      const blob = await zip.generateAsync({ type: 'blob' })
+      downloadBlob(blob, `${baseNameFromFile(file)}-${kitZipSuffix(activePresetId, file)}.zip`)
+      return { kind: 'zip', count }
+    }
+    if (file.resultBlob) {
+      downloadBlob(file.resultBlob, file.resultName ?? file.name)
+      return { kind: 'single', count: 1 }
+    }
+    throw new Error('No processed files to export')
+  }
+
+  const { blob, count } = await buildProcessedZip(done, activePresetId)
+  downloadBlob(blob, forceZipName ?? 'assetmelt-batch.zip')
+  return { kind: 'zip', count }
 }
 
 export function fileHasDownloadableResult(file: ProcessableFile): boolean {
@@ -97,4 +128,25 @@ export function fileHasDownloadableResult(file: ProcessableFile): boolean {
     file.status === 'done' &&
       (file.resultBlob || (file.workflowResults && file.workflowResults.length > 0)),
   )
+}
+
+export function leftoverDownloadableFiles(
+  files: ProcessableFile[],
+  packedZips: PackedBatchZip[],
+): ProcessableFile[] {
+  const packedIds = new Set(packedZips.flatMap((part) => part.fileIds))
+  return files.filter((file) => fileHasDownloadableResult(file) && !packedIds.has(file.id))
+}
+
+export function exportableResultCount(
+  files: ProcessableFile[],
+  packedZips: PackedBatchZip[] = [],
+): number {
+  const packedIds = new Set(packedZips.flatMap((part) => part.fileIds))
+  let n = packedIds.size
+  for (const file of files) {
+    if (packedIds.has(file.id)) continue
+    if (fileHasDownloadableResult(file)) n += 1
+  }
+  return n
 }

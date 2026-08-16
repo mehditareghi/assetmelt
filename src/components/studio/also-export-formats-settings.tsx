@@ -52,7 +52,8 @@ export function AlsoExportFormatsSettings({
           </SettingRow>
           <p className="text-xs leading-relaxed text-muted-foreground">
             Encode extra codecs in the same run. Download uses a ZIP with a folder per
-            format (one batch ZIP if the queue has multiple files).
+            format (one batch ZIP if the queue has multiple files, or numbered parts
+            if ZIP every 25 files is on).
           </p>
         </div>
       </div>
