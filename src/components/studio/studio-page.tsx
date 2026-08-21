@@ -14,12 +14,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { Lock, Pause, Play, SlidersHorizontal, Square } from 'lucide-react'
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion'
+import { StudioSeoSection } from '@/components/studio/studio-seo-section'
 import {
   filesFromClipboardEvent,
   isEditablePasteTarget,
@@ -32,7 +27,6 @@ import {
   studioPathForOutputChange,
   studioSearchIntents,
   type StudioSearch,
-  type StudioSeoContent,
 } from '@/lib/studio-seo'
 import { useStudioStore } from '@/stores/studio-store'
 import { exportableResultCount } from '@/lib/download-results'
@@ -446,66 +440,5 @@ function StudioPrivacyStrip() {
       </Link>
       <Lock className="ml-1 inline size-3 align-text-top text-primary/70" aria-hidden />
     </p>
-  )
-}
-
-function StudioSeoSection({ content }: { content: StudioSeoContent }) {
-  return (
-    <section className="mx-auto w-full max-w-3xl space-y-12 py-8">
-      <div className="glass-surface rounded-2xl p-6 sm:p-8">
-        <h2 className="font-display text-xl font-bold tracking-tight sm:text-2xl">
-          {content.h2}
-        </h2>
-        <div className="mt-4 space-y-3 text-sm leading-relaxed text-muted-foreground">
-          {content.paragraphs.map((paragraph) => (
-            <p key={paragraph.slice(0, 48)}>{paragraph}</p>
-          ))}
-        </div>
-
-        {content.related.length > 0 ? (
-          <div className="mt-6 border-t border-border/40 pt-5">
-            <p className="mb-3 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-              Related conversions
-            </p>
-            <ul className="flex flex-wrap gap-x-4 gap-y-2">
-              {content.related.map((item) => {
-                const conversion = item.path.replace(/^\/studio\//, '')
-                return (
-                  <li key={item.path}>
-                    <Link
-                      to="/studio/$conversion"
-                      params={{ conversion }}
-                      className="font-mono text-xs text-primary transition-colors hover:underline"
-                    >
-                      {item.label}
-                    </Link>
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
-        ) : null}
-      </div>
-
-      <div id="faq" className="scroll-mt-24">
-        <h2 className="mb-6 font-display text-xl font-bold tracking-tight sm:text-2xl">
-          Frequently asked questions
-        </h2>
-        <div className="glass-surface rounded-2xl px-5 sm:px-6">
-          <Accordion type="single" collapsible className="w-full">
-            {content.faq.map((item, i) => (
-              <AccordionItem key={item.question} value={`faq-${i}`}>
-                <AccordionTrigger className="font-display text-base font-semibold hover:no-underline">
-                  {item.question}
-                </AccordionTrigger>
-                <AccordionContent className="text-muted-foreground">
-                  {item.answer}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </div>
-      </div>
-    </section>
   )
 }

@@ -53,5 +53,17 @@ export {
   buildStudioJsonLd,
   buildStudioSeoContent,
   type StudioFaqItem,
+  type StudioSeoBeforeAfter,
   type StudioSeoContent,
+  type StudioSeoSection,
+  type StudioSeoStep,
+  type StudioSeoTable,
 } from '@/lib/studio-seo/content'
+
+export {
+  countPhrase,
+  flattenStudioSeoText,
+  pairKeyword,
+  pairPhrase,
+  targetKeyword,
+} from '@/lib/studio-seo/copy'

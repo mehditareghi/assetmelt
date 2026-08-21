@@ -1,4 +1,5 @@
 import { SITE_URL } from '@/lib/site'
+import { OPEN_LIMITATIONS, TIFF_FIRST_PAGE_COPY } from '@/lib/named-limitations'
 import {
   formatLabel,
   formatLabelLong,
@@ -17,29 +18,36 @@ import {
   studioSearchFromPair,
   studioSearchIntents,
   type StudioSearch,
-  type StudioSeoMode,
 } from '@/lib/studio-seo/search'
+import {
+  PRIVACY_SNIPPET,
+  codecBlurb,
+  pairKeyword,
+  pairPhrase,
+  sceneFor,
+  sharedPairFaq,
+  sharedTargetFaq,
+  targetKeyword,
+} from '@/lib/studio-seo/copy'
+import { getPairGuide } from '@/lib/studio-seo/pair-guides'
+import { TARGET_GUIDES } from '@/lib/studio-seo/target-guides'
+import type {
+  StudioFaqItem,
+  StudioSeoBeforeAfter,
+  StudioSeoContent,
+  StudioSeoSection,
+  StudioSeoStep,
+  StudioSeoTable,
+} from '@/lib/studio-seo/types'
 
-export interface StudioFaqItem {
-  question: string
-  answer: string
-}
-
-export interface StudioSeoContent {
-  mode: StudioSeoMode
-  title: string
-  description: string
-  h2: string
-  paragraphs: string[]
-  faq: StudioFaqItem[]
-  keywords: string
-  /** Canonical path including query string when indexable. */
-  canonicalPath: string
-  /** Whether this URL should be indexed (sitemap + robots index). */
-  indexable: boolean
-  related: Array<{ label: string; path: string }>
-  dropHint: string | null
-}
+export type {
+  StudioFaqItem,
+  StudioSeoBeforeAfter,
+  StudioSeoContent,
+  StudioSeoSection,
+  StudioSeoStep,
+  StudioSeoTable,
+} from '@/lib/studio-seo/types'
 
 const DEFAULT_DESCRIPTION =
   'Compress, convert, resize, and crop images entirely in your browser. Batch processing, size budget encoding, platform presets, and Squoosh-grade codecs — no uploads, no accounts.'
@@ -127,158 +135,11 @@ const DEFAULT_FAQ: StudioFaqItem[] = [
   },
 ]
 
-const PAIR_TIPS: Partial<
-  Record<`${StudioInputIntent}->${StudioOutputIntent}`, string>
-> = {
-  'png->webp':
-    'WebP usually beats PNG on photos and soft gradients while still supporting alpha — ideal for product cutouts and UI chrome.',
-  'jpeg->png':
-    'PNG is lossless Oxipng by default. For logos and icons, Reduce palette (lossy PNG-8) can get TinyPNG-small files; photos usually still prefer WebP or AVIF.',
-  'png->avif':
-    'AVIF often wins on screenshots and illustrations where PNG files balloon; preview carefully around sharp text.',
-  'jpeg->avif':
-    'AVIF is the strongest size win for photo heroes when your audience is on modern browsers.',
-  'webp->avif':
-    'If you already ship WebP, AVIF is the next step for LCP-critical images — keep WebP as a fallback.',
-  'heic->jpeg':
-    'iPhone Camera rolls default to HEIC; JPG remains the universal share and CMS upload format. HEIC is decoded through a JPEG intermediate (quality 0.92) before MozJPEG encode.',
-  'heic->png':
-    'HEIC is decoded through a JPEG intermediate (quality 0.92), so HEIC→PNG is not lossless from the original HEIC — it is a portable handoff after that decode.',
-  'heic->webp':
-    'HEIC is decoded through a JPEG intermediate first, then encoded to WebP locally — useful when the destination is a website rather than email or print.',
-  'heic->avif':
-    'HEIC is decoded through a JPEG intermediate first, then encoded to AVIF. Private, local, but not a lossless HEIC round-trip.',
-  'gif->webp':
-    'Asset Melt processes the first GIF frame as a still — perfect for converting old meme stills or UI captures.',
-  'svg->png':
-    'Rasterizing SVG is handy for email clients and platforms that reject SVG uploads.',
-  'tiff->jpeg':
-    'Scanned TIFF archives compress dramatically as JPG for sharing while originals stay offline. Multi-page TIFFs use the first page, same as GIF.',
-}
-
-function tipFor(from: StudioInputIntent, to: StudioOutputIntent): string {
-  return (
-    PAIR_TIPS[`${from}->${to}`] ??
-    `${formatLabelLong(from)} sources convert cleanly to ${formatLabelLong(to)} with live before/after compare so you can stop when quality looks right.`
-  )
-}
-
-function codecBlurb(to: StudioOutputIntent): string {
-  switch (to) {
-    case 'jpeg':
-      return 'MozJPEG'
-    case 'png':
-      return 'Oxipng (optional imagequant palette)'
-    case 'webp':
-      return 'the official WebP encoder'
-    case 'avif':
-      return 'libavif / AV1 stills'
-    case 'jxl':
-      return 'JPEG XL via @jsquash/jxl'
-    case 'qoi':
-      return 'QOI for fast lossless tooling'
-  }
-}
-
 function buildRelated(from?: StudioInputIntent, to?: StudioOutputIntent) {
   return relatedPairsFor(from, to, 6).map((pair) => ({
     label: pairLinkLabel(pair),
     path: buildStudioPath(studioSearchFromPair(pair)),
   }))
-}
-
-function pairContent(pair: StudioFormatPair): Omit<
-  StudioSeoContent,
-  'mode' | 'canonicalPath' | 'indexable' | 'related' | 'dropHint'
-> {
-  const fromLabel = formatLabel(pair.from)
-  const toLabel = formatLabel(pair.to)
-  const fromLong = formatLabelLong(pair.from)
-  const toLong = formatLabelLong(pair.to)
-
-  return {
-    title: `Convert ${fromLabel} to ${toLabel} Online — Free, No Upload | Asset Melt`,
-    description: `Convert ${fromLong} to ${toLong} in your browser. ${pair.angle[0].toUpperCase()}${pair.angle.slice(1)}. Free, private, batch ZIP export — files never leave your device.`,
-    h2: `Free ${fromLabel} to ${toLabel} converter in your browser`,
-    paragraphs: [
-      `Asset Melt Studio is ready to convert ${fromLong} files to ${toLong} entirely on your device. ${tipFor(pair.from, pair.to)}`,
-      `Drop one file or a whole folder — the pipeline is already set to ${toLabel} output using ${codecBlurb(pair.to)}. Adjust quality, enable size-budget encoding, resize, or crop without uploading anything.`,
-      `Input is not locked to ${fromLabel}: you can still open JPEG, PNG, WebP, AVIF, HEIC, GIF, and more in the same session. The ${fromLabel}→${toLabel} URL simply pre-selects the conversion people search for most.`,
-    ],
-    faq: [
-      {
-        question: `Can I convert ${fromLabel} to ${toLabel} without uploading?`,
-        answer: `Yes. Conversion is 100% client-side with WebAssembly in your browser. Your photos are not uploaded, I cannot see them, and session replay does not include image pixels.`,
-      },
-      {
-        question: `Does this only accept ${fromLabel} files?`,
-        answer: `No. The Studio accepts every supported input format. This page pre-selects ${toLabel} output for the common ${fromLabel}→${toLabel} workflow, but you can drop mixed batches anytime.`,
-      },
-      {
-        question: `Can I batch convert ${fromLabel} to ${toLabel}?`,
-        answer: `Yes. Queue many files, keep ${toLabel} as the output format, and the Studio encodes them in parallel (worker pool up to 4). Pause or cancel mid-batch; optional ZIP every 25 files eases memory. Preview savings, then download individually or as a ZIP.`,
-      },
-      {
-        question: `Which codec does Asset Melt use for ${toLabel}?`,
-        answer: `Output uses ${codecBlurb(pair.to)} via the same Squoosh-grade @jsquash WASM stack, running locally in a Web Worker.`,
-      },
-      {
-        question: 'Is the converter free?',
-        answer:
-          'Yes. Asset Melt is free with no accounts, watermarks, or file-count limits.',
-      },
-    ],
-    keywords: `${fromLabel.toLowerCase()} to ${toLabel.toLowerCase()}, convert ${fromLabel.toLowerCase()} to ${toLabel.toLowerCase()}, ${fromLabel.toLowerCase()} to ${toLabel.toLowerCase()} converter, free ${fromLabel.toLowerCase()} converter, no upload`,
-  }
-}
-
-function targetContent(to: StudioOutputIntent): Omit<
-  StudioSeoContent,
-  'mode' | 'canonicalPath' | 'indexable' | 'related' | 'dropHint'
-> {
-  const toLabel = formatLabel(to)
-  const toLong = formatLabelLong(to)
-
-  return {
-    title: `Convert Images to ${toLabel} Online — Free Browser Converter | Asset Melt`,
-    description: `Compress and convert any supported image to ${toLong} in your browser. Free, no uploads, batch ZIP export, size-budget encoding, and Squoosh-grade WASM codecs.`,
-    h2: `Free convert-to-${toLabel} studio — any input welcome`,
-    paragraphs: [
-      `This Studio link pre-selects ${toLong} as the output format so you can start converting immediately. Bring JPEG, PNG, WebP, AVIF, HEIC, GIF, SVG, and more — input format is never blocked.`,
-      `Encoding uses ${codecBlurb(to)}. ${
-        to === 'png'
-          ? 'PNG is lossless Oxipng unless you turn on Reduce palette (lossy PNG-8). Size budget still skips PNG — use color count and Oxipng level instead.'
-          : 'Tune quality, hit a size budget, resize for Core Web Vitals, then export one file or a full ZIP — all on your device.'
-      }`,
-      `Looking for a specific source format? Use deep links like PNG→${toLabel} or HEIC→${toLabel} for conversion-focused copy, or stay here when your batch is mixed.`,
-    ],
-    faq: [
-      {
-        question: `Can I convert any image to ${toLabel}?`,
-        answer: `Yes. Drop any supported input and Asset Melt encodes to ${toLong} locally. Mixed batches are fine.`,
-      },
-      {
-        question: `Is convert-to-${toLabel} private?`,
-        answer:
-          'Yes. Decoding and encoding are 100% client-side in Web Workers. Your photos are not uploaded, I cannot see them, and sampled session replay does not include image pixels. Usage analytics and UI-only replay are described on the privacy page.',
-      },
-      {
-        question: `Does size-budget work with ${toLabel}?`,
-        answer:
-          to === 'png'
-            ? `Size-budget encoding targets lossy codecs (WebP, AVIF, JPEG, JXL). For PNG, turn on Reduce palette and lower the color count, or resize — binary-search-to-bytes is not wired yet.`
-            : to === 'qoi'
-              ? `Size-budget encoding targets lossy codecs (WebP, AVIF, JPEG, JXL). For ${toLabel}, use quality/effort controls and resize instead.`
-            : `Yes. Set a target KB and Asset Melt searches for the highest ${toLabel} quality that fits.`,
-      },
-      {
-        question: 'Can I download a ZIP of converted files?',
-        answer:
-          'Yes. Process the queue, then export every result as a ZIP. Optional ZIP every 25 files (Pipeline options) makes Download save numbered parts with progress on the button.',
-      },
-    ],
-    keywords: `convert to ${toLabel.toLowerCase()}, ${toLabel.toLowerCase()} converter, compress to ${toLabel.toLowerCase()}, free ${toLabel.toLowerCase()} encoder, no upload`,
-  }
 }
 
 function dropHintFor(search: StudioSearch): string | null {
@@ -293,6 +154,305 @@ function dropHintFor(search: StudioSearch): string | null {
     return `Tip: drop ${formatLabel(from)} files — or any other supported format`
   }
   return null
+}
+
+function pairSteps(from: StudioInputIntent, to: StudioOutputIntent): StudioSeoStep[] {
+  const phrase = pairPhrase(from, to)
+  const fromLabel = formatLabel(from)
+  const toLabel = formatLabel(to)
+  return [
+    {
+      title: `Open this ${phrase} page`,
+      description: `You are already on the ${phrase} converter. Output is pre-selected as ${toLabel}. You can still drop mixed formats — the ${phrase} URL is a starting point, not a file-type lock.`,
+    },
+    {
+      title: `Drop ${fromLabel} files (or a folder)`,
+      description: `Drag ${fromLabel} images onto the studio, click to choose, or paste. Folder drops queue nested images. Then process — ${phrase} encoding runs in Web Workers on this device.`,
+    },
+    {
+      title: `Preview, tweak, download`,
+      description: `Use the before/after scrubber until the ${phrase} result looks right. Adjust quality, crop, or resize, then download one ${toLabel} or a ZIP of the batch.`,
+    },
+  ]
+}
+
+function targetSteps(to: StudioOutputIntent): StudioSeoStep[] {
+  const keyword = targetKeyword(to)
+  const toLabel = formatLabel(to)
+  return [
+    {
+      title: `Stay on convert to ${toLabel}`,
+      description: `This page already set output to ${toLabel}. You can ${keyword} from JPEG, PNG, WebP, AVIF, HEIC, GIF, TIFF, BMP, SVG, and more in one queue.`,
+    },
+    {
+      title: 'Drop a mixed batch',
+      description: `Add files or a folder. When you ${keyword}, decode and encode stay in the browser — nothing is uploaded.`,
+    },
+    {
+      title: `Download ${toLabel}`,
+      description: `Scrub quality, optionally set a size budget (JPEG, WebP, AVIF, JXL), then download one file or a ZIP after you ${keyword}.`,
+    },
+  ]
+}
+
+function pairContent(pair: StudioFormatPair): Omit<
+  StudioSeoContent,
+  'mode' | 'canonicalPath' | 'indexable' | 'related' | 'dropHint'
+> {
+  const guide = getPairGuide(pair.from, pair.to)
+  if (!guide) {
+    throw new Error(`Missing pair guide for ${pair.from}->${pair.to}`)
+  }
+
+  const fromLabel = formatLabel(pair.from)
+  const toLabel = formatLabel(pair.to)
+  const fromLong = formatLabelLong(pair.from)
+  const toLong = formatLabelLong(pair.to)
+  const phrase = pairPhrase(pair.from, pair.to)
+  const keyword = pairKeyword(pair.from, pair.to)
+
+  const beforeAfter: StudioSeoBeforeAfter = {
+    heading: `Typical ${phrase} result`,
+    scene: guide.beforeAfter.scene ?? sceneFor(pair.from),
+    scenario: guide.beforeAfter.scenario,
+    caption: guide.beforeAfter.caption,
+    before: guide.beforeAfter.before,
+    after: guide.beforeAfter.after,
+    savings: guide.beforeAfter.savings,
+  }
+
+  const tables: StudioSeoTable[] = [
+    {
+      caption: `${phrase} at a glance`,
+      headers: ['Topic', fromLabel, toLabel],
+      rows: guide.comparisonRows.map((row) => [...row]),
+    },
+    {
+      caption: `Typical ${phrase} file sizes`,
+      headers: ['Source', 'Before', 'After', 'Note'],
+      rows: guide.typicalRows.map((row) => [...row]),
+    },
+  ]
+
+  const sections: StudioSeoSection[] = [
+    {
+      heading: `Why convert ${phrase}`,
+      paragraphs: guide.why,
+    },
+    {
+      heading: `How ${phrase} works in Asset Melt`,
+      paragraphs: guide.howItWorks,
+    },
+    {
+      heading: `When to use ${phrase} (and when not to)`,
+      paragraphs: guide.whenToUse,
+    },
+    {
+      heading: `${phrase} quality and settings`,
+      paragraphs: [guide.qualityNote, ...guide.settingsTips],
+    },
+    {
+      heading: `Privacy while you convert ${phrase}`,
+      paragraphs: [
+        `${PRIVACY_SNIPPET} That includes every ${phrase} job — the converter never needs your files on a server.`,
+        `Upload compressors send your bitmap to someone else’s API. Asset Melt keeps ${keyword} on this device. Session replay, if sampled, is UI-only and does not include image pixels.`,
+      ],
+    },
+  ]
+
+  return {
+    title: `Convert ${phrase} Online — Free, No Upload | Asset Melt`,
+    description: `Convert ${phrase} in your browser. ${guide.hook} Free ${keyword} converter, private, batch ZIP — ${fromLong} files never leave your device.`,
+    h2: `Free ${phrase} converter in your browser`,
+    paragraphs: [
+      `Asset Melt Studio is a ${phrase} converter that runs entirely on your device. ${guide.hook}`,
+      `Drop one ${fromLabel} or a whole folder — the pipeline is already set to ${toLabel} using ${codecBlurb(pair.to)}. That is the ${phrase} workflow people search for: convert ${phrase} without an upload, then resize, crop, or hit a size budget (when the codec allows) before you download.`,
+      `Input is not locked to ${fromLabel}: you can still open JPEG, PNG, WebP, AVIF, HEIC, GIF, and more in the same session. The ${phrase} URL simply pre-selects ${toLong} so ${keyword} jobs start in one click.`,
+    ],
+    steps: pairSteps(pair.from, pair.to),
+    beforeAfter,
+    tables,
+    sections,
+    faq: [...sharedPairFaq(pair.from, pair.to), ...guide.extraFaq],
+    keywords: `${keyword}, convert ${keyword}, ${keyword} converter, free ${fromLabel.toLowerCase()} converter, ${phrase}, no upload`,
+  }
+}
+
+function targetContent(to: StudioOutputIntent): Omit<
+  StudioSeoContent,
+  'mode' | 'canonicalPath' | 'indexable' | 'related' | 'dropHint'
+> {
+  const guide = TARGET_GUIDES[to]
+  const toLabel = formatLabel(to)
+  const toLong = formatLabelLong(to)
+  const keyword = targetKeyword(to)
+
+  const beforeAfter: StudioSeoBeforeAfter = {
+    heading: `Typical ${keyword} result`,
+    scene: guide.beforeAfter.scene ?? 'photo',
+    scenario: guide.beforeAfter.scenario,
+    caption: guide.beforeAfter.caption,
+    before: guide.beforeAfter.before,
+    after: guide.beforeAfter.after,
+    savings: guide.beforeAfter.savings,
+  }
+
+  const tables: StudioSeoTable[] = [
+    {
+      caption: `${keyword} at a glance`,
+      headers: ['Topic', 'What you get', 'Note'],
+      rows: guide.comparisonRows.map((row) => [...row]),
+    },
+    {
+      caption: `Typical results when you ${keyword}`,
+      headers: ['Source', 'Before', 'After', 'Note'],
+      rows: guide.typicalRows.map((row) => [...row]),
+    },
+  ]
+
+  const sections: StudioSeoSection[] = [
+    {
+      heading: `Why ${keyword}`,
+      paragraphs: guide.why,
+    },
+    {
+      heading: `How to ${keyword} in Asset Melt`,
+      paragraphs: guide.howItWorks,
+    },
+    {
+      heading: `When you should ${keyword}`,
+      paragraphs: guide.whenToUse,
+    },
+    {
+      heading: `Quality when you ${keyword}`,
+      paragraphs: [guide.qualityNote, ...guide.settingsTips],
+    },
+    {
+      heading: `Privacy when you ${keyword}`,
+      paragraphs: [
+        `When you ${keyword}, ${PRIVACY_SNIPPET}`,
+        `Convert to ${toLabel} never uploads the bitmap. GIF still uses the first frame only. TIFF uses the first page only. HEIC still uses the JPEG 0.92 bounce before you ${keyword}.`,
+      ],
+    },
+  ]
+
+  return {
+    title: `Convert Images to ${toLabel} Online — Free Browser Converter | Asset Melt`,
+    description: `${keyword.charAt(0).toUpperCase()}${keyword.slice(1)} in your browser. ${guide.hook} Free, no uploads, batch ZIP, Squoosh-grade WASM.`,
+    h2: `Free convert-to-${toLabel} studio — any input welcome`,
+    paragraphs: [
+      `This Studio link pre-selects ${toLong} so you can ${keyword} immediately. ${guide.hook}`,
+      `Bring JPEG, PNG, WebP, AVIF, HEIC, GIF, SVG, and more — input format is never blocked when you ${keyword}. Encoding uses ${codecBlurb(to)}.`,
+      `Looking for a specific source format? Use deep links like PNG to ${toLabel} or HEIC to ${toLabel} for conversion-focused copy, or stay here when your batch is mixed and you still want to ${keyword}.`,
+    ],
+    steps: targetSteps(to),
+    beforeAfter,
+    tables,
+    sections,
+    faq: [...sharedTargetFaq(to), ...guide.extraFaq],
+    keywords: `${keyword}, ${toLabel.toLowerCase()} converter, compress to ${toLabel.toLowerCase()}, free ${toLabel.toLowerCase()} encoder, no upload`,
+  }
+}
+
+function defaultContent(): Omit<
+  StudioSeoContent,
+  'mode' | 'canonicalPath' | 'indexable' | 'related' | 'dropHint'
+> {
+  return {
+    title: 'Studio — Compress & Convert Images in Your Browser | Asset Melt',
+    description: DEFAULT_DESCRIPTION,
+    h2: 'Free image compressor & converter — right in your browser',
+    paragraphs: [
+      'Asset Melt Studio is a client-side image compressor and converter that runs entirely in your browser. There are no uploads, no accounts, and no file-size limits imposed by a server — just drag in your images and get optimised results in seconds.',
+      'The Studio supports JPEG, PNG, WebP, AVIF, HEIC, TIFF (first page), GIF (first frame), BMP, SVG, JPEG XL, and QOI. Compress images to a quality level or a size budget, convert between formats, resize to exact pixels, and crop non-destructively. Batch processing means dozens of files in one session.',
+      'Under the hood the Studio uses the same codec libraries as Google Squoosh — MozJPEG, libavif, and the official WebP encoder — compiled to WebAssembly. Your files stay on your device; image bytes are never sent to a compression API.',
+    ],
+    steps: [
+      {
+        title: 'Drop images on the studio',
+        description:
+          'Drag files or a folder, click to choose, or paste. Nested images are queued. Processing is 100% client-side — photos are not uploaded.',
+      },
+      {
+        title: 'Pick a format, budget, or preset',
+        description:
+          'WebP and AVIF for the web, MozJPEG for compatibility, Oxipng (optional Reduce palette) for graphics. Size budget searches quality until the file fits — JPEG, WebP, AVIF, and JPEG XL only.',
+      },
+      {
+        title: 'Compare and download',
+        description:
+          'Scrub before/after, then download one file or a ZIP. Optional ZIP every 25 files eases memory. Folder trees keep relative paths.',
+      },
+    ],
+    beforeAfter: {
+      heading: 'Typical compression result',
+      scene: 'photo',
+      scenario: 'A mountain landscape compressed for a website hero — illustrative, not your file.',
+      caption:
+        'Illustrative sample only — your savings depend on the photo. Drop a file above to compress it on this device; nothing is uploaded.',
+      before: { format: 'JPEG', size: '3.2 MB', note: 'Photo export' },
+      after: { format: 'WebP', size: '390 KB', note: 'Quality ~80, ~1920px' },
+      savings: '~88% smaller',
+    },
+    tables: [
+      {
+        caption: 'Which output format should I pick?',
+        headers: ['Format', 'Best for', 'Alpha', 'Size budget'],
+        rows: [
+          ['WebP', 'Default web stills', 'Yes', 'Yes'],
+          ['AVIF', 'Smallest modern heroes', 'Yes', 'Yes'],
+          ['JPEG (MozJPEG)', 'Universal share / forms', 'No (flattens)', 'Yes'],
+          ['PNG (Oxipng)', 'Logos, UI, lossless stills', 'Yes', 'No — use palette/resize'],
+          ['JPEG XL', 'Next-gen trials', 'Yes', 'Yes'],
+          ['QOI', 'Tooling, not websites', 'Yes', 'No'],
+        ],
+      },
+      {
+        caption: 'Typical web results (illustrative)',
+        headers: ['Source', 'Before', 'After', 'Notes'],
+        rows: [
+          ['Landscape JPEG', '3–5 MB', 'WebP ~300–500 KB', 'Resize to ~1920px first'],
+          ['Phone UI PNG', '1–3 MB', 'WebP/AVIF ~100–250 KB', 'Watch small text on AVIF'],
+          ['Product / logo PNG', '20–80 KB', 'Palette PNG-8 or WebP', 'Turn on Reduce palette for flat art'],
+          ['iPhone HEIC', '~2.5 MB', 'JPEG ~0.9 MB or WebP ~0.3 MB', OPEN_LIMITATIONS['4.3'].copy],
+        ],
+      },
+    ],
+    sections: [
+      {
+        heading: 'Why compress images in the browser?',
+        paragraphs: [
+          'Images are most of a page’s weight. Compressing them improves LCP, saves bandwidth, and keeps upload forms happy. An image compressor that never leaves the device also means Camera roll photos are not sitting on someone else’s disk.',
+          'Asset Melt Studio runs Squoosh-grade WASM codecs in your browser, then adds the workflow pieces upload tools usually skip: batch ZIP, size budgets, HEIC input, platform kits, and a full crop/resize pipeline — with no account and no image upload.',
+        ],
+      },
+      {
+        heading: 'How the studio compresses (without a server)',
+        paragraphs: [
+          'Decode in a worker, optional crop/resize/filters, then encode with Squoosh-grade WASM. Live before/after is the same preview you will download.',
+          `${OPEN_LIMITATIONS['4.4'].copy} ${TIFF_FIRST_PAGE_COPY} ${OPEN_LIMITATIONS['4.3'].copy}`,
+          'For logos and flat graphics, Reduce palette (lossy PNG-8) then Oxipng. For photos with a hard KB cap, turn on size budget for JPEG, WebP, AVIF, or JPEG XL.',
+        ],
+      },
+      {
+        heading: 'Choosing quality (and when to use a size budget)',
+        paragraphs: [
+          'For web photos, quality 75–85 is the usual band. Below 60, artifacts show. For screenshots with text, stay higher or use PNG/WebP with care on AVIF.',
+          'When a form says 100 KB, do not guess the slider — turn on size budget (or open /compress/under-100kb). PNG and QOI are skipped; switch those jobs to WebP or use palette/resize.',
+        ],
+      },
+      {
+        heading: 'Privacy',
+        paragraphs: [
+          PRIVACY_SNIPPET,
+          'That is the difference versus upload compressors: the operator cannot see or recover your photos, because they never arrive.',
+        ],
+      },
+    ],
+    faq: DEFAULT_FAQ,
+    keywords:
+      'image compressor, image converter, browser, client-side, AVIF, WebP, HEIC, batch, free, TinyPNG alternative, compress JPEG',
+  }
 }
 
 export function buildStudioSeoContent(search: StudioSearch = {}): StudioSeoContent {
@@ -325,18 +485,8 @@ export function buildStudioSeoContent(search: StudioSearch = {}): StudioSeoConte
   }
 
   return {
+    ...defaultContent(),
     mode,
-    title: 'Studio — Compress & Convert Images in Your Browser | Asset Melt',
-    description: DEFAULT_DESCRIPTION,
-    h2: 'Free image compressor & converter — right in your browser',
-    paragraphs: [
-      'Asset Melt Studio is a client-side image processing tool that runs entirely in your browser. There are no uploads, no accounts, and no file-size limits imposed by a server — just drag in your images and get optimised results in seconds.',
-      'The Studio supports all common formats including JPEG, PNG, WebP, AVIF, HEIC, TIFF, JPEG XL, and QOI. You can compress images to a specific quality level or target file size, convert between formats, resize to exact pixel dimensions, and crop non-destructively. Batch processing means you can handle dozens of images in a single session.',
-      'Under the hood the Studio uses the same codec libraries as Google\'s Squoosh — MozJPEG, libavif, and the official WebP encoder — compiled to WebAssembly so they run at near-native speed without any server involvement. Your files stay on your device at all times.',
-    ],
-    faq: DEFAULT_FAQ,
-    keywords:
-      'image compressor, image converter, browser, client-side, AVIF, WebP, HEIC, batch, free',
     canonicalPath,
     indexable: mode.kind === 'default',
     related: buildRelated(intents.from, intents.to),
@@ -346,6 +496,45 @@ export function buildStudioSeoContent(search: StudioSearch = {}): StudioSeoConte
 
 export function buildStudioJsonLd(content: StudioSeoContent) {
   const url = `${SITE_URL}${content.canonicalPath}`
+  const howToName =
+    content.mode.kind === 'pair'
+      ? `How to convert ${formatLabel(content.mode.from)} to ${formatLabel(content.mode.to)}`
+      : content.mode.kind === 'target'
+        ? `How to convert images to ${formatLabel(content.mode.to)}`
+        : 'How to compress and convert images in Asset Melt Studio'
+
+  const breadcrumbName =
+    content.mode.kind === 'pair'
+      ? `${formatLabel(content.mode.from)} to ${formatLabel(content.mode.to)}`
+      : content.mode.kind === 'target'
+        ? `Convert to ${formatLabel(content.mode.to)}`
+        : 'Studio'
+
+  const breadcrumbItems = [
+    {
+      '@type': 'ListItem',
+      position: 1,
+      name: 'Home',
+      item: SITE_URL,
+    },
+    {
+      '@type': 'ListItem',
+      position: 2,
+      name: 'Studio',
+      item: `${SITE_URL}/studio`,
+    },
+    ...(content.mode.kind === 'default'
+      ? []
+      : [
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: breadcrumbName,
+            item: url,
+          },
+        ]),
+  ]
+
   return {
     '@context': 'https://schema.org',
     '@graph': [
@@ -369,6 +558,30 @@ export function buildStudioJsonLd(content: StudioSeoContent) {
           price: '0',
           priceCurrency: 'USD',
         },
+      },
+      {
+        '@type': 'WebPage',
+        '@id': `${url}#webpage`,
+        url,
+        name: content.title,
+        description: content.description,
+        isPartOf: { '@id': `${SITE_URL}/#website` },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: breadcrumbItems,
+      },
+      {
+        '@type': 'HowTo',
+        '@id': `${url}#howto`,
+        name: howToName,
+        description: content.description,
+        step: content.steps.map((step, index) => ({
+          '@type': 'HowToStep',
+          position: index + 1,
+          name: step.title,
+          text: step.description,
+        })),
       },
       {
         '@type': 'FAQPage',
