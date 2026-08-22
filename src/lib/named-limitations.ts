@@ -6,14 +6,6 @@
  * Catalog IDs stay in this file only — not in visitor-facing strings.
  */
 export const OPEN_LIMITATIONS = {
-  '5.5': {
-    label: 'Size budget skips PNG and QOI',
-    copy:
-      'Size-budget encoding runs on JPEG, WebP, AVIF, and JPEG XL only. PNG and QOI are skipped — PNG stays lossless Oxipng unless Reduce palette is on, which is not a byte-cap search. These pages switch a saved PNG pipeline to WebP so the budget can run.',
-    faqQuestion: 'Does size budget work with PNG?',
-    faqAnswer:
-      'Not yet. Size-budget encoding runs on JPEG, WebP, AVIF, and JPEG XL. PNG stays lossless Oxipng unless you turn on Reduce palette, which is not a byte-cap search. This page switches PNG output to WebP so the budget can run.',
-  },
   '4.3': {
     label: 'HEIC JPEG bounce',
     copy:
@@ -36,3 +28,7 @@ export const TIFF_FIRST_PAGE_COPY = 'TIFF uses the first page only.'
 export function sizeBudgetInputLimitsCopy(): string {
   return `${OPEN_LIMITATIONS['4.4'].copy} ${TIFF_FIRST_PAGE_COPY} ${OPEN_LIMITATIONS['4.3'].copy}`
 }
+
+/** QOI has no size-budget path — visitor copy only (no catalog row). */
+export const SIZE_BUDGET_SKIPS_QOI_COPY =
+  'Size-budget encoding skips QOI — use quality and resize instead.'

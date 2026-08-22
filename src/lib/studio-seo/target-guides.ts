@@ -198,7 +198,7 @@ export const TARGET_GUIDES: Record<StudioOutputIntent, TargetGuide> = {
     why: [
       'Convert to PNG from SVG when email blocks vectors. Convert to PNG from GIF for a crisp first-frame still. Convert to PNG from JPEG when a tool refuses JPEG (the PNG will be larger).',
       'Convert to PNG is not the smallest web photo format. Photos should convert to WebP or AVIF unless a human or printer demanded PNG.',
-      'Size budget skips PNG. Reduce palette plus color count is the knob for small graphics when you convert to PNG.',
+      'Size budget works on PNG via palette color search. Reduce palette plus color count is the manual knob when you convert to PNG without a budget.',
     ],
     howItWorks: [
       'Drop mixed inputs. Oxipng encodes. Turn on Reduce palette only for logos/icons.',
@@ -221,7 +221,7 @@ export const TARGET_GUIDES: Record<StudioOutputIntent, TargetGuide> = {
       ['Photos', 'PNG is huge', 'Prefer convert to WebP/AVIF'],
       ['Logos', 'Correct', 'Optional palette'],
       ['Alpha', 'Yes', 'Why people convert to PNG'],
-      ['Size budget', 'Skipped', 'Use palette or resize'],
+      ['Size budget', 'Supported (palette search)', 'Palette or resize'],
       ['Codec', 'Oxipng ± imagequant', 'WASM'],
     ],
     typicalRows: [
@@ -242,7 +242,7 @@ export const TARGET_GUIDES: Record<StudioOutputIntent, TargetGuide> = {
       {
         question: 'Can convert to PNG match TinyPNG?',
         answer:
-          'For logos and icons, yes — Reduce palette (imagequant) then Oxipng. Photos should not use palette; convert to WebP or AVIF instead. Size budget still skips PNG.',
+          'For logos and icons, yes — Reduce palette (imagequant) then Oxipng, or turn on size budget for PNG. Photos should not use palette; convert to WebP or AVIF instead.',
       },
       {
         question: 'Why did convert to PNG make my photo bigger?',

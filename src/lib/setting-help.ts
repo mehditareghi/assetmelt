@@ -50,7 +50,7 @@ export const SETTING_HELP = {
   oxipngLevel:
     'PNG optimization effort (0–6). Higher levels squeeze more bytes but take longer. Runs after palette reduction when Reduce palette is on.',
   pngPalette:
-    'Lossy PNG-8: quantize to a limited palette (imagequant), then Oxipng. Off keeps a lossless PNG. Best for logos, icons, and flat illustration — photos usually prefer WebP or AVIF. Size budget still skips PNG.',
+    'Lossy PNG-8: quantize to a limited palette (imagequant), then Oxipng. Off keeps a lossless PNG. Best for logos, icons, and flat illustration — photos usually prefer WebP or AVIF. Size budget binary-searches palette colors for PNG; QOI is skipped.',
   pngNumColors:
     'Palette size (2–256). Fewer colors make smaller files. 256 is the PNG-8 maximum; try 32–64 for icons.',
   pngDither:

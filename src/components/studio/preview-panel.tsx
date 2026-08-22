@@ -316,7 +316,9 @@ export function PreviewPanel() {
                 {' · '}
                 {compareStats.sizeBudget.met ? 'met' : 'closest match'}
                 {' · '}
-                Q{Math.round(compareStats.sizeBudget.appliedQuality)}
+                {pipeline.outputFormat === 'png'
+                  ? `${Math.round(compareStats.sizeBudget.appliedQuality)} colors`
+                  : `Q${Math.round(compareStats.sizeBudget.appliedQuality)}`}
                 {compareStats.sizeBudget.appliedScale < 0.999 && (
                   <> · {Math.round(compareStats.sizeBudget.appliedScale * 100)}% scale</>
                 )}

@@ -7,8 +7,8 @@ Built with Vite, React, shadcn/ui, and Squoosh-grade WASM codecs (@jsquash).
 ## Features
 
 - **Format conversion** — JPEG (MozJPEG), WebP, AVIF, PNG (Oxipng; optional lossy palette), JPEG XL, QOI
-- **Lossy PNG** — optional Reduce palette (imagequant + dither), then Oxipng; off keeps lossless. Size budget still skips PNG
-- **Size budget** — hit a target file size (JPEG / WebP / AVIF / JXL). Entry pages: `/compress/under-50kb`, `/compress/under-100kb`, `/compress/under-200kb` open Studio with the budget on
+- **Lossy PNG** — optional Reduce palette (imagequant + dither), then Oxipng; off keeps lossless. Size budget binary-searches palette colors for PNG; QOI is skipped
+- **Size budget** — hit a target file size (JPEG / WebP / AVIF / JXL / PNG palette search). Entry pages: `/compress/under-50kb`, `/compress/under-100kb`, `/compress/under-200kb` open Studio with the budget on
 - **Transforms** — Resize (Lanczos3, Mitchell, Magic Kernel, HQX…), crop, rotate, flip
 - **Filters** — Brightness, contrast, saturation, grayscale, sharpen
 - **Batch processing** — Drop files or a folder (recursive; non-images skipped), drag the queue to reorder (ZIP follows that list), encode in parallel (worker pool up to 4), pause or cancel mid-batch, optional ZIP every 25 files to free memory, ZIP export keeps relative paths

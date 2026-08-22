@@ -67,6 +67,11 @@ export function pipelinePatchForSizeBudget(
       outputFormat = 'webp'
       encode = getDefaultEncodeOptions('webp')
     }
+  } else if (outputFormat === 'png' && encode.format === 'png') {
+    encode = {
+      format: 'png',
+      options: { ...encode.options, paletteEnabled: true },
+    }
   }
 
   return { sizeBudget, outputFormat, encode }

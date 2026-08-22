@@ -161,7 +161,7 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
       ['Typical screenshot', 'Large lossless PNG', 'Often the smallest modern still'],
       ['Encode time', 'Fast (Oxipng)', 'Slower (AV1)'],
       ['Transparency', 'Yes', 'Yes'],
-      ['Size budget', 'Skipped for PNG', 'Supported for AVIF'],
+      ['Size budget', 'Supported on PNG', 'Supported for AVIF'],
       ['Support', 'Universal', 'Modern browsers; keep a fallback'],
     ],
     typicalRows: [
@@ -396,7 +396,7 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
     ],
     howItWorks: [
       'Drop HEIC. Decode bounce, then PNG encode with Oxipng. Reduce palette is optional if you want TinyPNG-style PNG-8 — usually wrong for photos.',
-      'Size budget skips PNG. Use resize or switch to JPEG/WebP if you need a KB cap.',
+      'Size budget on PNG binary-searches palette colors — best for flat graphics; photo HEIC→PNG often stays large even with a budget.',
       'Alpha: Camera HEIC photos are typically opaque. You will get an opaque PNG unless the HEIC actually had transparency.',
     ],
     whenToUse: [
@@ -415,7 +415,7 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
       ['From HEIC', 'Lossy camera format', 'PNG after JPEG 0.92 bounce'],
       ['File size', 'Small on disk', 'Often much larger PNG'],
       ['Lossless from HEIC?', 'N/A', 'No'],
-      ['Size budget', 'N/A', 'Skipped for PNG'],
+      ['Size budget', 'N/A', 'Supported (palette search)'],
       ['Reduce palette', 'N/A', 'Optional; photos usually should not'],
     ],
     typicalRows: [
@@ -445,7 +445,7 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
       {
         question: 'Can size budget run on HEIC to PNG?',
         answer:
-          'No. Size-budget encoding skips PNG. Resize, use Reduce palette (graphics only), or convert HEIC to JPEG / WebP / AVIF instead.',
+          'Yes. Size budget binary-searches palette colors for PNG — best for logos and flat graphics. For photos, resize or convert HEIC to JPEG / WebP / AVIF instead.',
       },
     ],
   },
@@ -649,7 +649,7 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
     ],
     howItWorks: [
       'Drop JPEGs. Oxipng writes a lossless PNG of the decoded bitmap. Reduce palette can shrink logos-from-photos but will posterize real photographs.',
-      'Size budget skips PNG.',
+      'Size budget on PNG binary-searches palette colors — usually wrong on photo JPEGs; resize or use JPG to WebP for KB caps.',
       'No alpha appears magically — JPEG had none.',
     ],
     whenToUse: [
@@ -668,7 +668,7 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
       ['Quality', 'Already lossy JPEG', 'Lossless copy of those pixels'],
       ['Typical size', 'Smaller', 'Larger PNG'],
       ['Alpha', 'No', 'No (unless you composite elsewhere)'],
-      ['Size budget', 'Supported on JPEG', 'Skipped on PNG'],
+      ['Size budget', 'Supported on JPEG', 'Supported (palette search)'],
       ['Web photos', 'Appropriate', 'Usually the wrong delivery format'],
     ],
     typicalRows: [
@@ -975,7 +975,7 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
       'Do not use GIF to PNG to “save an animation as PNG.” We do not write animated PNG.',
     ],
     qualityNote:
-      'GIF to PNG quality is about palette and Oxipng level, not a JPEG-style slider. Size budget skips PNG. If you need a KB cap after GIF to PNG, resize or switch the output to WebP.',
+      'GIF to PNG quality is about palette and Oxipng level, not a JPEG-style slider. Size budget on PNG binary-searches palette colors for flat art KB caps.',
     settingsTips: [
       'GIF to PNG for UI: Reduce palette, 32–64 colors, dither 0 for hard edges.',
       'GIF to PNG for a photographic first frame: palette off, Oxipng level 4+.',
@@ -985,13 +985,13 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
       ['Animation', 'Yes in GIF', 'Not encoded — first frame PNG'],
       ['Typical colors', '256 indexed', 'Truecolor PNG or PNG-8 palette'],
       ['Compression', 'LZW', 'Oxipng (± imagequant)'],
-      ['Size budget', 'N/A', 'Skipped for PNG'],
+      ['Size budget', 'N/A', 'Supported (palette search)'],
       ['Transparency', 'Index transparency', 'PNG alpha from that frame'],
     ],
     typicalRows: [
       ['UI GIF still', '90 KB GIF', '~35 KB PNG', 'GIF to PNG with optional palette'],
       ['Meme still', '400 KB GIF', '~120 KB PNG', 'First frame only'],
-      ['Need a KB cap', '90 KB GIF', 'Use GIF to WebP', 'Size budget skips PNG'],
+      ['Need a KB cap', '90 KB GIF', 'Use size budget on PNG', 'Palette color search'],
     ],
     beforeAfter: {
       scene: 'screenshot',
@@ -1034,7 +1034,7 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
     ],
     howItWorks: [
       'Drop BMP files. Oxipng out. Optional palette.',
-      'Size budget skips PNG.',
+      'Size budget on PNG binary-searches palette colors.',
       'Batch a folder of BMP exports from a device that only speaks BMP.',
     ],
     whenToUse: [
@@ -1053,7 +1053,7 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
       ['Compression', 'Uncompressed BMP', 'Lossless PNG (Oxipng)'],
       ['Typical size', 'Huge', 'Much smaller'],
       ['Alpha', 'Rare / limited', 'PNG alpha if present'],
-      ['Size budget', 'N/A', 'Skipped'],
+      ['Size budget', 'N/A', 'Supported (palette search)'],
       ['Web use', 'Do not', 'OK for graphics'],
     ],
     typicalRows: [
@@ -1179,7 +1179,7 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
       ['Format', 'Vector SVG', 'Raster PNG'],
       ['Scale', 'Infinite', 'Fixed pixels'],
       ['Email / Office', 'Often blocked', 'Usually accepted'],
-      ['Size budget', 'N/A', 'Skipped for PNG'],
+      ['Size budget', 'N/A', 'Supported (palette search)'],
       ['Palette', 'N/A', 'Optional PNG-8'],
     ],
     typicalRows: [
@@ -1349,7 +1349,7 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
     ],
     howItWorks: [
       'Drop TIFF. First page, then Oxipng. Reduce palette optional for simple graphics.',
-      'Size budget skips PNG.',
+      'Size budget on PNG binary-searches palette colors.',
       'Preview; 16-bit TIFF may be flattened to the pipeline’s working bitmap.',
     ],
     whenToUse: [
@@ -1368,7 +1368,7 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
       ['Pages', 'Possibly many', 'First page PNG'],
       ['Size', 'Huge TIFF', 'Still large PNG'],
       ['Type / line art', 'Excellent', 'Better than JPEG'],
-      ['Size budget', 'N/A', 'Skipped'],
+      ['Size budget', 'N/A', 'Supported (palette search)'],
       ['Portability', 'Specialized', 'PNG opens everywhere'],
     ],
     typicalRows: [
@@ -1601,7 +1601,7 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
     ],
     howItWorks: [
       'Drop WebP. Oxipng. Reduce palette only for graphics.',
-      'Size budget skips PNG.',
+      'Size budget on PNG binary-searches palette colors.',
       'Animated WebP: stills pipeline, not a sequence dump.',
     ],
     whenToUse: [
@@ -1620,7 +1620,7 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
       ['Web', 'WebP belongs here', 'PNG is usually heavier'],
       ['Editors', 'Some still fail', 'PNG just works'],
       ['Alpha', 'Yes if present', 'Kept'],
-      ['Size budget', 'Supported on WebP', 'Skipped on PNG'],
+      ['Size budget', 'Supported on WebP', 'Supported (palette search)'],
       ['Animation', 'Possible', 'Not encoded'],
     ],
     typicalRows: [

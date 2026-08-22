@@ -1,6 +1,7 @@
 import type { ToolPageContent } from '@/lib/tool-pages/types'
 import {
   OPEN_LIMITATIONS,
+  SIZE_BUDGET_SKIPS_QOI_COPY,
   TIFF_FIRST_PAGE_COPY,
   sizeBudgetInputLimitsCopy,
 } from '@/lib/named-limitations'
@@ -26,7 +27,7 @@ const PAGE_COPY: Record<
   50: {
     title: 'Compress Image Under 50 KB — Free Size-Budget Encoder | Asset Melt',
     metaDescription:
-      'Shrink a photo under 50 KB in your browser. Free size-budget encoding for email, Slack, and tiny CMS caps. JPEG, WebP, AVIF, or JXL — no uploads.',
+      'Shrink a photo under 50 KB in your browser. Free size-budget encoding for email, Slack, and tiny CMS caps. JPEG, WebP, AVIF, JXL, or PNG palette search — no uploads.',
     eyebrow: '50 KB budget',
     heroBadge: 'Size budget · 50 KB',
     h1: 'Compress images under 50 KB',
@@ -44,7 +45,7 @@ const PAGE_COPY: Record<
         icon: 'gauge',
         title: 'Highest quality that fits',
         description:
-          'Binary-search quality on JPEG, WebP, AVIF, or JPEG XL. Resize is allowed when quality alone cannot hit 50 KB.',
+          'Binary-search quality on JPEG, WebP, AVIF, or JPEG XL; PNG uses palette color search. Resize is allowed when quality or colors alone cannot hit 50 KB.',
       },
       {
         icon: 'folder',
@@ -87,7 +88,7 @@ const PAGE_COPY: Record<
       {
         heading: 'What size-budget encoding actually does',
         paragraphs: [
-          'Asset Melt binary-searches encode quality for JPEG (MozJPEG), WebP, AVIF, and JPEG XL, then scales the bitmap only if the smallest useful quality is still over budget.',
+          'Asset Melt binary-searches encode quality for JPEG (MozJPEG), WebP, AVIF, and JPEG XL, or palette colors for PNG, then scales the bitmap only if the smallest useful quality or color count is still over budget.',
           'Need a looser cap? Use the 100 KB or 200 KB pages. Need a walkthrough? The under-100 KB guide covers resize-then-encode order in more detail.',
         ],
       },
@@ -117,7 +118,7 @@ const PAGE_COPY: Record<
   100: {
     title: 'Compress Image Under 100 KB — Free Size-Budget Encoder | Asset Melt',
     metaDescription:
-      'Compress images under 100 KB in your browser. Free size-budget encoding for cards, thumbnails, and article images. JPEG, WebP, AVIF, or JXL — no uploads.',
+      'Compress images under 100 KB in your browser. Free size-budget encoding for cards, thumbnails, and article images. JPEG, WebP, AVIF, JXL, or PNG palette search — no uploads.',
     eyebrow: '100 KB budget',
     heroBadge: 'Size budget · 100 KB',
     h1: 'Compress images under 100 KB',
@@ -135,7 +136,7 @@ const PAGE_COPY: Record<
         icon: 'sparkles',
         title: 'Quality search, not guesswork',
         description:
-          'MozJPEG, WebP, AVIF, or JPEG XL: Asset Melt finds the highest quality that stays under 100 KB instead of you exporting ten times.',
+          'MozJPEG, WebP, AVIF, or JPEG XL quality search; PNG palette color search. Asset Melt finds the highest quality or color count that stays under 100 KB instead of you exporting ten times.',
       },
       {
         icon: 'layers',
@@ -212,7 +213,7 @@ const PAGE_COPY: Record<
   200: {
     title: 'Compress Image Under 200 KB — Free Size-Budget Encoder | Asset Melt',
     metaDescription:
-      'Compress images under 200 KB in your browser. Free size-budget encoding for product photos, blog images, and social previews. JPEG, WebP, AVIF, or JXL — no uploads.',
+      'Compress images under 200 KB in your browser. Free size-budget encoding for product photos, blog images, and social previews. JPEG, WebP, AVIF, JXL, or PNG palette search — no uploads.',
     eyebrow: '200 KB budget',
     heroBadge: 'Size budget · 200 KB',
     h1: 'Compress images under 200 KB',
@@ -298,7 +299,6 @@ const PAGE_COPY: Record<
 function buildSizeBudgetPage(kb: SizeBudgetLandingKb): ToolPageContent {
   const id: SizeBudgetToolPageId = `compress-under-${kb}kb`
   const copy = PAGE_COPY[kb]
-  const png = OPEN_LIMITATIONS['5.5']
   return {
     id,
     path: sizeBudgetLandingPath(kb),
@@ -313,14 +313,19 @@ function buildSizeBudgetPage(kb: SizeBudgetLandingKb): ToolPageContent {
       {
         heading: 'Honest limits',
         paragraphs: [
-          png.copy,
+          'Size-budget encoding runs on JPEG, WebP, AVIF, JPEG XL, and PNG (binary-search palette colors with Reduce palette, then Oxipng). Best for logos and flat graphics; photos usually fit better as WebP or AVIF.',
+          SIZE_BUDGET_SKIPS_QOI_COPY,
           `${OPEN_LIMITATIONS['4.3'].copy} ${OPEN_LIMITATIONS['4.4'].copy} ${TIFF_FIRST_PAGE_COPY}`,
         ],
       },
     ],
     faq: [
       ...copy.faq,
-      { question: png.faqQuestion, answer: png.faqAnswer },
+      {
+        question: 'Does size budget work with PNG?',
+        answer:
+          'Yes. PNG size budget turns on Reduce palette and binary-searches color count (2–256), then Oxipng. Best for logos and icons — photos usually fit better as WebP or AVIF at the same KB cap.',
+      },
     ],
     relatedTools: [...SIBLING_IDS[kb], 'batch-image-compressor'],
     studioSearch: { budget: canonicalBudgetParam(kb) },

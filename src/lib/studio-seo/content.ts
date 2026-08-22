@@ -66,7 +66,7 @@ const DEFAULT_FAQ: StudioFaqItem[] = [
   {
     question: 'Can I make PNGs as small as TinyPNG?',
     answer:
-      'Yes. PNG is lossless Oxipng unless you turn on Reduce palette in Format settings. That quantizes to 2–256 colors with dither (lossy PNG-8), then Oxipng — the same trick TinyPNG and Squoosh Reduce Palette use. Best for logos and icons. Size budget still skips PNG.',
+      'Yes. PNG is lossless Oxipng unless you turn on Reduce palette in Format settings. That quantizes to 2–256 colors with dither (lossy PNG-8), then Oxipng — the same trick TinyPNG and Squoosh Reduce Palette use. Best for logos and icons. Size budget can also binary-search palette colors for PNG; QOI is skipped.',
   },
   {
     question: 'Can I compress multiple images at once?',
@@ -76,7 +76,7 @@ const DEFAULT_FAQ: StudioFaqItem[] = [
   {
     question: 'What is "size budget" encoding?',
     answer:
-      'Size budget lets you set a target file size (e.g. 100 KB) and the Studio automatically finds the highest quality that still fits within that limit. Dedicated entry pages at /compress/under-50kb, /compress/under-100kb, and /compress/under-200kb open Studio with the budget already on. JPEG, WebP, AVIF, and JPEG XL only — PNG and QOI are skipped. Useful when an upload form has a strict size cap.',
+      'Size budget lets you set a target file size (e.g. 100 KB) and the Studio automatically finds the highest quality that still fits within that limit. Dedicated entry pages at /compress/under-50kb, /compress/under-100kb, and /compress/under-200kb open Studio with the budget already on. JPEG, WebP, AVIF, JPEG XL, and PNG (palette color search) are supported; QOI is skipped. Useful when an upload form has a strict size cap.',
   },
   {
     question: 'How does Asset Melt compare to Squoosh?',
@@ -190,7 +190,7 @@ function targetSteps(to: StudioOutputIntent): StudioSeoStep[] {
     },
     {
       title: `Download ${toLabel}`,
-      description: `Scrub quality, optionally set a size budget (JPEG, WebP, AVIF, JXL), then download one file or a ZIP after you ${keyword}.`,
+      description: `Scrub quality, optionally set a size budget (JPEG, WebP, AVIF, JXL, PNG palette search), then download one file or a ZIP after you ${keyword}.`,
     },
   ]
 }
@@ -376,7 +376,7 @@ function defaultContent(): Omit<
       {
         title: 'Pick a format, budget, or preset',
         description:
-          'WebP and AVIF for the web, MozJPEG for compatibility, Oxipng (optional Reduce palette) for graphics. Size budget searches quality until the file fits — JPEG, WebP, AVIF, and JPEG XL only.',
+          'WebP and AVIF for the web, MozJPEG for compatibility, Oxipng (optional Reduce palette) for graphics. Size budget searches quality or palette colors until the file fits — JPEG, WebP, AVIF, JPEG XL, and PNG (palette search).',
       },
       {
         title: 'Compare and download',
@@ -402,7 +402,7 @@ function defaultContent(): Omit<
           ['WebP', 'Default web stills', 'Yes', 'Yes'],
           ['AVIF', 'Smallest modern heroes', 'Yes', 'Yes'],
           ['JPEG (MozJPEG)', 'Universal share / forms', 'No (flattens)', 'Yes'],
-          ['PNG (Oxipng)', 'Logos, UI, lossless stills', 'Yes', 'No — use palette/resize'],
+          ['PNG (Oxipng)', 'Logos, UI, lossless stills', 'Yes', 'Yes — palette color search'],
           ['JPEG XL', 'Next-gen trials', 'Yes', 'Yes'],
           ['QOI', 'Tooling, not websites', 'Yes', 'No'],
         ],
@@ -431,14 +431,14 @@ function defaultContent(): Omit<
         paragraphs: [
           'Decode in a worker, optional crop/resize/filters, then encode with Squoosh-grade WASM. Live before/after is the same preview you will download.',
           `${OPEN_LIMITATIONS['4.4'].copy} ${TIFF_FIRST_PAGE_COPY} ${OPEN_LIMITATIONS['4.3'].copy}`,
-          'For logos and flat graphics, Reduce palette (lossy PNG-8) then Oxipng. For photos with a hard KB cap, turn on size budget for JPEG, WebP, AVIF, or JPEG XL.',
+          'For logos and flat graphics, Reduce palette (lossy PNG-8) then Oxipng, or turn on size budget for PNG. For photos with a hard KB cap, turn on size budget for JPEG, WebP, AVIF, or JPEG XL.',
         ],
       },
       {
         heading: 'Choosing quality (and when to use a size budget)',
         paragraphs: [
           'For web photos, quality 75–85 is the usual band. Below 60, artifacts show. For screenshots with text, stay higher or use PNG/WebP with care on AVIF.',
-          'When a form says 100 KB, do not guess the slider — turn on size budget (or open /compress/under-100kb). PNG and QOI are skipped; switch those jobs to WebP or use palette/resize.',
+          'When a form says 100 KB, do not guess the slider — turn on size budget (or open /compress/under-100kb). QOI is skipped; PNG uses palette color search — best for flat graphics.',
         ],
       },
       {

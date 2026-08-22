@@ -34,7 +34,7 @@ export const FAQ_ITEMS = [
   {
     question: 'What is size-budget encoding?',
     answer:
-      'Set a maximum output file size (e.g. 200 KB) and Asset Melt searches for the highest-quality encode that fits — adjusting quality and resizing only when necessary. JPEG, WebP, AVIF, and JPEG XL only (PNG and QOI are skipped). Start from /compress/under-50kb, /compress/under-100kb, or /compress/under-200kb to open Studio with that budget already on.',
+      'Set a maximum output file size (e.g. 200 KB) and Asset Melt searches for the highest-quality encode that fits — adjusting quality and resizing only when necessary. JPEG, WebP, AVIF, JPEG XL, and PNG (palette color search) are supported; QOI is skipped. Start from /compress/under-50kb, /compress/under-100kb, or /compress/under-200kb to open Studio with that budget already on.',
   },
   {
     question: 'Can I compress multiple images at once?',
@@ -64,7 +64,7 @@ export const FAQ_ITEMS = [
   {
     question: 'Can I compress PNG like TinyPNG?',
     answer:
-      'Yes. PNG is lossless Oxipng by default (the Lossless PNG preset). Turn on Reduce palette in Format settings to quantize colors with dither (lossy PNG-8, same idea as Squoosh Reduce Palette / TinyPNG), then Oxipng. Best for logos and icons. Size-budget encoding still skips PNG.',
+      'Yes. PNG is lossless Oxipng by default (the Lossless PNG preset). Turn on Reduce palette in Format settings to quantize colors with dither (lossy PNG-8, same idea as Squoosh Reduce Palette / TinyPNG), then Oxipng. Best for logos and icons. Size budget binary-searches palette colors for PNG; QOI is skipped.',
   },
   {
     question: 'Can I see EXIF before stripping metadata?',

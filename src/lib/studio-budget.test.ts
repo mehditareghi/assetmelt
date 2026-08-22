@@ -57,15 +57,18 @@ describe('size-budget landing intent', () => {
     expect(isSizeBudgetSupported({ ...createDefaultPipeline(), ...patch })).toBe(true)
   })
 
-  it('switches PNG to WebP so the budget can actually run', () => {
+  it('keeps PNG output and enables palette size budget', () => {
     const png = mergePipelineWithPartial({
       outputFormat: 'png',
       encode: getDefaultEncodeOptions('png'),
     })
     const patch = pipelinePatchForSizeBudget(png, 50)
-    expect(patch.outputFormat).toBe('webp')
-    expect(patch.encode.format).toBe('webp')
+    expect(patch.outputFormat).toBe('png')
+    expect(patch.encode.format).toBe('png')
+    if (patch.encode.format !== 'png') return
+    expect(patch.encode.options.paletteEnabled).toBe(true)
     expect(patch.sizeBudget.targetBytes).toBe(50 * 1024)
+    expect(isSizeBudgetSupported({ ...png, ...patch })).toBe(true)
   })
 
   it('turns off AVIF lossless instead of abandoning AVIF', () => {

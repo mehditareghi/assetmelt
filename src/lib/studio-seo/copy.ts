@@ -141,9 +141,11 @@ export function sharedPairFaq(
     items.push({
       question: `Are there limits when I convert ${phrase}?`,
       answer: `${caveat} ${
-        to === 'png' || to === 'qoi'
-          ? 'Size-budget encoding also skips PNG and QOI — use quality, palette, or resize instead.'
-          : 'Size-budget encoding works on JPEG, WebP, AVIF, and JPEG XL if you need a KB cap.'
+        to === 'qoi'
+          ? 'Size-budget encoding skips QOI — use quality or resize instead.'
+          : to === 'png'
+            ? 'Size-budget encoding binary-searches palette colors for PNG — best for logos and flat graphics.'
+            : 'Size-budget encoding works on JPEG, WebP, AVIF, and JPEG XL if you need a KB cap.'
       }`,
     })
   }

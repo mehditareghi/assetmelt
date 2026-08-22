@@ -1,8 +1,13 @@
 import { toMozJpegWasmOptions } from '@/lib/image/jpeg-encode'
+import { toOxipngWasmOptions } from '@/lib/image/png-encode'
+import { quantizeImageData } from '@/lib/image/png-quantize'
 import type { PipelineConfig } from '@/lib/schemas/pipeline-schema'
 import type { OutputFormat } from '@/lib/schemas/pipeline-schema'
 
-export const SIZE_BUDGET_FORMATS: OutputFormat[] = ['webp', 'avif', 'jpeg', 'jxl']
+export const SIZE_BUDGET_FORMATS: OutputFormat[] = ['webp', 'avif', 'jpeg', 'jxl', 'png']
+
+const PNG_MIN_COLORS = 2
+const PNG_MAX_COLORS = 256
 
 export interface SizeBudgetResult {
   buffer: ArrayBuffer
@@ -17,6 +22,7 @@ export interface SizeBudgetResult {
 
 export function isSizeBudgetSupported(pipeline: PipelineConfig): boolean {
   if (!SIZE_BUDGET_FORMATS.includes(pipeline.outputFormat)) return false
+  if (pipeline.outputFormat === 'png' && pipeline.encode.format !== 'png') return false
   if (pipeline.encode.format === 'avif' && pipeline.encode.options.lossless) return false
   if (pipeline.encode.format === 'jxl' && pipeline.encode.options.lossless) return false
   return true
@@ -90,9 +96,29 @@ async function encodeImageData(
       const { encode: encodeJxl } = await import('@jsquash/jxl')
       return encodeJxl(imageData, encode.format === 'jxl' ? encode.options : {})
     }
+    case 'png': {
+      return encodePngToBuffer(imageData, pipeline, PNG_MAX_COLORS)
+    }
     default:
       throw new Error(`Size budget does not support ${outputFormat}`)
   }
+}
+
+async function encodePngToBuffer(
+  imageData: ImageData,
+  pipeline: PipelineConfig,
+  numColors: number,
+): Promise<ArrayBuffer> {
+  const { encode } = pipeline
+  if (encode.format !== 'png') {
+    throw new Error('Size budget PNG encode requires PNG pipeline config')
+  }
+  const quantised = await quantizeImageData(imageData, {
+    numColors,
+    dither: encode.options.dither,
+  })
+  const { optimise } = await import('@jsquash/oxipng')
+  return optimise(quantised, toOxipngWasmOptions(encode.options))
 }
 
 function mimeForFormat(format: OutputFormat): string {
@@ -136,6 +162,40 @@ async function findBestQualityUnderBudget(
   while (lo <= hi) {
     const mid = Math.floor((lo + hi) / 2)
     const attempt = await tryQuality(mid)
+    if (attempt.size <= targetBytes) {
+      best = attempt
+      lo = mid + 1
+    } else {
+      hi = mid - 1
+    }
+  }
+
+  return best
+}
+
+async function findBestColorsUnderBudget(
+  imageData: ImageData,
+  pipeline: PipelineConfig,
+  targetBytes: number,
+): Promise<EncodeAttempt | null> {
+  const tryColors = async (numColors: number): Promise<EncodeAttempt> => {
+    const buffer = await encodePngToBuffer(imageData, pipeline, numColors)
+    return { buffer, quality: numColors, size: buffer.byteLength }
+  }
+
+  const atMax = await tryColors(PNG_MAX_COLORS)
+  if (atMax.size <= targetBytes) return atMax
+
+  const atMin = await tryColors(PNG_MIN_COLORS)
+  if (atMin.size > targetBytes) return null
+
+  let lo = PNG_MIN_COLORS
+  let hi = PNG_MAX_COLORS
+  let best = atMin
+
+  while (lo <= hi) {
+    const mid = Math.floor((lo + hi) / 2)
+    const attempt = await tryColors(mid)
     if (attempt.size <= targetBytes) {
       best = attempt
       lo = mid + 1
@@ -211,7 +271,10 @@ export async function encodeToSizeBudget(
     const scaled = await scaleImageData(imageData, scale)
     tick()
 
-    const attempt = await findBestQualityUnderBudget(scaled, pipeline, targetBytes)
+    const attempt =
+      pipeline.outputFormat === 'png'
+        ? await findBestColorsUnderBudget(scaled, pipeline, targetBytes)
+        : await findBestQualityUnderBudget(scaled, pipeline, targetBytes)
     tick()
 
     if (attempt) {
@@ -223,18 +286,23 @@ export async function encodeToSizeBudget(
       ) {
         bestAttempt = candidate
       }
-      if (attempt.quality >= 95 && scale >= 0.85) break
+      const strongEnough =
+        pipeline.outputFormat === 'png' ? attempt.quality >= 224 : attempt.quality >= 95
+      if (strongEnough && scale >= 0.85) break
     }
   }
 
   if (!bestAttempt) {
     const scaled = await scaleImageData(imageData, scales[scales.length - 1])
-    const buffer = await encodeImageData(scaled, withQuality(pipeline, 1))
+    const buffer =
+      pipeline.outputFormat === 'png'
+        ? await encodePngToBuffer(scaled, pipeline, PNG_MIN_COLORS)
+        : await encodeImageData(scaled, withQuality(pipeline, 1))
     onProgress?.(1)
     return {
       buffer,
       mimeType,
-      quality: 1,
+      quality: pipeline.outputFormat === 'png' ? PNG_MIN_COLORS : 1,
       scale: scales[scales.length - 1],
       outputWidth: scaled.width,
       outputHeight: scaled.height,
