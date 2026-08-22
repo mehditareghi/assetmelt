@@ -7,6 +7,27 @@
     <language>en-us</language>
     <atom:link href="https://assetmelt.com/rss.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>How to Compress Images for Next.js in 2026: App Router, Server Components, and Modern Formats</title>
+      <link>https://assetmelt.com/blog/image-compression/compress-images-for-nextjs-2026</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/image-compression/compress-images-for-nextjs-2026</guid>
+      <description>Complete guide to optimizing images for Next.js 15+ with App Router — use next/image for automatic optimization, ship AVIF and WebP with responsive srcset, implement blur placeholders, and prep assets locally before committing to your repo.</description>
+      <pubDate>Sat, 22 Aug 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Image Lazy Loading Best Practices 2026: Native, Intersection Observer, and LCP Trade-offs</title>
+      <link>https://assetmelt.com/blog/performance-seo/image-lazy-loading-best-practices-2026</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/performance-seo/image-lazy-loading-best-practices-2026</guid>
+      <description>Complete guide to lazy loading images in 2026 — use native loading=&quot;lazy&quot; for most content, avoid lazy-loading LCP images, implement Intersection Observer for custom thresholds, handle responsive srcset, and measure real-world performance impact with CrUX.</description>
+      <pubDate>Sat, 22 Aug 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>JPEG XL (JXL) in 2026: Should You Use It for Web Images?</title>
+      <link>https://assetmelt.com/blog/format-conversion/jpeg-xl-jxl-guide-2026</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/format-conversion/jpeg-xl-jxl-guide-2026</guid>
+      <description>Complete guide to JPEG XL format in 2026 — browser support status, compression vs AVIF and WebP, progressive decode benefits, animation support, and when JXL makes sense for modern web delivery vs staying with proven formats.</description>
+      <pubDate>Sat, 22 Aug 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
       <title>Privacy-First Image Compression: Why Local Beats Upload Tools</title>
       <link>https://assetmelt.com/blog/image-compression/privacy-first-image-compression</link>
       <guid isPermaLink="true">https://assetmelt.com/blog/image-compression/privacy-first-image-compression</guid>
@@ -124,27 +145,6 @@
       <guid isPermaLink="true">https://assetmelt.com/blog/image-compression/compress-images-for-shopify</guid>
       <description>Optimize Shopify product photos, collection images, banners, and social previews before upload with private local compression.</description>
       <pubDate>Mon, 22 Jun 2026 00:00:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>Image SEO in 2026: Alt Text, Filenames, Formats, and a Local Prep Workflow</title>
-      <link>https://assetmelt.com/blog/performance-seo/image-seo-guide-2026</link>
-      <guid isPermaLink="true">https://assetmelt.com/blog/performance-seo/image-seo-guide-2026</guid>
-      <description>A complete image SEO guide for 2026 — write inclusive alt text, name files for crawlers, ship AVIF and WebP with responsive srcset, strip EXIF metadata, and prep assets locally before WordPress, Shopify, or static deploys.</description>
-      <pubDate>Fri, 19 Jun 2026 00:00:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>How to Optimize Images for Core Web Vitals and LCP in 2026</title>
-      <link>https://assetmelt.com/blog/performance-seo/optimize-images-core-web-vitals-lcp</link>
-      <guid isPermaLink="true">https://assetmelt.com/blog/performance-seo/optimize-images-core-web-vitals-lcp</guid>
-      <description>A practical guide to fixing image-related Core Web Vitals — shrink LCP hero images, prevent CLS, and serve AVIF and WebP locally before deploy without uploading originals to a cloud optimizer.</description>
-      <pubDate>Tue, 09 Jun 2026 00:00:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>Asset Melt vs Squoosh: A Privacy-First Alternative After Google's Shutdown</title>
-      <link>https://assetmelt.com/blog/image-compression/squoosh-alternative-guide</link>
-      <guid isPermaLink="true">https://assetmelt.com/blog/image-compression/squoosh-alternative-guide</guid>
-      <description>Google shut down Squoosh.app — here's how Asset Melt compares as a client-side image compressor with batch processing, size budgets, HEIC support, and the same WASM codecs.</description>
-      <pubDate>Mon, 01 Jun 2026 00:00:00 GMT</pubDate>
     </item>
   </channel>
 </rss>

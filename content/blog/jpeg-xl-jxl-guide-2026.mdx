@@ -1,0 +1,337 @@
+---
+title: "JPEG XL (JXL) in 2026: Should You Use It for Web Images?"
+description: "Complete guide to JPEG XL format in 2026 — browser support status, compression vs AVIF and WebP, progressive decode benefits, animation support, and when JXL makes sense for modern web delivery vs staying with proven formats."
+slug: jpeg-xl-jxl-guide-2026
+publishedAt: 2026-08-22
+keywords:
+  - JPEG XL
+  - JXL format
+  - JPEG XL browser support 2026
+  - JXL vs AVIF
+  - JXL vs WebP
+  - JPEG XL web delivery
+  - progressive image loading
+cluster: format-conversion
+heroImage: hero
+heroImageAlt: "JPEG XL logo with progressive loading visualization"
+relatedTools:
+  - batch-image-compressor
+  - avif-compressor
+faq:
+  - question: "Is JPEG XL supported in browsers in 2026?"
+    answer: "Browser support is mixed. Safari supports JXL since iOS 17 and macOS Sonoma. Chrome removed experimental support in 2023 but discussions continue. Firefox supports it behind a flag. For production web delivery in 2026, JXL requires a polyfill or fallback strategy."
+  - question: "Is JPEG XL better than AVIF?"
+    answer: "JPEG XL offers faster encoding, progressive decode, and lossless recompression of legacy JPEGs. AVIF often wins on file size for lossy photos at low bitrates. JXL's best use case is high-fidelity photography and workflows where encode speed and decode progressiveness matter more than last-byte savings."
+  - question: "Why did Chrome drop JPEG XL support?"
+    answer: "Chrome cited low adoption and ecosystem signals in 2023. The decision remains controversial — JPEG XL advocates argue the format needed time to mature. As of mid-2026, re-inclusion discussions are ongoing but no timeline is confirmed."
+  - question: "Can I use JPEG XL for website images today?"
+    answer: "You can with caveats: serve JXL to Safari, provide AVIF and WebP fallbacks via picture elements, or use a WASM decoder polyfill. For most sites, AVIF + WebP + JPEG is simpler and more reliable in 2026."
+  - question: "What are JPEG XL's advantages over WebP?"
+    answer: "Faster encoding, better lossless compression, progressive decode (shows low-res preview quickly), higher bit depth support (12–16 bit for HDR), and lossless recompression of existing JPEGs without generation loss."
+  - question: "Does JPEG XL support animation?"
+    answer: "Yes. JPEG XL supports efficient multi-frame animation, but tooling and browser playback are less mature than animated WebP or video formats in 2026."
+---
+
+**JPEG XL** (file extension `.jxl`) was supposed to be the "one format to rule them all" — better compression than JPEG, faster encoding than AVIF, progressive decode like classic JPEG, lossless for archival, lossy for web delivery, and animation support built in. Then Chrome dropped it in 2023. By mid-2026, the landscape is nuanced: Safari supports it, Chrome discussions continue, and AVIF dominates modern web stacks.
+
+Should you use JPEG XL for website images in 2026? The honest answer: **probably not yet** unless you have Safari-heavy traffic, control the full pipeline, and need JXL's specific advantages — progressive decode or lossless JPEG recompression. For most teams, AVIF + WebP + JPEG remains safer.
+
+This guide covers what JPEG XL is, where it excels, current browser support, and when the format makes sense vs staying with AVIF and WebP.
+
+## What this guide covers
+
+| Section | What you'll learn |
+| --- | --- |
+| [What is JPEG XL](#what-is-jpeg-xl) | Origins, goals, and design philosophy |
+| [Browser support 2026](#browser-support-in-2026) | Who can decode JXL today |
+| [JXL vs AVIF](#jxl-vs-avif) | Compression, encode speed, and use cases |
+| [JXL vs WebP](#jxl-vs-webp) | When JXL wins and where WebP is safer |
+| [JXL vs JPEG](#jxl-vs-jpeg-legacy) | Lossless recompression and migration paths |
+| [Progressive decode](#progressive-decode-advantage) | Why incremental loading matters |
+| [Encoding and tooling](#encoding-jxl-images) | CLI encoders, browser tools, and presets |
+| [Web delivery strategy](#web-delivery-strategy-for-jxl) | Picture fallbacks, polyfills, and Safari-first approaches |
+| [When to use JXL](#when-to-use-jxl-in-2026) | High-fidelity photography, progressive loading needs |
+| [When to skip JXL](#when-to-skip-jxl) | Simplicity, universal support, and AVIF sufficiency |
+
+## What is JPEG XL
+
+JPEG XL is a royalty-free image format standardized in 2021 (ISO/IEC 18181). It was designed to **replace legacy JPEG** with modern compression while preserving JPEG's progressive decode behavior — the gradual reveal of detail as bytes arrive over slow connections.
+
+### Design goals
+
+- **Better compression than JPEG** — 30–60% smaller at similar quality
+- **Faster encoding than AVIF** — seconds vs minutes for large photos
+- **Progressive decode** — show a blurry preview quickly, refine as more bytes load
+- **Lossless recompression** — convert existing JPEGs to JXL without quality loss, then decode back to identical pixels
+- **High bit depth** — 12-bit and 16-bit for HDR photography and professional workflows
+- **Animation support** — efficient multi-frame sequences
+
+### What happened
+
+JPEG XL launched with optimism. Chrome added experimental support in 2021, then removed it in 2023 citing "insufficient interest." Safari shipped stable support in 2023. Firefox supports it behind `image.jxl.enabled` flag. By 2026, the format is **technically excellent but adoption-challenged**.
+
+## Browser support in 2026
+
+| Browser | Desktop support | Mobile support | Notes |
+| --- | --- | --- | --- |
+| **Safari** | ✅ macOS Sonoma+ | ✅ iOS 17+ | Stable since 2023 |
+| **Chrome** | ❌ Removed 2023 | ❌ | Discussions ongoing; no ETA for re-addition |
+| **Firefox** | 🟡 Flag only | 🟡 Flag only | Enable via `image.jxl.enabled` in about:config |
+| **Edge** | ❌ Chromium base | ❌ | Follows Chrome |
+
+**Practical takeaway:** Safari users can view JXL natively. Chrome/Edge users need a polyfill or fallback. For production websites, this means **Safari-first strategies or multi-format picture elements**.
+
+### Polyfills
+
+WASM-based JXL decoders exist but add bundle weight and decode latency. Most teams skip polyfills and serve AVIF/WebP to non-Safari browsers instead.
+
+## JXL vs AVIF
+
+| Factor | JPEG XL | AVIF |
+| --- | --- | --- |
+| **Lossy compression** | Very good | Excellent (often 10–20% smaller) |
+| **Lossless compression** | Excellent | Good |
+| **Encode speed** | Fast (2–10× faster than AVIF) | Slow |
+| **Decode speed** | Fast | Fast (hardware-accelerated) |
+| **Progressive decode** | ✅ Native | ❌ No (AVIF loads all-or-nothing) |
+| **Browser support** | Safari only (2026) | Chrome, Safari, Firefox, Edge |
+| **Animation** | Supported (limited tooling) | Supported (limited tooling) |
+| **HDR / wide gamut** | Excellent (12–16 bit) | Good (10 bit typical) |
+
+### When JXL beats AVIF
+
+- **Encode time matters** — batch jobs with hundreds of photos
+- **Progressive loading needed** — slow connections benefit from incremental reveal
+- **Lossless archival** — 12–16 bit photo libraries
+- **Lossless JPEG migration** — recompress existing JPEGs without generation loss
+
+### When AVIF beats JXL
+
+- **Maximum compression** — AVIF saves more bytes at equal perceptual quality
+- **Universal browser support** — AVIF works everywhere modern in 2026
+- **Hardware decode acceleration** — many devices have native AVIF decoders
+- **Ecosystem maturity** — more tools, CDNs, and CMS plugins support AVIF
+
+**Bottom line:** If you need the smallest possible file for web delivery and don't care about progressive decode, AVIF wins. If you need fast encoding and progressive reveal, JXL wins — but only where Safari support is acceptable.
+
+Read [AVIF vs WebP](/blog/format-conversion/avif-vs-webp-2026) for AVIF's comparison against WebP.
+
+## JXL vs WebP
+
+| Factor | JPEG XL | WebP |
+| --- | --- | --- |
+| **Lossy compression** | Better (15–30% smaller) | Good |
+| **Lossless compression** | Better | Good |
+| **Encode speed** | Comparable | Fast |
+| **Browser support** | Safari only (2026) | Universal |
+| **Progressive decode** | ✅ | ❌ |
+| **Transparency** | ✅ | ✅ |
+| **Animation** | ✅ (rare usage) | ✅ (mature tooling) |
+
+WebP is the **safe modern default** in 2026. It works everywhere, encodes quickly, and handles most web delivery cases well. JXL offers better compression and progressive loading but requires Safari-only or fallback strategies.
+
+If you're migrating from JPEG and need universal support, **WebP is the pragmatic choice**. If you serve photography to a Safari-heavy audience and want progressive decode, JXL makes sense.
+
+## JXL vs JPEG (legacy)
+
+JPEG XL's original mission was replacing JPEG. Here's how they compare:
+
+### Lossless JPEG recompression
+
+JPEG XL can **losslessly transcode** an existing JPEG to `.jxl`, shrinking the file by ~20% without any quality loss. Decoding the JXL recovers pixel-identical output to the original JPEG.
+
+**Use case:** Archive millions of JPEG files in 20% less space, decode on demand.
+
+**Limitation:** Requires JXL-aware archives. Most CMSs and photo libraries don't support this workflow in 2026.
+
+### New lossy encodes
+
+For fresh photography, JXL at comparable visual quality is **30–60% smaller** than JPEG at quality 85. This is similar to WebP savings and slightly behind AVIF.
+
+### Progressive decode
+
+Both JPEG and JXL load progressively — the image appears blurry and refines. AVIF and WebP do not. On slow connections (mobile, rural areas), progressive formats feel faster even when total bytes are equal.
+
+## Progressive decode advantage
+
+Progressive loading is JXL's killer feature — and undervalued in modern web performance debates.
+
+### How progressive decode works
+
+JPEG XL encodes the image in **layers of refinement**:
+
+1. Browser receives first few KB → shows a 64px blurry preview
+2. More bytes arrive → refines to 256px
+3. Full file loads → final quality
+
+User sees **something immediately**, not a blank space until 100% loads. This improves perceived performance on slow connections.
+
+### Why AVIF and WebP don't do this
+
+AVIF and WebP are **all-or-nothing** formats. The image appears only after the full file downloads. On a 3G connection, a 150 KB AVIF hero might take 4 seconds to appear — JPEG XL would show a preview in under 1 second and refine.
+
+### Real-world impact
+
+For **editorial sites, portfolios, and photo galleries** on mobile networks, progressive decode reduces bounce rate. Users stay on the page because they see content faster.
+
+For **app UI and product thumbnails**, progressive decode matters less — those images are usually small and load quickly.
+
+<Callout title="Progressive JPEGs still work" variant="info">
+Classic progressive JPEG (not JPEG XL) also loads incrementally. If you want progressive behavior today without JXL, encode JPEGs with progressive flag enabled. Many tools default to baseline (sequential) JPEG instead.
+</Callout>
+
+## Encoding JXL images
+
+### Browser-based encoding
+
+Asset Melt supports JXL export via WASM codecs. Drop a JPEG or PNG, select JPEG XL output, tune quality, and export.
+
+For batch workflows, use the <ToolLink tool="batch-image-compressor">batch compressor</ToolLink> with JXL preset.
+
+### CLI encoding
+
+Install `libjxl` (Homebrew, apt, or build from source):
+
+```bash
+brew install jpeg-xl
+```
+
+Encode a JPEG to JXL:
+
+```bash
+cjxl input.jpg output.jxl --quality 85 --effort 7
+```
+
+**Options:**
+
+- `--quality` — 0–100 scale (similar to JPEG; ~80–90 for web)
+- `--effort` — 1–9 (higher = slower encode, smaller file)
+- `--progressive` — enable progressive decode (default in most builds)
+
+Encode losslessly:
+
+```bash
+cjxl input.png output.jxl --lossless
+```
+
+### Quality settings starting points
+
+| Use case | Quality setting | Typical file size |
+| --- | --- | --- |
+| Web hero (lossy) | 80–88 | 100–180 KB at 1920px |
+| Blog inline photo | 75–85 | 60–120 KB at 1200px |
+| Thumbnail | 70–80 | 20–40 KB at 600px |
+| Lossless archival | `--lossless` | 30–50% smaller than PNG |
+
+Always compare at display size — JXL quality 80 is not identical to JPEG quality 80.
+
+## Web delivery strategy for JXL
+
+If you want to ship JPEG XL in production, use a **multi-format fallback** strategy.
+
+### Picture element with JXL first
+
+```html
+<picture>
+  <source srcset="/images/hero.jxl" type="image/jxl" />
+  <source srcset="/images/hero.avif" type="image/avif" />
+  <source srcset="/images/hero.webp" type="image/webp" />
+  <img src="/images/hero.jpg" alt="Description" width="1920" height="1080" />
+</picture>
+```
+
+**Browsers pick the first source they understand:**
+
+- Safari → JXL (smallest, progressive)
+- Chrome/Edge → AVIF (next smallest)
+- Older browsers → WebP or JPEG
+
+This requires exporting **four variants** per image. For high-traffic landing pages, the byte savings on Safari justify the workflow. For most blogs, AVIF + WebP is simpler.
+
+### Safari-only strategy
+
+Detect Safari via `Accept` header or user-agent, serve JXL. Serve AVIF/WebP to everyone else.
+
+Most CDNs support `Accept` negotiation. Cloudflare, Cloudinary, and Imgix can serve JXL when `Accept: image/jxl` is present.
+
+### Polyfill approach (not recommended)
+
+Load a WASM JXL decoder for non-Safari browsers. This adds ~100–300 KB to your bundle and decode latency. Only viable for niche apps with no fallback.
+
+## When to use JXL in 2026
+
+Consider JPEG XL when **all** of these are true:
+
+1. **Safari traffic is significant** (iOS users, creative industry sites, photography portfolios)
+2. **Progressive decode matters** — slow mobile networks, editorial content, galleries
+3. **You control the pipeline** — can export four formats (JXL, AVIF, WebP, JPEG) without CMS friction
+4. **Encode speed matters** — batch processing hundreds of images overnight
+5. **High-fidelity workflows** — 12-bit HDR photography, archival, or lossless JPEG migration
+
+**Example use cases:**
+
+- **Photography portfolio site** — Safari-heavy audience, progressive loading improves UX on mobile
+- **Editorial magazine** — slow connections benefit from incremental reveal
+- **Photo agency archive** — lossless JPEG recompression saves storage
+- **HDR photography showcase** — 12–16 bit color depth
+
+## When to skip JXL
+
+Skip JPEG XL when:
+
+- **You need universal browser support** — Chrome/Edge users need fallbacks anyway
+- **Simplicity matters** — managing four formats per image is workflow overhead
+- **AVIF meets your needs** — smaller files matter more than progressive decode
+- **CMS limitations** — WordPress, Shopify, and most headless CMSs don't support JXL upload in 2026
+- **CDN doesn't support JXL** — check your CDN's format support before committing
+
+**Most websites in 2026 should stick with AVIF + WebP + JPEG.** Add JXL only when Safari traffic and progressive decode justify the complexity.
+
+## JPEG XL roadmap and future
+
+Chrome's 2023 removal was controversial. JPEG XL advocates argue:
+
+- Format standardization completed (ISO/IEC 18181)
+- Safari adoption proves viability
+- Progressive decode is valuable for mobile UX
+- Encode speed beats AVIF significantly
+
+Chrome's position:
+
+- Ecosystem adoption signals were weak
+- AVIF already fills modern format niche
+- Development resources are finite
+
+As of mid-2026, **re-inclusion discussions are active** but no timeline exists. If Chrome ships stable JXL support in 2027+, the format's prospects improve dramatically. Until then, it's a Safari-first bet.
+
+## Practical decision flowchart
+
+```
+Is your site Safari-heavy (>30% iOS traffic)?
+  ├─ No → Use AVIF + WebP + JPEG. Skip JXL.
+  └─ Yes → Continue
+
+Do you need progressive loading (slow networks, galleries)?
+  ├─ No → Use AVIF + WebP. Progressive decode won't be noticed.
+  └─ Yes → Continue
+
+Can you export and maintain 4 formats per image?
+  ├─ No → Use AVIF + WebP. JXL overhead not worth it.
+  └─ Yes → Try JXL for Safari, AVIF for others
+```
+
+For most teams, the answer lands at **AVIF + WebP** because workflow simplicity and universal support outweigh JXL's progressive decode advantage.
+
+## Getting started with JXL (Safari-first strategy)
+
+If you want to experiment:
+
+1. Export a hero image to JXL quality 85 in Asset Melt.
+2. Export the same source to AVIF and WebP for fallback.
+3. Use a `<picture>` element with JXL first, AVIF second, WebP third.
+4. Test on Safari (macOS or iOS 17+) to confirm JXL serves.
+5. Verify Chrome receives AVIF fallback.
+
+<StudioCta label="Encode JPEG XL in the studio" />
+
+**Related reading:** [Best format for website images](/blog/format-conversion/best-format-for-website-images) · [AVIF vs WebP](/blog/format-conversion/avif-vs-webp-2026) · [Compress images without losing quality](/blog/image-compression/how-to-compress-images-without-losing-quality)
