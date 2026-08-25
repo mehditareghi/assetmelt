@@ -69,7 +69,7 @@ describe('studio SEO long-form content', () => {
     }
   })
 
-  it('names GIF / TIFF / HEIC limits on those pair pages', () => {
+  it('names GIF / TIFF limits on those pair pages', () => {
     for (const pair of INDEXABLE_FORMAT_PAIRS) {
       const text = flattenStudioSeoText(buildStudioSeoContent(studioSearchFromPair(pair)))
       if (pair.from === 'gif') {
@@ -79,7 +79,7 @@ describe('studio SEO long-form content', () => {
         expect(text).toContain(TIFF_FIRST_PAGE_COPY)
       }
       if (pair.from === 'heic') {
-        expect(text).toContain(OPEN_LIMITATIONS['4.3'].copy)
+        expect(text).not.toMatch(/JPEG at quality 0\.92/)
       }
     }
   })
@@ -107,7 +107,7 @@ describe('studio SEO long-form content', () => {
     expect(text.toLowerCase()).toMatch(/client-side|browser/)
     expect(text).toContain(OPEN_LIMITATIONS['4.4'].copy)
     expect(text).toContain(TIFF_FIRST_PAGE_COPY)
-    expect(text).toContain(OPEN_LIMITATIONS['4.3'].copy)
+    expect(text).not.toMatch(/JPEG at quality 0\.92/)
     expect(content.beforeAfter.caption.toLowerCase()).not.toMatch(/tinyjpg|tinypng/)
   })
 

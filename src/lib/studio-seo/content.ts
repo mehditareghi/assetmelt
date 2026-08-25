@@ -61,7 +61,7 @@ const DEFAULT_FAQ: StudioFaqItem[] = [
   {
     question: 'Which image formats does the Studio support?',
     answer:
-      'You can open JPEG, PNG, WebP, AVIF, GIF (first frame), TIFF (first page), BMP, SVG, HEIC/HEIF, JPEG XL, and QOI. For output you can choose JPEG (MozJPEG), PNG (Oxipng, optional Reduce palette), WebP, AVIF, JPEG XL, or QOI. HEIC/HEIF is decoded through a high-quality JPEG (quality 0.92) before the rest of the pipeline, so HEIC→PNG is not a lossless round-trip from the original file.',
+      'You can open JPEG, PNG, WebP, AVIF, GIF (first frame), TIFF (first page), BMP, SVG, HEIC/HEIF, JPEG XL, and QOI. For output you can choose JPEG (MozJPEG), PNG (Oxipng, optional Reduce palette), WebP, AVIF, JPEG XL, or QOI. HEIC/HEIF decodes to pixels via libheif (no JPEG intermediate), so HEIC→PNG stores that decode losslessly — Camera roll HEIC itself is still a lossy capture.',
   },
   {
     question: 'Can I make PNGs as small as TinyPNG?',
@@ -106,7 +106,7 @@ const DEFAULT_FAQ: StudioFaqItem[] = [
   {
     question: 'Can I see EXIF before stripping metadata?',
     answer:
-      'Yes. Format → Metadata shows camera, capture date, and GPS from the source file (HEIC is read before the JPEG bounce). Keep on JPEG, WebP, or PNG warns if the photo has GPS. Strip GPS removes location and keeps camera/ICC. AVIF, JXL, and QOI always export pixels only. Inspection is local — tags are not uploaded.',
+      'Yes. Format → Metadata shows camera, capture date, and GPS from the source file (including HEIC). Keep on JPEG, WebP, or PNG warns if the photo has GPS. Strip GPS removes location and keeps camera/ICC. AVIF, JXL, and QOI always export pixels only. Inspection is local — tags are not uploaded.',
   },
   {
     question: 'Can I share my Studio settings?',
@@ -331,7 +331,7 @@ function targetContent(to: StudioOutputIntent): Omit<
       heading: `Privacy when you ${keyword}`,
       paragraphs: [
         `When you ${keyword}, ${PRIVACY_SNIPPET}`,
-        `Convert to ${toLabel} never uploads the bitmap. GIF still uses the first frame only. TIFF uses the first page only. HEIC still uses the JPEG 0.92 bounce before you ${keyword}.`,
+        `Convert to ${toLabel} never uploads the bitmap. GIF still uses the first frame only. TIFF uses the first page only. HEIC decodes to pixels via libheif before you ${keyword}.`,
       ],
     },
   ]
@@ -414,7 +414,7 @@ function defaultContent(): Omit<
           ['Landscape JPEG', '3–5 MB', 'WebP ~300–500 KB', 'Resize to ~1920px first'],
           ['Phone UI PNG', '1–3 MB', 'WebP/AVIF ~100–250 KB', 'Watch small text on AVIF'],
           ['Product / logo PNG', '20–80 KB', 'Palette PNG-8 or WebP', 'Turn on Reduce palette for flat art'],
-          ['iPhone HEIC', '~2.5 MB', 'JPEG ~0.9 MB or WebP ~0.3 MB', OPEN_LIMITATIONS['4.3'].copy],
+          ['iPhone HEIC', '~2.5 MB', 'JPEG ~0.9 MB or WebP ~0.3 MB', 'libheif decode, then MozJPEG/WebP'],
         ],
       },
     ],
@@ -430,7 +430,7 @@ function defaultContent(): Omit<
         heading: 'How the studio compresses (without a server)',
         paragraphs: [
           'Decode in a worker, optional crop/resize/filters, then encode with Squoosh-grade WASM. Live before/after is the same preview you will download.',
-          `${OPEN_LIMITATIONS['4.4'].copy} ${TIFF_FIRST_PAGE_COPY} ${OPEN_LIMITATIONS['4.3'].copy}`,
+          `${OPEN_LIMITATIONS['4.4'].copy} ${TIFF_FIRST_PAGE_COPY}`,
           'For logos and flat graphics, Reduce palette (lossy PNG-8) then Oxipng, or turn on size budget for PNG. For photos with a hard KB cap, turn on size budget for JPEG, WebP, AVIF, or JPEG XL.',
         ],
       },

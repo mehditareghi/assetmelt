@@ -100,7 +100,7 @@ function AboutPage() {
       <p>
         The codec stack builds on the open-source ecosystem that powered Squoosh —{' '}
         <code>@jsquash</code> bindings around MozJPEG, libwebp, rav1e, Oxipng, and more. HEIC
-        decoding uses local WASM decoders, currently through a JPEG intermediate at quality 0.92.
+        decoding uses local WASM decoders (libheif → ImageData; no JPEG intermediate).
         The UI is a React app built with TanStack Start and TanStack Router, prerendered for fast
         loads and search-engine discoverability.
       </p>

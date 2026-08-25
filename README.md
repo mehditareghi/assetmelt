@@ -24,7 +24,7 @@ Built with Vite, React, shadcn/ui, and Squoosh-grade WASM codecs (@jsquash).
 
 ## Supported input formats
 
-JPEG, PNG, WebP, AVIF, GIF (first frame), TIFF (first page), BMP, SVG, HEIC/HEIF (JPEG intermediate), JXL, QOI
+JPEG, PNG, WebP, AVIF, GIF (first frame), TIFF (first page), BMP, SVG, HEIC/HEIF (libheif → ImageData), JXL, QOI
 
 ## Getting started
 

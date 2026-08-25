@@ -315,7 +315,7 @@ function buildSizeBudgetPage(kb: SizeBudgetLandingKb): ToolPageContent {
         paragraphs: [
           'Size-budget encoding runs on JPEG, WebP, AVIF, JPEG XL, and PNG (binary-search palette colors with Reduce palette, then Oxipng). Best for logos and flat graphics; photos usually fit better as WebP or AVIF.',
           SIZE_BUDGET_SKIPS_QOI_COPY,
-          `${OPEN_LIMITATIONS['4.3'].copy} ${OPEN_LIMITATIONS['4.4'].copy} ${TIFF_FIRST_PAGE_COPY}`,
+          `${OPEN_LIMITATIONS['4.4'].copy} ${TIFF_FIRST_PAGE_COPY}`,
         ],
       },
     ],

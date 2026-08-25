@@ -11,7 +11,7 @@ export const TARGET_GUIDES: Record<StudioOutputIntent, TargetGuide> = {
     ],
     howItWorks: [
       'Drop any supported still. The official WebP encoder runs in a worker. Size budget is available when you convert to WebP.',
-      'GIF uses the first frame only; TIFF uses the first page only; HEIC is decoded through JPEG at quality 0.92, then you still convert to WebP locally.',
+      'GIF uses the first frame only; TIFF uses the first page only; HEIC decodes via libheif (no JPEG bounce), then you still convert to WebP locally.',
       'Preview with the scrubber, then download one WebP or a ZIP.',
     ],
     whenToUse: [
@@ -36,7 +36,7 @@ export const TARGET_GUIDES: Record<StudioOutputIntent, TargetGuide> = {
     typicalRows: [
       ['JPEG photo', '3 MB JPEG', '~400 KB WebP', 'Convert to WebP at q80'],
       ['PNG screenshot', '1.8 MB PNG', '~220 KB WebP', 'Alpha kept'],
-      ['HEIC iPhone', '2.5 MB HEIC', '~280 KB WebP', 'After JPEG bounce'],
+      ['HEIC iPhone', '2.5 MB HEIC', '~280 KB WebP', 'libheif → WebP'],
     ],
     beforeAfter: {
       scene: 'photo',
@@ -75,7 +75,7 @@ export const TARGET_GUIDES: Record<StudioOutputIntent, TargetGuide> = {
     ],
     howItWorks: [
       'Drop mixed inputs. libavif encodes in a worker. Pause long batches — AVIF is CPU-heavy.',
-      'GIF first frame, TIFF first page, HEIC JPEG bounce still apply, then you convert to AVIF.',
+      'GIF first frame, TIFF first page, and HEIC libheif decode still apply, then you convert to AVIF.',
       'Also export WebP so you are not AVIF-only.',
     ],
     whenToUse: [
@@ -140,7 +140,7 @@ export const TARGET_GUIDES: Record<StudioOutputIntent, TargetGuide> = {
     howItWorks: [
       'Drop any supported still. MozJPEG encodes. Size budget is available when you convert to JPEG.',
       'Progressive JPEG helps web previews. Turn it off if a picky RIP complains.',
-      'HEIC still bounces through JPEG 0.92 before MozJPEG; GIF first frame; TIFF first page.',
+      'HEIC decodes via libheif before MozJPEG; GIF first frame; TIFF first page.',
     ],
     whenToUse: [
       'Any “JPG only” requirement.',
@@ -202,7 +202,7 @@ export const TARGET_GUIDES: Record<StudioOutputIntent, TargetGuide> = {
     ],
     howItWorks: [
       'Drop mixed inputs. Oxipng encodes. Turn on Reduce palette only for logos/icons.',
-      'GIF first frame, TIFF first page, HEIC JPEG bounce — then convert to PNG from that bitmap (HEIC to PNG is not lossless from HEIC).',
+      'GIF first frame, TIFF first page, HEIC libheif decode — then convert to PNG from that bitmap (lossless from the decode; Camera roll HEIC itself is still lossy).',
       'Download PNG or a ZIP. Folder trees keep relative paths.',
     ],
     whenToUse: [

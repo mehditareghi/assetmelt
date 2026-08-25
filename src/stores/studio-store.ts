@@ -540,37 +540,11 @@ export const useStudioStore = create<StudioState>()(
 
         for (const item of incoming) {
           const file = item.file
-          let workingFile = file
-          let buffer = await file.arrayBuffer()
+          const workingFile = file
+          const buffer = await file.arrayBuffer()
           let inputFormat = detectFormatFromBuffer(buffer, file.name)
           inputFormat = await resolveHeicInputFormat(file, inputFormat)
-          let sourceByteSize: number | undefined
           const exif = inspectExif(buffer)
-
-          if (inputFormat === 'heic') {
-            try {
-              const prepared = await prepareFileForProcessing(file, inputFormat)
-              workingFile = prepared.file
-              inputFormat = prepared.inputFormat
-              sourceByteSize = prepared.sourceByteSize
-              buffer = await workingFile.arrayBuffer()
-            } catch (error) {
-              const message =
-                error instanceof Error ? error.message : 'Could not decode HEIC image'
-              newFiles.push({
-                id: generateId(),
-                file,
-                name: file.name,
-                relativePath: item.relativePath,
-                inputFormat: 'heic',
-                status: 'error',
-                progress: 0,
-                error: message,
-                exif,
-              })
-              continue
-            }
-          }
 
           let originalUrl: string | undefined
           let originalWidth: number | undefined
@@ -585,7 +559,23 @@ export const useStudioStore = create<StudioState>()(
               if (willBeActive) {
                 originalUrl = createPreviewObjectUrl(preview.previewBuffer)
               }
-            } catch {
+            } catch (error) {
+              if (inputFormat === 'heic') {
+                const message =
+                  error instanceof Error ? error.message : 'Could not decode HEIC image'
+                newFiles.push({
+                  id: generateId(),
+                  file,
+                  name: file.name,
+                  relativePath: item.relativePath,
+                  inputFormat: 'heic',
+                  status: 'error',
+                  progress: 0,
+                  error: message,
+                  exif,
+                })
+                continue
+              }
               // Fallback: file still processable; preview may be blank until output is ready
               if (willBeActive) {
                 originalUrl = URL.createObjectURL(workingFile)
@@ -610,7 +600,6 @@ export const useStudioStore = create<StudioState>()(
             name: workingFile.name,
             relativePath: item.relativePath,
             inputFormat,
-            sourceByteSize,
             status: 'pending',
             progress: 0,
             originalUrl,

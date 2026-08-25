@@ -30,7 +30,7 @@ export function ExifInspector({
         {empty ? (
           <p className="font-mono text-[11px] leading-relaxed text-muted-foreground">
             No camera, date, or GPS tags in this file. Inspector reads the source before encode —
-            HEIC is inspected before the JPEG bounce.
+            including HEIC / HEIF.
           </p>
         ) : (
           <dl className="grid gap-1.5 font-mono text-[11px]">

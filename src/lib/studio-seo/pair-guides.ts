@@ -325,14 +325,14 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
   },
 
   'heic->jpeg': {
-    hook: 'iPhone Camera rolls default to HEIC; JPG remains the universal share and CMS upload format. HEIC is decoded through a JPEG intermediate (quality 0.92) before MozJPEG encode.',
+    hook: 'iPhone Camera rolls default to HEIC; JPG remains the universal share and CMS upload format. Asset Melt decodes HEIC to pixels via libheif, then encodes with MozJPEG — one intentional JPEG encode, no pre-lossy bounce.',
     why: [
       'HEIC to JPG (HEIC to JPEG) is the conversion people search when an upload form rejects iPhone photos. Schools, insurers, CRMs, and many printers still want JPEG.',
-      'HEIC / HEIF is decoded through JPEG at quality 0.92 before the rest of the pipeline, so this is a compatibility handoff — not a bit-perfect HEIC round-trip.',
+      'Camera roll HEIC is already a lossy capture. Decoding to pixels then MozJPEG is the expected compatibility handoff — not a bit-perfect HEIC round-trip.',
       'Everything still runs in the browser. The photo is not uploaded; I cannot see it.',
     ],
     howItWorks: [
-      'Drop .heic / .heif files. Output is JPEG via MozJPEG after the HEIC decode bounce.',
+      'Drop .heic / .heif files. libheif decodes to ImageData, then MozJPEG encodes at your quality.',
       'Preview, optionally resize for email, strip GPS if you are sending the file to a third party, then download.',
       'Batch a whole Camera roll folder if you need a ZIP of JPEGs for a trip or a client.',
     ],
@@ -342,7 +342,7 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
       'Skip HEIC to JPG when the destination already accepts HEIC and you want to keep Apple’s smaller original.',
     ],
     qualityNote:
-      'You cannot recover detail the 0.92 JPEG bounce already quantized. For web delivery after HEIC, consider HEIC to WebP or HEIC to AVIF on this same Studio instead of stacking another heavy JPEG.',
+      'You cannot recover detail the phone’s HEIC encoder already discarded. For web delivery after HEIC, consider HEIC to WebP or HEIC to AVIF on this same Studio instead of stacking another heavy JPEG.',
     settingsTips: [
       'Strip GPS before public posts.',
       'Use size budget if the form has a 2 MB or 200 KB cap.',
@@ -350,13 +350,13 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
     ],
     comparisonRows: [
       ['Phone original', 'HEIC / HEIF', 'JPEG everyone accepts'],
-      ['Decode path', 'Native HEIC', 'HEIC → JPEG 0.92 → MozJPEG'],
-      ['Lossless from HEIC?', 'N/A', 'No — bounce is lossy'],
+      ['Decode path', 'Native HEIC', 'libheif → MozJPEG'],
+      ['Lossless from HEIC?', 'N/A', 'No — JPEG output is lossy'],
       ['Size budget', 'N/A on input', 'Supported on JPEG out'],
-      ['Metadata inspect', 'Read before bounce', 'Export follows Format → Metadata'],
+      ['Metadata inspect', 'Read from HEIC', 'Export follows Format → Metadata'],
     ],
     typicalRows: [
-      ['iPhone photo', '~2.5 MB HEIC', '~900 KB JPEG', 'Quality ~85 after bounce'],
+      ['iPhone photo', '~2.5 MB HEIC', '~900 KB JPEG', 'Quality ~85'],
       ['Email-sized', '~2.5 MB HEIC', '~250 KB JPEG', 'Resize longest edge ~1280px'],
       ['Form with 100 KB cap', '~2.5 MB HEIC', '~95 KB JPEG', 'Size budget on'],
     ],
@@ -364,7 +364,7 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
       scene: 'photo',
       scenario: 'An outdoor Camera roll photo a website will not accept as HEIC.',
       caption:
-        'Illustrative HEIC to JPG. HEIC is decoded through JPEG at quality 0.92 — not lossless from the original HEIC.',
+        'Illustrative HEIC to JPG. libheif decodes pixels, then MozJPEG encodes — Camera roll HEIC is still a lossy capture.',
       before: { format: 'HEIC', size: '2.4 MB', note: 'iPhone Camera roll' },
       after: { format: 'JPEG', size: '860 KB', note: 'MozJPEG, shareable' },
       savings: 'Universal JPG, not always smaller',
@@ -372,7 +372,8 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
     extraFaq: [
       {
         question: 'Why is HEIC to JPG not lossless?',
-        answer: OPEN_LIMITATIONS['4.3'].copy,
+        answer:
+          'JPEG is a lossy format, and Camera roll HEIC is already lossy. Asset Melt does not add a second JPEG bounce before MozJPEG — it decodes HEIC to pixels first.',
       },
       {
         question: 'Is HEIC to JPG the same as HEIC to JPEG?',
@@ -388,14 +389,14 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
   },
 
   'heic->png': {
-    hook: 'HEIC is decoded through a JPEG intermediate (quality 0.92), so HEIC to PNG is not lossless from the original HEIC — it is a portable handoff after that decode, useful for editors that want PNG.',
+    hook: 'HEIC decodes to pixels via libheif, then Oxipng stores that bitmap — useful for editors that want PNG, without a pre-lossy JPEG bounce.',
     why: [
       'Some tools ingest PNG more happily than JPEG (stickers, certain print queues, apps that expect alpha). HEIC to PNG gives them a file they understand.',
-      'Do not expect a lossless HEIC archive. The JPEG bounce already quantized the photo. HEIC to PNG then stores that decode as Oxipng (lossless from the bounced bitmap, not from HEIC).',
+      'Camera roll HEIC is still a lossy capture. PNG is lossless from the decoded pixels, so HEIC to PNG often grows versus the HEIC file.',
       'If you needed true lossless from iPhone, you would have to capture in a lossless mode Apple does not use for Camera roll HEIC.',
     ],
     howItWorks: [
-      'Drop HEIC. Decode bounce, then PNG encode with Oxipng. Reduce palette is optional if you want TinyPNG-style PNG-8 — usually wrong for photos.',
+      'Drop HEIC. libheif → ImageData → Oxipng. Reduce palette is optional if you want TinyPNG-style PNG-8 — usually wrong for photos.',
       'Size budget on PNG binary-searches palette colors — best for flat graphics; photo HEIC→PNG often stays large even with a budget.',
       'Alpha: Camera HEIC photos are typically opaque. You will get an opaque PNG unless the HEIC actually had transparency.',
     ],
@@ -408,18 +409,18 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
       'Leave Reduce palette off for photos. Palette PNG-8 banding on skin is ugly. Oxipng alone will be large compared with JPEG.',
     settingsTips: [
       'Resize before PNG if the PNG will only be a 800px web asset — full-resolution PNG from HEIC is huge.',
-      'Inspect EXIF on the HEIC before bounce if you need capture data.',
+      'Inspect EXIF on the HEIC if you need capture data.',
       'Prefer HEIC to JPG when the goal is email or CMS upload.',
     ],
     comparisonRows: [
-      ['From HEIC', 'Lossy camera format', 'PNG after JPEG 0.92 bounce'],
+      ['From HEIC', 'Lossy camera format', 'PNG of decoded pixels'],
       ['File size', 'Small on disk', 'Often much larger PNG'],
-      ['Lossless from HEIC?', 'N/A', 'No'],
+      ['Lossless from decode?', 'N/A', 'Yes (Oxipng; palette optional)'],
       ['Size budget', 'N/A', 'Supported (palette search)'],
       ['Reduce palette', 'N/A', 'Optional; photos usually should not'],
     ],
     typicalRows: [
-      ['iPhone still as PNG', '~2.5 MB HEIC', '~8 MB PNG', 'Lossless Oxipng of bounced pixels'],
+      ['iPhone still as PNG', '~2.5 MB HEIC', '~8 MB PNG', 'Lossless Oxipng of decoded pixels'],
       ['Resized 1200px PNG', '~2.5 MB HEIC', '~1.4 MB PNG', 'Still heavier than JPEG'],
       ['Palette PNG-8', '~2.5 MB HEIC', '~400 KB PNG', 'Banding risk — preview first'],
     ],
@@ -427,7 +428,7 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
       scene: 'photo',
       scenario: 'An outdoor HEIC that must open in a PNG-only editor.',
       caption:
-        'Illustrative HEIC to PNG. The PNG is Oxipng of a JPEG-bounced decode — not a lossless HEIC copy.',
+        'Illustrative HEIC to PNG. The PNG is Oxipng of the libheif decode — Camera roll HEIC itself remains a lossy capture.',
       before: { format: 'HEIC', size: '2.4 MB', note: 'Camera original' },
       after: { format: 'PNG', size: '7.8 MB', note: 'Oxipng, full resolution' },
       savings: 'Larger file, more compatible',
@@ -436,11 +437,12 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
       {
         question: 'Why is my HEIC to PNG file bigger than the HEIC?',
         answer:
-          'HEIC is a lossy camera format. PNG stores the decoded pixels losslessly (after the JPEG 0.92 bounce), so HEIC to PNG often grows. That is expected.',
+          'HEIC is a lossy camera format. PNG stores the decoded pixels losslessly, so HEIC to PNG often grows. That is expected.',
       },
       {
         question: 'Is HEIC to PNG lossless?',
-        answer: OPEN_LIMITATIONS['4.3'].copy,
+        answer:
+          'PNG is lossless from the decoded bitmap (unless Reduce palette is on). Camera roll HEIC is still a lossy capture — you cannot recover detail the phone discarded.',
       },
       {
         question: 'Can size budget run on HEIC to PNG?',
@@ -451,14 +453,14 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
   },
 
   'heic->webp': {
-    hook: 'HEIC is decoded through a JPEG intermediate first, then encoded to WebP locally — useful when the destination is a website rather than email or print.',
+    hook: 'HEIC decodes to pixels via libheif, then encodes to WebP locally — useful when the destination is a website rather than email or print.',
     why: [
       'HEIC to WebP is the “iPhone photo, web delivery” path. You avoid uploading Camera roll files to a random converter, and you get a format CDNs like.',
-      'The HEIC JPEG bounce (quality 0.92) still applies. HEIC to WebP is not a lossless iPhone archive; it is a private, local publish step.',
+      'No JPEG bounce before WebP — libheif feeds the encoder directly. Camera roll HEIC is still a lossy capture; this is a private, local publish step.',
       'Prefer this over HEIC to PNG for websites. Prefer HEIC to JPG when the host only takes JPEG.',
     ],
     howItWorks: [
-      'Drop HEIC. Bounce, then WebP encode. Size budget works on the WebP.',
+      'Drop HEIC. libheif decode, then WebP encode. Size budget works on the WebP.',
       'Strip GPS for public pages. Inspect tags on the HEIC before encode.',
       'Also export JPEG if you need a fallback folder in the ZIP.',
     ],
@@ -468,7 +470,7 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
       'Skip HEIC to WebP for institutions that still demand JPG.',
     ],
     qualityNote:
-      'Treat quality like a normal photo WebP (75–90). The bounce already set a ceiling; do not crush quality further unless you must hit a tiny budget.',
+      'Treat quality like a normal photo WebP (75–90). Do not crush quality further unless you must hit a tiny budget.',
     settingsTips: [
       'Size budget is the right tool for “under 200 KB” forms that accept WebP.',
       'Resize to display size × 2.',
@@ -476,10 +478,10 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
     ],
     comparisonRows: [
       ['Input', 'HEIC Camera roll', 'WebP for the web'],
-      ['Decode', 'JPEG 0.92 bounce', 'Then official WebP encoder'],
+      ['Decode', 'libheif → ImageData', 'Then official WebP encoder'],
       ['Size budget', 'N/A on HEIC', 'Supported on WebP'],
       ['Universal share', 'No (Windows often fails)', 'Better, not email-universal'],
-      ['Lossless from HEIC?', 'No', 'No'],
+      ['Lossless from HEIC?', 'No (camera HEIC is lossy)', 'WebP encode is lossy'],
     ],
     typicalRows: [
       ['iPhone → web card', '~2.5 MB HEIC', '~280 KB WebP', 'Quality ~80'],
@@ -490,7 +492,7 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
       scene: 'photo',
       scenario: 'An outdoor iPhone photo published on a marketing site.',
       caption:
-        'Illustrative HEIC to WebP after the local JPEG bounce. Files never leave your device.',
+        'Illustrative HEIC to WebP after a local libheif decode. Files never leave your device.',
       before: { format: 'HEIC', size: '2.4 MB', note: 'Camera roll' },
       after: { format: 'WebP', size: '270 KB', note: 'Web delivery' },
       savings: '~89% smaller',
@@ -502,8 +504,9 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
           'No. HEIC to WebP runs in your browser. Photos are not uploaded, and I cannot see them.',
       },
       {
-        question: 'Why mention a JPEG bounce on a HEIC to WebP page?',
-        answer: OPEN_LIMITATIONS['4.3'].copy,
+        question: 'Is there a JPEG bounce before HEIC to WebP?',
+        answer:
+          'No. Asset Melt decodes HEIC to pixels with libheif, then encodes WebP. Camera roll HEIC is still lossy from capture.',
       },
       {
         question: 'HEIC to WebP vs HEIC to JPG — which should I pick?',
@@ -514,14 +517,14 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
   },
 
   'heic->avif': {
-    hook: 'HEIC is decoded through a JPEG intermediate first, then encoded to AVIF. Private, local, but not a lossless HEIC round-trip — and often the smallest web still you can get from an iPhone photo.',
+    hook: 'HEIC decodes to pixels via libheif, then encodes to AVIF. Private, local, and often the smallest web still you can get from an iPhone photo.',
     why: [
       'HEIC to AVIF is for teams that already ship AVIF and want Camera roll photos in the same pipeline without a desktop app.',
-      'Because of the JPEG bounce, you are encoding AVIF from an already-quantized bitmap. It is still usually smaller than JPEG for heroes.',
+      'No JPEG bounce before AVIF — you encode from the libheif decode. Camera roll HEIC is still a lossy capture.',
       'Keep a WebP or JPEG fallback. AVIF-only iPhone galleries will fail in older browsers.',
     ],
     howItWorks: [
-      'Drop HEIC. Bounce, then libavif. Encode is slower than HEIC to JPG — expected.',
+      'Drop HEIC. libheif decode, then libavif. Encode is slower than HEIC to JPG — expected.',
       'Size budget works. Use it when LCP budgets are strict.',
       'Also export WebP for the ZIP kit.',
     ],
@@ -531,7 +534,7 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
       'Skip HEIC to AVIF for “email this to grandma.” Use HEIC to JPG.',
     ],
     qualityNote:
-      'Preview skin and sky. Low AVIF quality plus the bounce can look waxy. Size budget with a reasonable floor is safer than quality 20.',
+      'Preview skin and sky. Low AVIF quality can look waxy. Size budget with a reasonable floor is safer than quality 20.',
     settingsTips: [
       'Strip GPS.',
       'Do not AVIF-lossless iPhone photos for the web — files get large.',
@@ -539,7 +542,7 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
     ],
     comparisonRows: [
       ['Goal', 'iPhone original', 'Smallest common web still'],
-      ['Decode', 'JPEG 0.92 bounce', 'Then libavif'],
+      ['Decode', 'libheif → ImageData', 'Then libavif'],
       ['Encode time', 'Fast HEIC on device', 'Slower AVIF in WASM'],
       ['Size budget', 'N/A', 'Supported'],
       ['Fallback needed', 'N/A', 'Yes (WebP/JPEG)'],
@@ -553,7 +556,7 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
       scene: 'photo',
       scenario: 'An outdoor iPhone photo used as an LCP hero.',
       caption:
-        'Illustrative HEIC to AVIF. Not lossless from HEIC — the JPEG 0.92 bounce runs first.',
+        'Illustrative HEIC to AVIF. libheif decodes pixels first — Camera roll HEIC remains a lossy capture.',
       before: { format: 'HEIC', size: '2.4 MB', note: 'Camera roll' },
       after: { format: 'AVIF', size: '155 KB', note: 'Hero still' },
       savings: '~94% smaller',
@@ -561,7 +564,8 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
     extraFaq: [
       {
         question: 'Is HEIC to AVIF lossless?',
-        answer: OPEN_LIMITATIONS['4.3'].copy,
+        answer:
+          'No. AVIF encode is lossy (unless you pick a lossless mode), and Camera roll HEIC is already lossy. There is no JPEG bounce before AVIF.',
       },
       {
         question: 'Why is HEIC to AVIF slow?',
@@ -1010,7 +1014,7 @@ export const PAIR_GUIDES: Partial<Record<PairKey, PairGuide>> = {
       {
         question: 'Is GIF to PNG lossless?',
         answer:
-          'The PNG is lossless Oxipng of the decoded first frame unless Reduce palette is on. The GIF itself was already indexed, so GIF to PNG cannot restore colors the GIF never stored. HEIC-style JPEG bounce does not apply here.',
+          'The PNG is lossless Oxipng of the decoded first frame unless Reduce palette is on. The GIF itself was already indexed, so GIF to PNG cannot restore colors the GIF never stored.',
       },
       {
         question: 'How do I batch GIF to PNG?',

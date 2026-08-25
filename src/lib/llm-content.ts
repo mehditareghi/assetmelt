@@ -24,7 +24,7 @@ export const FAQ_ITEMS = [
   {
     question: 'What image formats does Asset Melt support?',
     answer:
-      'Input: JPEG, PNG, WebP, AVIF, GIF (first frame), TIFF (first page), BMP, SVG, HEIC/HEIF (decoded via JPEG quality 0.92), JPEG XL, and QOI. Output: JPEG (MozJPEG), WebP, AVIF, PNG (Oxipng; optional lossy palette), JPEG XL, and QOI.',
+      'Input: JPEG, PNG, WebP, AVIF, GIF (first frame), TIFF (first page), BMP, SVG, HEIC/HEIF (libheif → ImageData), JPEG XL, and QOI. Output: JPEG (MozJPEG), WebP, AVIF, PNG (Oxipng; optional lossy palette), JPEG XL, and QOI.',
   },
   {
     question: 'How is Asset Melt different from Squoosh?',
@@ -69,7 +69,7 @@ export const FAQ_ITEMS = [
   {
     question: 'Can I see EXIF before stripping metadata?',
     answer:
-      'Yes. In Studio Format settings, the metadata inspector shows camera, date, and GPS from the source file before encode (HEIC is inspected before the JPEG bounce). Keep on JPEG/WebP/PNG warns if GPS is present. Strip GPS drops location only. AVIF, JXL, and QOI always export pixels only. Tags stay on your device.',
+      'Yes. In Studio Format settings, the metadata inspector shows camera, date, and GPS from the source file before encode (including HEIC). Keep on JPEG/WebP/PNG warns if GPS is present. Strip GPS drops location only. AVIF, JXL, and QOI always export pixels only. Tags stay on your device.',
   },
   {
     question: 'Can I share my Studio settings?',
@@ -113,7 +113,7 @@ export const KEY_FEATURES = [
   'Shareable recipe URLs (?recipe= preset or compact pipeline; no images)',
   'Multi-format one-run (Also export AVIF / WebP / JPEG; ZIP folders per format)',
   'Responsive export — width ladder ZIP + <picture> / next/image snippets (current file)',
-  'HEIC/HEIF input (decoded via JPEG quality 0.92)',
+  'HEIC/HEIF input (libheif → ImageData)',
   'TIFF input (first page)',
   'Optional PWA offline pack (not automatic)',
   'Advanced codec parameter control',
@@ -128,7 +128,7 @@ export const SUPPORTED_INPUT_FORMATS = [
   'GIF (first frame)',
   'BMP',
   'SVG',
-  'HEIC/HEIF (JPEG intermediate)',
+  'HEIC/HEIF (libheif decode)',
   'JPEG XL',
   'QOI',
   'TIFF (first page)',

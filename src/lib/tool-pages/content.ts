@@ -205,7 +205,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
       {
         question: 'Will I lose quality converting HEIC to JPG?',
         answer:
-          'HEIC is first decoded to JPEG at quality 0.92, then MozJPEG encodes that bitmap at your chosen quality. That is two lossy JPEG steps — expected for HEIC→JPG, and it also means HEIC→PNG is not lossless from the original HEIC.',
+          'HEIC decodes to pixels via libheif, then MozJPEG encodes at your chosen quality. That is one intentional JPEG encode — not a double JPEG bounce. HEIC→PNG stores the same decode losslessly (Camera roll HEIC itself remains a lossy capture).',
       },
       {
         question: 'Does this work on Windows and Mac?',
@@ -535,7 +535,7 @@ export const TOOL_PAGES: Record<ToolPageId, ToolPageContent> = {
       {
         question: 'Can I see EXIF and GPS before I strip metadata?',
         answer:
-          'Yes. Studio Format → Metadata shows camera, date, and GPS from the source file (HEIC is read before the JPEG bounce). Keep on JPEG, WebP, or PNG warns if GPS would be written. Strip GPS drops location only. AVIF, JXL, and QOI always export pixels only. Tags stay on your device.',
+          'Yes. Studio Format → Metadata shows camera, date, and GPS from the source file (including HEIC). Keep on JPEG, WebP, or PNG warns if GPS would be written. Strip GPS drops location only. AVIF, JXL, and QOI always export pixels only. Tags stay on your device.',
       },
       {
         question: 'Can I use this for confidential or sensitive images?',

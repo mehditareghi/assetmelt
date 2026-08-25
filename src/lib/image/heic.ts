@@ -42,36 +42,44 @@ export async function resolveHeicInputFormat(
   return detectedFormat
 }
 
-export async function convertHeicToJpeg(file: File): Promise<{ blob: Blob; name: string }> {
+function imageBitmapToImageData(bitmap: ImageBitmap): ImageData {
+  const canvas = new OffscreenCanvas(bitmap.width, bitmap.height)
+  const ctx = canvas.getContext('2d')
+  if (!ctx) {
+    throw new Error('Could not create canvas context for HEIC decode')
+  }
+  ctx.drawImage(bitmap, 0, 0)
+  return ctx.getImageData(0, 0, bitmap.width, bitmap.height)
+}
+
+/**
+ * Decode HEIC/HEIF to ImageData via libheif (heic-to bitmap path).
+ * No JPEG intermediate — HEIC→PNG/AVIF is not pre-lossy from decode.
+ */
+export async function decodeHeic(buffer: ArrayBuffer): Promise<ImageData> {
   const { heicTo } = await import('heic-to')
   try {
-    const blob = await heicTo({
-      blob: file,
-      type: 'image/jpeg',
-      quality: 0.92,
-    })
-    const name = file.name.replace(/\.(heic|heif)$/i, '.jpg')
-    return { blob, name }
+    const blob = new Blob([buffer], { type: 'image/heic' })
+    const bitmap = await heicTo({ blob, type: 'bitmap' })
+    try {
+      return imageBitmapToImageData(bitmap)
+    } finally {
+      bitmap.close()
+    }
   } catch (error) {
     const detail = error instanceof Error ? error.message : 'Unknown error'
     throw new Error(`Could not decode HEIC image: ${detail}`, { cause: error })
   }
 }
 
+/**
+ * Resolve HEIC input format without converting the file.
+ * HEIC bytes stay intact until the worker decodes them to ImageData.
+ */
 export async function prepareFileForProcessing(
   file: File,
   inputFormat: InputFormat,
 ): Promise<{ file: File; inputFormat: InputFormat; sourceByteSize?: number }> {
   const resolvedFormat = await resolveHeicInputFormat(file, inputFormat)
-  if (!isHeicFormat(resolvedFormat)) {
-    return { file, inputFormat: resolvedFormat }
-  }
-
-  const sourceByteSize = file.size
-  const { blob, name } = await convertHeicToJpeg(file)
-  return {
-    file: new File([blob], name, { type: 'image/jpeg' }),
-    inputFormat: 'jpeg',
-    sourceByteSize,
-  }
+  return { file, inputFormat: resolvedFormat }
 }

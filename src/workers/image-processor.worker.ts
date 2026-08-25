@@ -68,6 +68,11 @@ async function decodeToImageData(
       imageData = await decodeTiff(buffer)
       break
     }
+    case 'heic': {
+      const { decodeHeic } = await import('@/lib/image/heic')
+      imageData = await decodeHeic(buffer)
+      break
+    }
     default:
       imageData = await decodeViaCanvas(buffer)
   }

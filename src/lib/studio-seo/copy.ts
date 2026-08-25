@@ -65,7 +65,6 @@ export function sceneFor(from: StudioInputIntent): StudioSeoSampleScene {
 export function inputCaveat(from: StudioInputIntent): string | null {
   if (from === 'gif') return OPEN_LIMITATIONS['4.4'].copy
   if (from === 'tiff') return TIFF_FIRST_PAGE_COPY
-  if (from === 'heic') return OPEN_LIMITATIONS['4.3'].copy
   return null
 }
 

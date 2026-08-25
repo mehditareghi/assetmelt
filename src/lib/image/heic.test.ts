@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
-  convertHeicToJpeg,
+  decodeHeic,
   isHeicFileName,
   isHeicFormat,
   isHeicMimeType,
@@ -102,53 +102,56 @@ describe('resolveHeicInputFormat', () => {
   })
 })
 
-describe('convertHeicToJpeg', () => {
+describe('decodeHeic', () => {
   beforeEach(() => {
     heicToMock.mockReset()
   })
 
-  it('converts a HEIC file to a JPEG blob with the expected encoder options', async () => {
-    const file = makeFile('photo.heic', 'image/heic')
-    const jpegBlob = new Blob(['jpeg-bytes'], { type: 'image/jpeg' })
-    heicToMock.mockResolvedValueOnce(jpegBlob)
+  it('decodes HEIC to ImageData via the bitmap path (no JPEG bounce)', async () => {
+    const pixels = new Uint8ClampedArray([10, 20, 30, 255, 40, 50, 60, 255])
+    const imageData = { width: 2, height: 1, data: pixels } as ImageData
+    const bitmap = {
+      width: 2,
+      height: 1,
+      close: vi.fn(),
+    }
+    heicToMock.mockResolvedValueOnce(bitmap)
 
-    await expect(convertHeicToJpeg(file)).resolves.toEqual({
-      blob: jpegBlob,
-      name: 'photo.jpg',
-    })
+    const drawImage = vi.fn()
+    const getImageData = vi.fn(() => imageData)
+    const getContext = vi.fn(() => ({ drawImage, getImageData }))
+    vi.stubGlobal(
+      'OffscreenCanvas',
+      class {
+        width: number
+        height: number
+        constructor(width: number, height: number) {
+          this.width = width
+          this.height = height
+        }
+        getContext() {
+          return getContext()
+        }
+      },
+    )
+
+    const buffer = new Uint8Array([1, 2, 3]).buffer
+    await expect(decodeHeic(buffer)).resolves.toBe(imageData)
     expect(heicToMock).toHaveBeenCalledOnce()
     expect(heicToMock).toHaveBeenCalledWith({
-      blob: file,
-      type: 'image/jpeg',
-      quality: 0.92,
+      blob: expect.any(Blob),
+      type: 'bitmap',
     })
-  })
-
-  it('replaces HEIF extensions case-insensitively', async () => {
-    const jpegBlob = new Blob(['jpeg-bytes'], { type: 'image/jpeg' })
-    heicToMock.mockResolvedValueOnce(jpegBlob)
-
-    await expect(convertHeicToJpeg(makeFile('Vacation.HEIF', 'image/heif'))).resolves.toEqual({
-      blob: jpegBlob,
-      name: 'Vacation.jpg',
-    })
-  })
-
-  it('leaves names without HEIC or HEIF extensions unchanged', async () => {
-    const jpegBlob = new Blob(['jpeg-bytes'], { type: 'image/jpeg' })
-    heicToMock.mockResolvedValueOnce(jpegBlob)
-
-    await expect(convertHeicToJpeg(makeFile('upload.bin', 'application/octet-stream'))).resolves.toEqual({
-      blob: jpegBlob,
-      name: 'upload.bin',
-    })
+    expect(drawImage).toHaveBeenCalledWith(bitmap, 0, 0)
+    expect(bitmap.close).toHaveBeenCalledOnce()
+    vi.unstubAllGlobals()
   })
 
   it('wraps decoder errors with a user-facing message and preserves the cause', async () => {
     const decoderError = new Error('unsupported brand')
     heicToMock.mockRejectedValueOnce(decoderError)
 
-    await expect(convertHeicToJpeg(makeFile('broken.heic', 'image/heic'))).rejects.toMatchObject({
+    await expect(decodeHeic(new ArrayBuffer(4))).rejects.toMatchObject({
       message: 'Could not decode HEIC image: unsupported brand',
       cause: decoderError,
     })
@@ -157,7 +160,7 @@ describe('convertHeicToJpeg', () => {
   it('handles non-Error decoder failures', async () => {
     heicToMock.mockRejectedValueOnce('decoder crashed')
 
-    await expect(convertHeicToJpeg(makeFile('broken.heic', 'image/heic'))).rejects.toThrow(
+    await expect(decodeHeic(new ArrayBuffer(4))).rejects.toThrow(
       'Could not decode HEIC image: Unknown error',
     )
   })
@@ -180,55 +183,35 @@ describe('prepareFileForProcessing', () => {
     expect(isHeicMock).not.toHaveBeenCalled()
   })
 
-  it('converts HEIC files to JPEG files and records the original byte size', async () => {
+  it('keeps the original HEIC file and format (no JPEG bounce)', async () => {
     const file = new File(['heic-bytes'], 'photo.heic', { type: 'image/heic' })
-    const jpegBlob = new Blob(['jpeg-bytes'], { type: 'image/jpeg' })
-    heicToMock.mockResolvedValueOnce(jpegBlob)
 
-    const result = await prepareFileForProcessing(file, 'heic' as InputFormat)
-
-    expect(result.inputFormat).toBe('jpeg')
-    expect(result.sourceByteSize).toBe(file.size)
-    expect(result.file).toBeInstanceOf(File)
-    expect(result.file).not.toBe(file)
-    expect(result.file.name).toBe('photo.jpg')
-    expect(result.file.type).toBe('image/jpeg')
-    await expect(result.file.text()).resolves.toBe('jpeg-bytes')
-    expect(heicToMock).toHaveBeenCalledWith({
-      blob: file,
-      type: 'image/jpeg',
-      quality: 0.92,
+    await expect(prepareFileForProcessing(file, 'heic' as InputFormat)).resolves.toEqual({
+      file,
+      inputFormat: 'heic',
     })
+    expect(heicToMock).not.toHaveBeenCalled()
   })
 
-  it('converts files that only look like HEIC from metadata', async () => {
+  it('resolves metadata-lookalike files to HEIC without converting', async () => {
     const file = makeFile('camera-output.HEIF', 'application/octet-stream')
-    const jpegBlob = new Blob(['jpeg-bytes'], { type: 'image/jpeg' })
-    heicToMock.mockResolvedValueOnce(jpegBlob)
 
     const result = await prepareFileForProcessing(file, 'unknown' as InputFormat)
 
-    expect(result.inputFormat).toBe('jpeg')
-    expect(result.file.name).toBe('camera-output.jpg')
+    expect(result).toEqual({ file, inputFormat: 'heic' })
+    expect(heicToMock).not.toHaveBeenCalled()
     expect(isHeicMock).not.toHaveBeenCalled()
   })
 
-  it('sniffs unknown files before deciding whether to convert', async () => {
+  it('sniffs unknown files before deciding the format, still without converting', async () => {
     const file = makeFile('upload.bin', 'application/octet-stream')
-    const jpegBlob = new Blob(['jpeg-bytes'], { type: 'image/jpeg' })
     isHeicMock.mockResolvedValueOnce(true)
-    heicToMock.mockResolvedValueOnce(jpegBlob)
 
     const result = await prepareFileForProcessing(file, 'unknown' as InputFormat)
 
-    expect(result.inputFormat).toBe('jpeg')
-    expect(result.file.name).toBe('upload.bin')
+    expect(result).toEqual({ file, inputFormat: 'heic' })
     expect(isHeicMock).toHaveBeenCalledWith(file)
-    expect(heicToMock).toHaveBeenCalledWith({
-      blob: file,
-      type: 'image/jpeg',
-      quality: 0.92,
-    })
+    expect(heicToMock).not.toHaveBeenCalled()
   })
 
   it('does not convert unknown files when byte sniffing does not detect HEIC', async () => {
