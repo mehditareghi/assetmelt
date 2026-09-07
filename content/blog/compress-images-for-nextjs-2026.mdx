@@ -512,6 +512,7 @@ Run Lighthouse on mobile, check LCP element. If it's the hero image and LCP is u
 | Platform | Optimization approach | Your prep step |
 | --- | --- | --- |
 | **Next.js** | Server-side on demand; caches variants | Resize and format before commit |
+| **Astro** | Build-time Sharp processing; caches variants | Resize and format before commit — see [compress for Astro](/blog/image-compression/compress-images-for-astro-2026) |
 | **WordPress** | Plugin-based; varies by CDN | Compress before media library upload — see [compress for WordPress](/blog/image-compression/compress-images-for-wordpress) |
 | **Shopify** | Shopify CDN auto-resizes; preserves originals | Export at 2048px max, WebP or JPEG — see [compress for Shopify](/blog/image-compression/compress-images-for-shopify) |
 
