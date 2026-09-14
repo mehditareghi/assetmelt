@@ -7,6 +7,13 @@
     <language>en-us</language>
     <atom:link href="https://assetmelt.com/rss.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>Image Preload vs fetchpriority for LCP in 2026</title>
+      <link>https://assetmelt.com/blog/performance-seo/image-preload-fetchpriority-lcp-2026</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/performance-seo/image-preload-fetchpriority-lcp-2026</guid>
+      <description>Deep dive on resource hints and priority for LCP images — when to use preload link tags, when fetchpriority=&quot;high&quot; is enough, how they interact with srcset/picture/responsive images, common mistakes (preloading the wrong candidate, preloading + lazy, competing preloads), and how this differs from merely compressing the hero.</description>
+      <pubDate>Mon, 14 Sep 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
       <title>How to Compress Images for Next.js in 2026: App Router, Server Components, and Modern Formats</title>
       <link>https://assetmelt.com/blog/image-compression/compress-images-for-nextjs-2026</link>
       <guid isPermaLink="true">https://assetmelt.com/blog/image-compression/compress-images-for-nextjs-2026</guid>
@@ -137,13 +144,6 @@
       <link>https://assetmelt.com/blog/performance-seo/best-image-sizes-open-graph-social-media</link>
       <guid isPermaLink="true">https://assetmelt.com/blog/performance-seo/best-image-sizes-open-graph-social-media</guid>
       <description>Use the right image dimensions, file sizes, formats, and safe areas for Open Graph, Twitter/X cards, LinkedIn, Slack, Discord, and social previews.</description>
-      <pubDate>Mon, 22 Jun 2026 00:00:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>How to Compress Images for Shopify</title>
-      <link>https://assetmelt.com/blog/image-compression/compress-images-for-shopify</link>
-      <guid isPermaLink="true">https://assetmelt.com/blog/image-compression/compress-images-for-shopify</guid>
-      <description>Optimize Shopify product photos, collection images, banners, and social previews before upload with private local compression.</description>
       <pubDate>Mon, 22 Jun 2026 00:00:00 GMT</pubDate>
     </item>
   </channel>

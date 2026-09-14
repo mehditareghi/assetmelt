@@ -3,6 +3,7 @@ title: "How to Optimize Images for Core Web Vitals and LCP in 2026"
 description: "A practical guide to fixing image-related Core Web Vitals — shrink LCP hero images, prevent CLS, and serve AVIF and WebP locally before deploy without uploading originals to a cloud optimizer."
 slug: optimize-images-core-web-vitals-lcp
 publishedAt: 2026-06-09
+updatedAt: 2026-09-14
 keywords:
   - Core Web Vitals images
   - LCP image optimization
@@ -138,6 +139,8 @@ These mistakes show up in almost every PageSpeed audit:
 
 **Never lazy-load your LCP element.** Chrome UX Report analyses consistently show slower LCP when the largest image is lazy-loaded. Below-the-fold images are the opposite — lazy-load them aggressively.
 
+For a comprehensive breakdown of when to use `<link rel="preload">` vs `fetchpriority="high"`, how they interact with responsive images, and common priority hint mistakes, see our deep dive: [Image preload vs fetchpriority for LCP](/blog/performance-seo/image-preload-fetchpriority-lcp-2026).
+
 ## Step 3: Batch-optimize the rest of the page
 
 Hero fixes move the headline metric. Page weight still comes from **every other image** — author avatars, feature screenshots, product grids, markdown content assets.
@@ -193,6 +196,18 @@ Image work primarily moves LCP and CLS. Expect proportional LCP gains when you h
 Performance teams sometimes route all images through cloud CDNs with on-the-fly transforms. That works at scale, but it is overkill for a marketing deploy or a blog post refresh — and it sends unreleased screenshots through a third party.
 
 **Browser-based compression** keeps the Core Web Vitals prep step aligned with privacy: NDA client work, unreleased product shots, and internal docs benefit from the same LCP byte savings without an upload step. Asset Melt uses the same WASM codec family as Google Squoosh — see our [Squoosh alternative guide](/blog/image-compression/squoosh-alternative-guide) for the full comparison.
+
+## Related performance-seo guides
+
+This pillar covers the full Core Web Vitals image optimization workflow. For deeper dives on specific techniques:
+
+| Guide | What it covers |
+| --- | --- |
+| [Image preload vs fetchpriority for LCP](/blog/performance-seo/image-preload-fetchpriority-lcp-2026) | Resource hints and priority — when to use `<link rel="preload">`, when `fetchpriority="high"` is enough, responsive image preload patterns |
+| [Fix large image LCP](/blog/performance-seo/fix-large-image-lcp) | Step-by-step diagnostic and repair for oversized LCP images |
+| [How images affect LCP](/blog/performance-seo/how-images-affect-lcp) | Understanding LCP measurement, discovery timing, and render-blocking behavior |
+| [Image lazy loading best practices](/blog/performance-seo/image-lazy-loading-best-practices-2026) | Native lazy loading vs Intersection Observer, avoiding LCP lazy-load mistakes |
+| [Responsive images guide](/blog/performance-seo/responsive-images-guide) | srcset, sizes, picture element patterns for bandwidth efficiency |
 
 ## Getting started today
 
