@@ -1,0 +1,765 @@
+---
+title: "Image Preload vs fetchpriority for LCP in 2026"
+description: "Deep dive on resource hints and priority for LCP images — when to use preload link tags, when fetchpriority=\"high\" is enough, how they interact with srcset/picture/responsive images, common mistakes (preloading the wrong candidate, preloading + lazy, competing preloads), and how this differs from merely compressing the hero."
+slug: image-preload-fetchpriority-lcp-2026
+publishedAt: 2026-09-14
+keywords:
+  - image preload LCP
+  - fetchpriority high
+  - preload as image
+  - LCP resource hints 2026
+  - fetchpriority vs preload
+  - responsive image preload
+  - srcset preload
+  - Core Web Vitals priority hints
+cluster: performance-seo
+heroImage: hero
+heroImageAlt: "Diagram showing browser resource priority queue with preload and fetchpriority hints boosting LCP image discovery"
+relatedTools:
+  - batch-image-compressor
+  - avif-compressor
+faq:
+  - question: "Should I use preload or fetchpriority for my hero image?"
+    answer: "For most sites, fetchpriority=\"high\" on the <img> is enough and simpler. Use <link rel=\"preload\"> only when the LCP image is discovered late (CSS background, lazy-loaded component, or client-side rendered markup) and you need to tell the browser about it before HTML parsing reaches the <img>."
+  - question: "Can I use both preload and fetchpriority on the same image?"
+    answer: "Yes, but it's usually redundant. If the <img> is in the initial HTML with fetchpriority=\"high\", adding a preload just duplicates the hint. Reserve combining them for edge cases like late-discovered responsive images where you preload one srcset candidate and mark the <img> high-priority."
+  - question: "How do I preload a responsive image with srcset?"
+    answer: "Use <link rel=\"preload\" as=\"image\" href=\"hero.avif\" imagesrcset=\"hero-800.avif 800w, hero-1200.avif 1200w, hero-1920.avif 1920w\" imagesizes=\"100vw\">. The browser picks the correct candidate. Do NOT preload all srcset variants — that wastes bandwidth."
+  - question: "Does preloading an image improve LCP if the image is already above the fold?"
+    answer: "Not always. If the <img> tag appears early in the HTML and the browser discovers it during parsing, preload offers minimal benefit. Preload wins when discovery is delayed — for example, when the image URL is injected by JavaScript or hidden in a CSS file."
+  - question: "What happens if I preload the wrong image?"
+    answer: "The browser fetches it early, wastes bandwidth and connection slots, and may delay the actual LCP image. Common mistake: preloading a desktop hero when the user is on mobile with a different srcset candidate, or preloading a background image that isn't the LCP element."
+  - question: "Can I use fetchpriority on a <picture> element?"
+    answer: "No, fetchpriority goes on the <img> inside the <picture>. The browser applies the priority to whichever <source> variant it selects. One fetchpriority=\"high\" on the <img> covers all sources."
+  - question: "Should I preload my hero if I'm already using fetchpriority=\"high\"?"
+    answer: "Usually no. fetchpriority=\"high\" tells the browser to prioritize the fetch once discovered. Preload tells the browser to discover it early. If your <img> is in the initial HTML, fetchpriority alone is sufficient. Add preload only if the image is discovered late despite being the LCP element."
+---
+
+**Image preload and fetchpriority** are two resource hints that can improve Largest Contentful Paint (LCP) — but they solve different problems, are often confused, and when misused can **hurt** performance more than they help. In 2026, with LCP as a Core Web Vitals ranking signal and browsers shipping smarter priority engines, knowing when to use each (and when to use neither) is the difference between a 1.8s LCP and a 3.5s penalty.
+
+This guide explains the mechanics, shows real-world use cases, and walks through the most common mistakes: preloading the wrong srcset candidate, stacking redundant hints, and preloading images that aren't actually the LCP element.
+
+## What this guide covers
+
+| Section | What you'll learn |
+| --- | --- |
+| [Why priority matters for LCP](#why-priority-matters-for-lcp) | How browser resource queues affect image discovery and paint |
+| [fetchpriority explained](#fetchpriority-explained) | What fetchpriority="high" does and when to use it |
+| [Preload explained](#preload-explained) | What &lt;link rel="preload" as="image"&gt; does and when it helps |
+| [When to use fetchpriority](#when-to-use-fetchpriority) | Simple, early-discovered images in initial HTML |
+| [When to use preload](#when-to-use-preload) | Late-discovered images (CSS backgrounds, JS-injected, lazy components) |
+| [Preloading responsive images](#preloading-responsive-images-srcset-and-picture) | imagesrcset, imagesizes, and how browsers pick candidates |
+| [Common mistakes](#common-preload-and-fetchpriority-mistakes) | Wrong candidate, competing preloads, preload + lazy, over-preloading |
+| [Preload vs compression](#preload-vs-compression-which-wins) | Priority hints don't replace file size optimization |
+| [Measuring impact](#measuring-preload-and-fetchpriority-impact) | Lighthouse, WebPageTest waterfall, and CrUX validation |
+
+## Why priority matters for LCP
+
+Browsers fetch resources in priority order. When HTML parsing discovers an `<img>`, the browser:
+
+1. **Discovers** the resource (parses the src or srcset URL)
+2. **Prioritizes** it based on type, location, and hints
+3. **Fetches** it from the network or cache
+4. **Decodes** and paints it
+
+LCP measures when the largest paint happens. If your hero image is the LCP element and the browser discovers it **late** or treats it as **low-priority**, LCP suffers even if the file is small.
+
+### Default browser priority (no hints)
+
+Without fetchpriority or preload, browsers assign default priorities:
+
+| Resource type | Default priority | Notes |
+| --- | --- | --- |
+| HTML in `<head>` | Highest | Blocks rendering |
+| CSS | High | Blocks render |
+| Fonts (preloaded or early) | High | — |
+| Images above fold | Medium | Competes with scripts, late CSS |
+| Images below fold (lazy) | Low | Deferred until scroll proximity |
+| Async scripts | Low to Medium | Depends on position |
+
+**Problem:** On a typical marketing page with multiple above-the-fold images, the hero competes with navigation icons, logo, and decorative assets. The browser doesn't know which image is the LCP element until paint completes — by then it's too late.
+
+**Solution:** Tell the browser which image matters most with `fetchpriority="high"` or `<link rel="preload">`.
+
+<Callout title="Priority hints complement compression" variant="info">
+Preload and fetchpriority improve discovery and fetch timing. They do not reduce file size. For LCP wins, compress your hero to AVIF or WebP first — see [optimize images for Core Web Vitals](/blog/performance-seo/optimize-images-core-web-vitals-lcp) — then add priority hints if needed.
+</Callout>
+
+## fetchpriority explained
+
+`fetchpriority` is an HTML attribute that tells the browser to adjust fetch priority for a resource. It accepts three values:
+
+- **`high`** — increase priority
+- **`low`** — decrease priority
+- **`auto`** — use default (same as omitting the attribute)
+
+### How fetchpriority works
+
+When you add `fetchpriority="high"` to an `<img>`:
+
+```html
+<img
+  src="/images/hero.avif"
+  alt="Hero image"
+  width="1920"
+  height="1080"
+  fetchpriority="high"
+/>
+```
+
+The browser:
+
+1. Discovers the image during HTML parsing
+2. Bumps it to **high priority** in the fetch queue
+3. Fetches it earlier than competing medium-priority resources
+
+**Key point:** fetchpriority does NOT make the browser discover the image earlier. It only changes priority **after** discovery.
+
+### Browser support for fetchpriority
+
+| Browser | Support | Notes |
+| --- | --- | --- |
+| Chrome | ✅ Since 101 (2022) | Stable |
+| Safari | ✅ Since 17.2 (2024) | Stable |
+| Firefox | ✅ Since 119 (2023) | Stable |
+| Edge | ✅ Chromium base | Stable |
+
+**Fallback:** Browsers that don't support fetchpriority ignore the attribute — graceful degradation.
+
+### Where to use fetchpriority
+
+Apply `fetchpriority="high"` to:
+
+- **LCP image** — usually the hero above the fold
+- **First meaningful image** on pages where text is LCP but an image is close second
+
+**Do NOT use fetchpriority on:**
+
+- Every image on the page (wastes priority budget)
+- Below-the-fold images (contradicts lazy loading)
+- Images that are not LCP candidates
+
+**One image per page** should have `fetchpriority="high"` — the LCP element.
+
+## Preload explained
+
+`<link rel="preload">` is a resource hint in the `<head>` that tells the browser to **fetch a resource early**, even before the HTML parser discovers it naturally.
+
+### How preload works
+
+```html
+<head>
+  <link rel="preload" as="image" href="/images/hero.avif" />
+</head>
+
+<body>
+  <!-- Hero appears much later in the DOM -->
+  <section class="hero">
+    <img src="/images/hero.avif" alt="Hero" width="1920" height="1080" />
+  </section>
+</body>
+```
+
+What happens:
+
+1. Browser parses `<head>` and sees the preload link
+2. Browser **immediately starts fetching** `/images/hero.avif` (high priority by default)
+3. Later, when the parser reaches the `<img>`, the image is already downloading or cached
+4. LCP happens sooner because discovery was early
+
+**Key point:** Preload makes discovery happen **earlier**. It does not change fetch priority unless combined with `fetchpriority` on the `<img>`.
+
+### Preload attributes
+
+```html
+<link
+  rel="preload"
+  as="image"
+  href="/images/hero.avif"
+  type="image/avif"
+/>
+```
+
+- **`rel="preload"`** — tells browser to fetch early
+- **`as="image"`** — specifies resource type (required)
+- **`href`** — URL to preload
+- **`type`** — MIME type hint (optional, helps browser decide if it supports the format)
+
+### When preload helps
+
+Preload is useful when the LCP image is **discovered late**:
+
+- **CSS background images** — URL is in a stylesheet loaded mid-body
+- **JavaScript-injected images** — React/Vue component mounts after JS bundle loads
+- **Lazy-loaded components** — image is inside a code-split chunk
+- **Deep DOM nesting** — `<img>` appears thousands of lines into the HTML
+
+If your `<img>` is in the first 100 lines of HTML and has `fetchpriority="high"`, preload offers minimal benefit.
+
+## When to use fetchpriority
+
+Use `fetchpriority="high"` when:
+
+1. Your LCP image is an `<img>` or `<picture>` in the initial HTML
+2. The image is above the fold
+3. The `<img>` tag appears early in the DOM (within the first 1–2 screens of HTML)
+4. You are **not** preloading the same image
+
+### Example: hero image with fetchpriority
+
+```html
+<section class="hero">
+  <img
+    src="/images/hero.avif"
+    alt="Asset Melt studio compressing images locally"
+    width="1920"
+    height="1080"
+    fetchpriority="high"
+  />
+</section>
+```
+
+**Why this works:**
+
+- Browser discovers the `<img>` during HTML parsing
+- `fetchpriority="high"` bumps it ahead of other images, fonts, and async scripts
+- Fetch starts immediately at high priority
+- No preload needed because discovery is already early
+
+### Example: responsive image with fetchpriority
+
+```html
+<img
+  src="/images/hero-800.webp"
+  srcset="
+    /images/hero-400.avif   400w,
+    /images/hero-800.avif   800w,
+    /images/hero-1200.avif 1200w,
+    /images/hero-1920.avif 1920w
+  "
+  sizes="(min-width: 1024px) 1200px, 100vw"
+  alt="Hero"
+  width="1200"
+  height="800"
+  fetchpriority="high"
+/>
+```
+
+The browser:
+
+1. Evaluates `sizes` to determine rendered width
+2. Picks the best srcset candidate
+3. Fetches that candidate at **high priority**
+
+**One `fetchpriority` on the `<img>` covers all srcset variants.**
+
+## When to use preload
+
+Use `<link rel="preload" as="image">` when:
+
+1. The LCP image is **discovered late** (CSS background, JS component, deep in DOM)
+2. The image URL is known at build time
+3. The image is **not** in the initial HTML viewport but is still the LCP element
+4. You need to fetch the image before the browser naturally discovers it
+
+### Example: CSS background image preload
+
+The LCP element is a hero `<div>` with a background image:
+
+```html
+<head>
+  <link rel="preload" as="image" href="/images/hero-background.avif" />
+  <link rel="stylesheet" href="/styles/hero.css" />
+</head>
+
+<body>
+  <div class="hero-bg">
+    <!-- Content -->
+  </div>
+</body>
+```
+
+```css
+/* hero.css */
+.hero-bg {
+  background-image: url('/images/hero-background.avif');
+  background-size: cover;
+}
+```
+
+**Why preload helps:**
+
+- Browser must download and parse `hero.css` before discovering the background URL
+- Preload in `<head>` fetches the image immediately, in parallel with CSS
+- LCP improves because the image arrives sooner
+
+### Example: JavaScript-injected image preload
+
+A React component lazy-loads the hero after bundle loads:
+
+```html
+<head>
+  <link rel="preload" as="image" href="/images/hero.avif" />
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/app.js"></script>
+</body>
+```
+
+**Why preload helps:**
+
+- The `<img>` doesn't exist until React mounts
+- Preload starts fetching while the JS bundle downloads and parses
+- By the time React renders the `<img>`, the image is already cached
+
+**Without preload:** The browser waits for JS → parse → execute → mount → discover image → fetch. **With preload:** fetch happens in parallel with JS, shaving hundreds of milliseconds off LCP.
+
+### When NOT to preload
+
+Do not preload if:
+
+- The `<img>` is in the first 200 lines of HTML with `fetchpriority="high"` (redundant)
+- The image is below the fold and lazy-loaded (wastes bandwidth)
+- You don't know which image is the LCP element (preloading the wrong asset hurts)
+- The page has multiple heroes and you can't pick one (better to optimize all candidates instead)
+
+## Preloading responsive images: srcset and picture
+
+Preloading a single-URL image is simple. Responsive images with `srcset` require **`imagesrcset` and `imagesizes`** attributes so the browser picks the correct candidate.
+
+### Preload with srcset
+
+```html
+<link
+  rel="preload"
+  as="image"
+  href="/images/hero-800.avif"
+  imagesrcset="
+    /images/hero-400.avif   400w,
+    /images/hero-800.avif   800w,
+    /images/hero-1200.avif 1200w,
+    /images/hero-1920.avif 1920w
+  "
+  imagesizes="(min-width: 1024px) 1200px, 100vw"
+/>
+```
+
+The browser:
+
+1. Evaluates `imagesizes` based on viewport
+2. Picks the best candidate from `imagesrcset`
+3. Preloads **only that candidate**
+
+**Critical:** `imagesizes` must match the `sizes` on the actual `<img>`. If they differ, the browser may preload one variant and then fetch a different one when it hits the `<img>` — wasting bandwidth.
+
+### Preload with picture element
+
+For `<picture>` with art direction, preload the most likely source:
+
+```html
+<link
+  rel="preload"
+  as="image"
+  href="/images/hero-desktop.avif"
+  media="(min-width: 768px)"
+/>
+<link
+  rel="preload"
+  as="image"
+  href="/images/hero-mobile.avif"
+  media="(max-width: 767px)"
+/>
+
+<picture>
+  <source
+    media="(min-width: 768px)"
+    srcset="/images/hero-desktop.avif"
+    type="image/avif"
+  />
+  <source
+    srcset="/images/hero-mobile.avif"
+    type="image/avif"
+  />
+  <img
+    src="/images/hero-mobile.jpg"
+    alt="Hero"
+    width="1200"
+    height="800"
+    fetchpriority="high"
+  />
+</picture>
+```
+
+**Why `media` on preload:** The browser only fetches the preload link that matches the media query. This avoids preloading both desktop and mobile variants.
+
+### Common responsive preload mistake
+
+**Wrong:**
+
+```html
+<!-- Preloading ALL srcset variants — wastes bandwidth -->
+<link rel="preload" as="image" href="/images/hero-400.avif" />
+<link rel="preload" as="image" href="/images/hero-800.avif" />
+<link rel="preload" as="image" href="/images/hero-1200.avif" />
+<link rel="preload" as="image" href="/images/hero-1920.avif" />
+```
+
+The browser fetches all four images. Only one is used. **Massive waste.**
+
+**Right:**
+
+```html
+<!-- One preload with imagesrcset — browser picks correct candidate -->
+<link
+  rel="preload"
+  as="image"
+  imagesrcset="/images/hero-400.avif 400w, /images/hero-800.avif 800w, /images/hero-1200.avif 1200w, /images/hero-1920.avif 1920w"
+  imagesizes="100vw"
+/>
+```
+
+Browser fetches one candidate based on viewport and DPR.
+
+Read [responsive images guide](/blog/performance-seo/responsive-images-guide) for full srcset patterns.
+
+## Combining fetchpriority and preload
+
+Can you use both on the same image? **Yes, but it's usually redundant.**
+
+### When combining makes sense
+
+**Scenario:** The LCP image is in the initial HTML but discovered slightly late (e.g., nested inside a large hero component 500 lines down).
+
+```html
+<head>
+  <link rel="preload" as="image" href="/images/hero.avif" />
+</head>
+
+<body>
+  <!-- ...500 lines of header, nav, etc... -->
+  <section class="hero">
+    <img
+      src="/images/hero.avif"
+      alt="Hero"
+      width="1920"
+      height="1080"
+      fetchpriority="high"
+    />
+  </section>
+</body>
+```
+
+**Why both:**
+
+- **Preload** starts fetch immediately in `<head>` (early discovery)
+- **fetchpriority** ensures high priority when browser parses the `<img>` (priority boost)
+
+**Result:** Fetch starts early **and** stays high-priority.
+
+### When combining is redundant
+
+If the `<img>` is in the first 100 lines with `fetchpriority="high"`, preload adds no value:
+
+```html
+<body>
+  <header>...</header>
+  <section class="hero">
+    <img
+      src="/images/hero.avif"
+      alt="Hero"
+      fetchpriority="high"
+      width="1920"
+      height="1080"
+    />
+  </section>
+</body>
+```
+
+Browser discovers the `<img>` quickly. fetchpriority bumps it to high. Preload would fetch the same URL at the same priority — no gain, just extra `<head>` clutter.
+
+**Rule of thumb:** Use **either** fetchpriority **or** preload. Combine only when the image is in HTML but discovered late (deep nesting, large DOM above it).
+
+## Common preload and fetchpriority mistakes
+
+### 1. Preloading the wrong srcset candidate
+
+**Problem:** You hardcode a preload for the desktop 1920px image, but mobile users fetch the 800px variant. Browser downloads 1920px (unused) and 800px (used).
+
+**Fix:** Use `imagesrcset` and `imagesizes` on the preload, or use media queries to preload different candidates per breakpoint.
+
+### 2. Preloading a lazy-loaded image
+
+**Problem:** Hero has `loading="lazy"` and you preload it.
+
+```html
+<head>
+  <link rel="preload" as="image" href="/images/hero.avif" />
+</head>
+
+<img src="/images/hero.avif" alt="Hero" loading="lazy" width="1920" height="1080" />
+```
+
+**Result:** Browser preloads the image (high priority), then the `<img>` says "lazy" (defer until scroll proximity). Wasted fetch. Conflicting signals.
+
+**Fix:** Remove `loading="lazy"` from the LCP image. Add `fetchpriority="high"` instead.
+
+### 3. Preloading multiple images
+
+**Problem:** You preload three images — logo, hero, and a feature photo.
+
+```html
+<link rel="preload" as="image" href="/images/logo.svg" />
+<link rel="preload" as="image" href="/images/hero.avif" />
+<link rel="preload" as="image" href="/images/feature.webp" />
+```
+
+**Result:** All three fetch early and compete for bandwidth. If hero is the LCP element, the other two slow it down.
+
+**Fix:** Preload **only the LCP image**. Let the browser discover the others naturally.
+
+### 4. Using fetchpriority on non-LCP images
+
+**Problem:** Every image has `fetchpriority="high"`.
+
+```html
+<img src="/images/hero.avif" alt="Hero" fetchpriority="high" />
+<img src="/images/logo.svg" alt="Logo" fetchpriority="high" />
+<img src="/images/icon.png" alt="Icon" fetchpriority="high" />
+```
+
+**Result:** All images compete at high priority — same as default. No LCP benefit.
+
+**Fix:** Use `fetchpriority="high"` on **only the LCP image**.
+
+### 5. Forgetting type on preload
+
+**Problem:**
+
+```html
+<link rel="preload" as="image" href="/images/hero.avif" />
+```
+
+If the browser doesn't support AVIF, it still downloads it, then fails to decode, then fetches the fallback. Wasted bytes.
+
+**Fix:** Add `type`:
+
+```html
+<link rel="preload" as="image" href="/images/hero.avif" type="image/avif" />
+```
+
+Browsers that don't support AVIF skip the preload.
+
+### 6. Mismatched imagesizes
+
+**Problem:**
+
+```html
+<!-- Preload says 50vw -->
+<link
+  rel="preload"
+  as="image"
+  imagesrcset="hero-800.avif 800w, hero-1200.avif 1200w"
+  imagesizes="50vw"
+/>
+
+<!-- Actual <img> says 100vw -->
+<img
+  srcset="hero-800.avif 800w, hero-1200.avif 1200w"
+  sizes="100vw"
+  src="hero-800.avif"
+  alt="Hero"
+/>
+```
+
+Browser preloads the 800w candidate (for 50vw), then fetches the 1200w candidate (for 100vw) when it hits the `<img>`. **Both downloaded.**
+
+**Fix:** `imagesizes` on preload must match `sizes` on `<img>`.
+
+## Preload vs compression: which wins?
+
+Priority hints optimize **when** the image fetches. Compression optimizes **how many bytes** transfer.
+
+### Example: 2 MB hero
+
+| Technique | LCP improvement |
+| --- | --- |
+| Preload a 2 MB JPEG | Minor (earlier fetch, same bytes) |
+| Compress to 180 KB AVIF | Major (same discovery, 90% fewer bytes) |
+| Compress **and** preload | Best of both |
+
+**Priority:**
+
+1. **Compress first** — reduce file size to 150–200 KB with AVIF or WebP. Use the <ToolLink tool="avif-compressor">AVIF compressor</ToolLink> to hit a size budget.
+2. **Add fetchpriority** if the image is in initial HTML and is the LCP element.
+3. **Add preload** only if the image is discovered late despite being LCP.
+
+Preload without compression is like express-shipping a brick. Compression without priority is like using a feather but shipping it ground. **Do both.**
+
+<Callout title="Preload can't fix bloated images" variant="tip">
+A 4 MB camera JPEG preloaded at high priority still takes 8–10 seconds to download on 4G. Shrink the file first, then add hints. See [optimize images for Core Web Vitals](/blog/performance-seo/optimize-images-core-web-vitals-lcp) for compression workflows.
+</Callout>
+
+## Real-world strategies
+
+### Strategy 1: fetchpriority only (recommended for most sites)
+
+```html
+<img
+  src="/images/hero.avif"
+  alt="Hero"
+  width="1920"
+  height="1080"
+  fetchpriority="high"
+/>
+```
+
+**Use when:**
+
+- Hero `<img>` is in the initial HTML
+- Image is above the fold
+- `<img>` appears within first 200 lines of HTML
+
+**Pros:** Simple, effective, no redundant fetches.
+
+**Cons:** No benefit if image is discovered very late.
+
+### Strategy 2: Preload for late-discovered LCP
+
+```html
+<head>
+  <link rel="preload" as="image" href="/images/hero.avif" type="image/avif" />
+</head>
+
+<body>
+  <!-- Large header, nav, hero deep in DOM -->
+  <div class="hero" style="background-image: url('/images/hero.avif')">
+    <!-- Content -->
+  </div>
+</body>
+```
+
+**Use when:**
+
+- LCP is a CSS background image
+- Hero is inside a lazy-loaded component
+- `<img>` is 1000+ lines into the HTML
+
+**Pros:** Early discovery, fetch starts in parallel with CSS/JS.
+
+**Cons:** More complex, requires knowing the LCP URL at build time.
+
+### Strategy 3: Hybrid (preload + fetchpriority)
+
+```html
+<head>
+  <link
+    rel="preload"
+    as="image"
+    href="/images/hero.avif"
+    imagesrcset="hero-800.avif 800w, hero-1200.avif 1200w, hero-1920.avif 1920w"
+    imagesizes="100vw"
+    type="image/avif"
+  />
+</head>
+
+<body>
+  <!-- ...large header... -->
+  <section class="hero">
+    <img
+      src="/images/hero-800.avif"
+      srcset="hero-800.avif 800w, hero-1200.avif 1200w, hero-1920.avif 1920w"
+      sizes="100vw"
+      alt="Hero"
+      width="1920"
+      height="1080"
+      fetchpriority="high"
+    />
+  </section>
+</body>
+```
+
+**Use when:**
+
+- Image is in HTML but discovered late (deep nesting)
+- Responsive srcset with multiple candidates
+- Squeezing last 50–100ms out of LCP
+
+**Pros:** Maximum control over discovery and priority.
+
+**Cons:** Most complex, requires exact `imagesizes` match.
+
+## Measuring preload and fetchpriority impact
+
+### Lighthouse
+
+Run Lighthouse before and after adding hints:
+
+1. Note the **LCP time** in the metrics section
+2. Check **"Preload Largest Contentful Paint image"** audit — if it suggests preload, the image is discovered late
+3. Compare LCP before and after applying fetchpriority or preload
+
+**Expected improvement:** 50–300ms on mobile 4G when hints are applied correctly.
+
+### WebPageTest waterfall
+
+Open WebPageTest and run a test:
+
+1. Check the waterfall chart
+2. Find the LCP image request
+3. Note when the request starts relative to HTML load
+
+**Without hints:** Image fetch starts late (after CSS, fonts, other images).
+
+**With hints:** Image fetch starts early, near the top of the waterfall.
+
+### Chrome DevTools Performance
+
+1. Open DevTools → Performance
+2. Record a page load
+3. Find the LCP marker in the timeline
+4. Hover over network requests to see when the image fetch started
+
+**Goal:** Image fetch should start within the first 500ms after HTML load.
+
+### CrUX and PageSpeed Insights
+
+After deploying hints:
+
+1. Run PageSpeed Insights on mobile
+2. Check **LCP in the Field Data** section (real user CrUX data)
+3. Wait 28 days for CrUX rolling window to update
+
+**Good result:** LCP moves from "Needs Improvement" (2.5–4.0s) to "Good" (&lt;2.5s).
+
+Read [how images affect LCP](/blog/performance-seo/how-images-affect-lcp) for measurement workflows.
+
+## Priority hints checklist
+
+Before shipping:
+
+- [ ] Compress LCP image to &lt;200 KB (AVIF or WebP)
+- [ ] Identify the LCP element (Lighthouse → Diagnostics)
+- [ ] If `<img>` is in initial HTML, add `fetchpriority="high"`
+- [ ] If image is discovered late (CSS, JS), add `<link rel="preload">`
+- [ ] Remove `loading="lazy"` from LCP image
+- [ ] Set `width` and `height` on `<img>` (prevents CLS)
+- [ ] For responsive images, use `imagesrcset` and `imagesizes` on preload
+- [ ] Verify only **one** image has high priority hints
+- [ ] Test with Lighthouse mobile (throttled 4G)
+- [ ] Check waterfall in WebPageTest to confirm early fetch
+- [ ] Deploy and monitor CrUX for 28 days
+
+## Getting started today
+
+1. Run Lighthouse and identify your LCP element.
+2. If it's an image, check when the fetch starts in the waterfall.
+3. If the `<img>` is in the initial HTML, add `fetchpriority="high"`.
+4. If the image is a CSS background or JS-injected, add `<link rel="preload">`.
+5. Compress the image to AVIF or WebP if you haven't already.
+6. Re-run Lighthouse and compare LCP times.
+
+<StudioCta label="Compress your LCP hero before adding hints" />
+
+**Related reading:** [Optimize images for Core Web Vitals](/blog/performance-seo/optimize-images-core-web-vitals-lcp) · [Fix large image LCP issues](/blog/performance-seo/fix-large-image-lcp) · [How images affect LCP](/blog/performance-seo/how-images-affect-lcp) · [Image lazy loading best practices](/blog/performance-seo/image-lazy-loading-best-practices-2026)

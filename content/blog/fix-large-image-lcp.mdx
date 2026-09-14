@@ -85,7 +85,7 @@ If the request starts late, fix discovery. If the request starts early but downl
 
 Preloading can help when the browser cannot discover the image early enough, but it is not a substitute for good markup. Preload the exact image candidate you expect to be used. Preloading the wrong file can waste bandwidth and make performance worse.
 
-For many pages, `fetchpriority="high"` on the LCP image is simpler and safer than a manual preload. Use both only when you have measured the need.
+For many pages, `fetchpriority="high"` on the LCP image is simpler and safer than a manual preload. Use both only when you have measured the need. For a complete breakdown of when to use preload vs fetchpriority, how they interact with responsive images, and common mistakes like preloading the wrong srcset candidate, see [image preload vs fetchpriority for LCP](/blog/performance-seo/image-preload-fetchpriority-lcp-2026).
 
 ## Art direction and mobile crops
 
