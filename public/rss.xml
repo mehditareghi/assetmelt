@@ -7,6 +7,13 @@
     <language>en-us</language>
     <atom:link href="https://assetmelt.com/rss.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>How to Compress Images for Nuxt in 2026: Nuxt Image, IPX, and Local Prep</title>
+      <link>https://assetmelt.com/blog/image-compression/compress-images-for-nuxt-2026</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/image-compression/compress-images-for-nuxt-2026</guid>
+      <description>Complete guide to image optimization for Nuxt 3/4 — use @nuxt/image for automatic delivery, configure IPX providers, ship AVIF and WebP with srcset, and prep assets locally before committing to your Vue project.</description>
+      <pubDate>Mon, 28 Sep 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
       <title>How to Compress Images for Next.js in 2026: App Router, Server Components, and Modern Formats</title>
       <link>https://assetmelt.com/blog/image-compression/compress-images-for-nextjs-2026</link>
       <guid isPermaLink="true">https://assetmelt.com/blog/image-compression/compress-images-for-nextjs-2026</guid>
@@ -137,13 +144,6 @@
       <link>https://assetmelt.com/blog/performance-seo/best-image-sizes-open-graph-social-media</link>
       <guid isPermaLink="true">https://assetmelt.com/blog/performance-seo/best-image-sizes-open-graph-social-media</guid>
       <description>Use the right image dimensions, file sizes, formats, and safe areas for Open Graph, Twitter/X cards, LinkedIn, Slack, Discord, and social previews.</description>
-      <pubDate>Mon, 22 Jun 2026 00:00:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>How to Compress Images for Shopify</title>
-      <link>https://assetmelt.com/blog/image-compression/compress-images-for-shopify</link>
-      <guid isPermaLink="true">https://assetmelt.com/blog/image-compression/compress-images-for-shopify</guid>
-      <description>Optimize Shopify product photos, collection images, banners, and social previews before upload with private local compression.</description>
       <pubDate>Mon, 22 Jun 2026 00:00:00 GMT</pubDate>
     </item>
   </channel>

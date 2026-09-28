@@ -3,7 +3,7 @@ title: "How to Compress Images Without Losing Quality"
 description: "The complete guide to visually lossless image compression — resize first, choose the right format, tune quality carefully, hit byte budgets, and verify results before publishing to WordPress, Shopify, or the open web."
 slug: how-to-compress-images-without-losing-quality
 publishedAt: 2026-06-27
-updatedAt: 2026-08-11
+updatedAt: 2026-09-28
 keywords:
   - compress images without losing quality
   - lossless image compression
@@ -353,6 +353,12 @@ WordPress also stores the original upload. Smaller uploads mean faster backups, 
 
 Full workflow: [how to compress images for WordPress](/blog/image-compression/compress-images-for-wordpress).
 
+### Nuxt and Vue projects
+
+Nuxt 3/4 with `@nuxt/image` and IPX optimizes images on demand, similar to Next.js. Pre-compress sources before committing to reduce server load and improve first-visit performance. IPX handles responsive delivery and format negotiation, but it works best when source files are already clean.
+
+Full workflow: [how to compress images for Nuxt](/blog/image-compression/compress-images-for-nuxt-2026).
+
 ### Shopify
 
 Product imagery drives conversion, but oversized files slow collection pages and mobile checkout. Keep high-quality masters archived separately; upload web-ready exports at 1600–2048px for most themes.
@@ -372,12 +378,12 @@ You control the entire pipeline. Commit optimized assets, generate `srcset` at b
 Static site advantages:
 
 - No CMS re-compression surprises
-- Build-time image pipelines (Astro, Next.js Image) can generate widths automatically
+- Build-time image pipelines (Astro, Nuxt, Next.js) can generate widths automatically
 - Git LFS costs scale with file size — optimize before commit
 
 Pair compression with responsive markup — see our [image SEO guide](/blog/performance-seo/image-seo-guide-2026) for `srcset`, `sizes`, and dimension attributes.
 
-For Next.js 15+ with App Router, see the dedicated [Next.js image compression guide](/blog/image-compression/compress-images-for-nextjs-2026).
+For framework-specific workflows, see the dedicated guides for [Next.js](/blog/image-compression/compress-images-for-nextjs-2026) and [Nuxt](/blog/image-compression/compress-images-for-nuxt-2026).
 
 ### Design handoff (Figma, Sketch, export folders)
 
@@ -453,6 +459,7 @@ This pillar introduces the cluster. Each guide below goes deep on one slice of t
 | [Compress images for WordPress](/blog/image-compression/compress-images-for-wordpress) | Pre-upload workflow for WP Media Library |
 | [Compress images for Shopify](/blog/image-compression/compress-images-for-shopify) | Product photos, banners, and collection images |
 | [Compress images for Next.js](/blog/image-compression/compress-images-for-nextjs-2026) | App Router, Server Components, and modern Next.js workflows |
+| [Compress images for Nuxt](/blog/image-compression/compress-images-for-nuxt-2026) | Nuxt Image, IPX providers, and Vue project optimization |
 | [Privacy-first image compression](/blog/image-compression/privacy-first-image-compression) | Why local beats upload tools — EXIF risk and verification |
 | [Compress images in the browser](/blog/image-compression/compress-images-in-browser) | Client-side WASM workflow, presets, and batch queues |
 | [Squoosh alternative guide](/blog/image-compression/squoosh-alternative-guide) | Migrating from Google's deprecated tool |
