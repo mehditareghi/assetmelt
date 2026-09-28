@@ -507,15 +507,16 @@ export default function Hero() {
 
 Run Lighthouse on mobile, check LCP element. If it's the hero image and LCP is under 2.5s on 4G, you're good.
 
-## Next.js vs WordPress vs Shopify compression
+## Next.js vs Nuxt vs WordPress vs Shopify compression
 
 | Platform | Optimization approach | Your prep step |
 | --- | --- | --- |
 | **Next.js** | Server-side on demand; caches variants | Resize and format before commit |
+| **Nuxt** | Server-side on demand (IPX); caches variants | Resize and format before commit — see [compress for Nuxt](/blog/image-compression/compress-images-for-nuxt-2026) |
 | **WordPress** | Plugin-based; varies by CDN | Compress before media library upload — see [compress for WordPress](/blog/image-compression/compress-images-for-wordpress) |
 | **Shopify** | Shopify CDN auto-resizes; preserves originals | Export at 2048px max, WebP or JPEG — see [compress for Shopify](/blog/image-compression/compress-images-for-shopify) |
 
-Next.js gives you the most control. WordPress and Shopify optimize post-upload, so **local prep before upload** is even more critical there.
+Next.js and Nuxt give you the most control via server-side optimization. WordPress and Shopify optimize post-upload, so **local prep before upload** is even more critical there.
 
 ## Server Components and image optimization
 

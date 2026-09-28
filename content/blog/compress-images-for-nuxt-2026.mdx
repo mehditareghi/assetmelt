@@ -1,0 +1,650 @@
+---
+title: "How to Compress Images for Nuxt in 2026: Nuxt Image, IPX, and Local Prep"
+description: "Complete guide to image optimization for Nuxt 3/4 — use @nuxt/image for automatic delivery, configure IPX providers, ship AVIF and WebP with srcset, and prep assets locally before committing to your Vue project."
+slug: compress-images-for-nuxt-2026
+publishedAt: 2026-09-28
+keywords:
+  - Nuxt image optimization
+  - compress images for Nuxt
+  - Nuxt Image best practices 2026
+  - Nuxt AVIF WebP
+  - IPX image optimization
+  - Vue image compression
+cluster: image-compression
+heroImage: hero
+heroImageAlt: "Nuxt logo with compressed image files flowing through optimization pipeline"
+relatedTools:
+  - batch-image-compressor
+  - avif-compressor
+  - privacy-first-image-compression
+faq:
+  - question: "Does Nuxt automatically compress images?"
+    answer: "@nuxt/image with IPX can optimize images on demand when using the built-in provider. It serves modern formats (WebP, AVIF) to supporting browsers, resizes based on device, and caches results. However, starting with well-compressed source files reduces server load and improves first-visitor experience."
+  - question: "Should I commit compressed images to my Nuxt repo?"
+    answer: "Yes for static assets in public/ or imported images. Pre-compress them locally to AVIF and WebP before commit — smaller git objects, faster clones, and better performance when Nuxt Image serves them. Let Nuxt Image handle responsive variants and format negotiation."
+  - question: "What image format works best with Nuxt Image?"
+    answer: "Ship AVIF or WebP when possible. Nuxt Image will optimize them further or pass them through efficiently. For maximum compatibility, start with high-quality JPEG or PNG — IPX converts on first request and caches the result."
+  - question: "Can I use Nuxt Image with external CDNs?"
+    answer: "Yes via custom providers. Configure a provider for Cloudinary, Imgix, Vercel, or any CDN that supports URL-based transforms. Pre-compress originals before uploading to the CDN origin for best results."
+  - question: "How do I prevent layout shift (CLS) with Nuxt images?"
+    answer: "Always set width and height props on NuxtImg or NuxtPicture, or use CSS aspect-ratio on the container. Nuxt reserves space automatically when dimensions are provided, preventing CLS."
+  - question: "Does Nuxt Image work in static mode?"
+    answer: "Yes, but with limitations. When using nuxi generate for static hosting, IPX optimization runs at build time for known images. For full dynamic optimization, use SSR or deploy to platforms that support Nitro server runtime like Vercel, Netlify, or Cloudflare."
+  - question: "What's the difference between IPX and external providers?"
+    answer: "IPX is the built-in Node.js image optimizer that runs in your Nitro server. External providers offload optimization to third-party CDNs like Cloudinary or Imgix. IPX works out of the box; external providers require configuration but offer advanced features and edge caching."
+---
+
+**Nuxt image optimization** in 2026 is a collaboration: `@nuxt/image` with `<NuxtImg>` and `<NuxtPicture>` handles responsive delivery, format negotiation, and lazy loading, while you control source quality, dimensions, and format choice before assets reach the framework. Together they deliver fast LCP, minimal CLS, and smaller bundles — but only when you understand where Nuxt helps and where manual prep still wins.
+
+This guide covers the full pipeline for Nuxt 3 and Nuxt 4 with **IPX**, **custom providers**, and **static generation** — the modern stack most Vue teams are building on in late 2026. Everything here works with both SSR and static modes, with mode-specific notes where the behavior differs.
+
+## What this guide covers
+
+| Section | What you'll learn |
+| --- | --- |
+| [Why compress for Nuxt](#why-compress-for-nuxt-when-the-framework-optimizes-automatically) | What @nuxt/image does and doesn't do |
+| [The optimization split](#the-optimization-split-you-vs-nuxt-image) | Responsibilities: you handle source, Nuxt handles delivery |
+| [Local prep workflow](#local-prep-workflow-compress-before-commit) | Resize, format, and strip metadata before git |
+| [Using Nuxt Image](#using-nuxt-image-correctly) | NuxtImg, NuxtPicture, providers, and props |
+| [IPX configuration](#ipx-configuration-and-providers) | Built-in provider setup, formats, and caching |
+| [Static vs SSR modes](#static-vs-ssr-image-optimization) | How image optimization differs by deployment mode |
+| [AVIF and WebP strategy](#avif-and-webp-strategy-in-nuxt) | How Nuxt Image picks formats and when to pre-convert |
+| [Custom providers](#custom-providers-for-external-cdns) | Cloudinary, Imgix, Vercel, and self-hosted origins |
+| [LCP optimization](#lcp-optimization-priority-and-preload) | Priority loading, avoiding lazy-load delays |
+| [Troubleshooting](#common-nuxt-image-issues) | CLS, slow builds, missing dimensions, format quirks |
+
+## Why compress for Nuxt when the framework optimizes automatically
+
+Nuxt 3/4's `@nuxt/image` with IPX is powerful — it serves WebP and AVIF to capable browsers, generates responsive srcset, lazy-loads below-the-fold images, and caches optimized variants. That sounds like "drop any image in public/ and it fixes everything."
+
+Not quite. Here's what Nuxt Image **cannot** fix:
+
+- **Oversized source dimensions** — IPX resizes on request, but serving a 6000px original from your server before optimization wastes bandwidth on the first uncached load.
+- **Already-bloated uploads** — if you commit a 4 MB camera JPEG, git stores 4 MB forever. Clones are slower, repository size grows.
+- **Server load at scale** — every new device width or format combination requires server-side encoding with IPX. Pre-compressed sources reduce CPU demand on your Nitro server.
+- **Metadata exposure** — EXIF GPS and timestamps pass through unless you strip them before commit.
+
+The winning strategy: **compress locally** → commit clean assets → let Nuxt Image handle responsive delivery and format negotiation for each visitor.
+
+<Callout title="Compression and Core Web Vitals" variant="info">
+Smaller source files improve LCP on first visits before Nuxt Image caches take over. For deeper Core Web Vitals tuning — priority, fetchpriority, and LCP-specific markup — see [optimize images for Core Web Vitals](/blog/performance-seo/optimize-images-core-web-vitals-lcp).
+</Callout>
+
+## The optimization split: you vs Nuxt Image
+
+Think of image optimization as a two-stage pipeline:
+
+| Stage | Your responsibility | Nuxt Image responsibility |
+| --- | --- | --- |
+| **Source prep** | Resize to max display width × 2, export AVIF/WebP, strip metadata, commit small files | — |
+| **Delivery** | — | Generate responsive srcset, negotiate format, lazy-load, cache variants |
+
+You own the bytes before they hit the repo. Nuxt Image owns the bytes served to each visitor.
+
+### What @nuxt/image does automatically
+
+- Serves WebP and AVIF to browsers that support them (via IPX format detection)
+- Generates device-optimized widths (srcset) based on `sizes` prop and configured densities
+- Lazy-loads images below the fold by default
+- Applies blur placeholders when you provide `placeholder` prop
+- Reserves layout space when you set `width` and `height` (prevents CLS)
+
+### What you must do manually
+
+- Resize originals to reasonable max dimensions (e.g., 1920–2400px wide for heroes)
+- Export to efficient formats before commit (AVIF, WebP, or high-quality JPEG)
+- Strip EXIF metadata from public assets
+- Set correct `width`, `height`, and `sizes` props for every image
+- Mark LCP images with `preload` to prevent lazy-load delays
+
+## Local prep workflow: compress before commit
+
+Before any image enters your Nuxt project, run this checklist:
+
+### 1. Resize to display width × 2
+
+Most marketing heroes display at 1200–1600 CSS pixels wide. Export at **2400–3200px max** to cover retina displays. Do not commit 6000px camera originals.
+
+Open the <ToolLink tool="batch-image-compressor">batch image compressor</ToolLink>, set max dimension to 2400px, and export.
+
+### 2. Choose the right format
+
+| Asset type | Best source format for Nuxt |
+| --- | --- |
+| Hero photography | AVIF or WebP (IPX will optimize further) |
+| Blog inline images | WebP or JPEG |
+| UI screenshots | PNG or lossless WebP |
+| Logos with transparency | PNG or SVG (use SVG when possible) |
+| Product photos | WebP or AVIF |
+
+For maximum compatibility, you can commit high-quality JPEGs and let IPX convert to WebP/AVIF on first request. For best performance, commit AVIF or WebP directly — IPX passes them through or optimizes minimally.
+
+### 3. Strip metadata
+
+Enable **Strip metadata** in Asset Melt's studio settings. Re-encoding removes EXIF GPS coordinates, device info, and timestamps before commit.
+
+See [privacy-first image compression](/blog/image-compression/privacy-first-image-compression) for why metadata stripping matters for public repos.
+
+### 4. Commit to public/ or assets/
+
+```
+/public/images/hero.avif
+/public/images/hero-mobile.avif
+```
+
+Or place in assets for Nuxt's asset pipeline:
+
+```
+/assets/images/hero.avif
+```
+
+Smaller committed files = faster clones, cheaper hosting, and less origin bandwidth when Nuxt Image serves cached variants.
+
+## Using Nuxt Image correctly
+
+### Basic usage with NuxtImg
+
+```vue
+<template>
+  <NuxtImg
+    src="/images/hero.avif"
+    alt="Asset Melt studio compressing images locally"
+    width="1920"
+    height="1080"
+    sizes="(min-width: 1024px) 1200px, 100vw"
+    preload
+  />
+</template>
+```
+
+**Key props:**
+
+- `src` — path to image in public/ or assets/, or external URL
+- `alt` — required, descriptive alt text
+- `width` and `height` — required for CLS prevention
+- `sizes` — tells browser which srcset width to fetch; critical for correct responsive delivery
+- `preload` — use on LCP image only; prevents lazy-load delay
+- `provider` — optional; defaults to IPX
+
+### Width and height (preventing CLS)
+
+Always provide dimensions:
+
+```vue
+<NuxtImg
+  src="/images/product.webp"
+  alt="Oak dining table"
+  width="1200"
+  height="800"
+  sizes="(min-width: 768px) 50vw, 100vw"
+/>
+```
+
+The framework reserves layout space based on the aspect ratio, preventing cumulative layout shift.
+
+### Using NuxtPicture for multiple formats
+
+`<NuxtPicture>` generates a `<picture>` element with multiple sources for better format control:
+
+```vue
+<NuxtPicture
+  src="/images/hero.jpg"
+  :img-attrs="{ alt: 'Hero image' }"
+  width="1920"
+  height="1080"
+  format="avif,webp,jpg"
+  sizes="100vw"
+  preload
+/>
+```
+
+This serves AVIF to supporting browsers, WebP as fallback, and JPEG as final fallback.
+
+## IPX configuration and providers
+
+IPX is the built-in image optimizer that runs in your Nitro server. Configure it in `nuxt.config.ts`:
+
+```ts
+export default defineNuxtConfig({
+  modules: ['@nuxt/image'],
+  image: {
+    provider: 'ipx',
+    format: ['avif', 'webp'],
+    screens: {
+      xs: 320,
+      sm: 640,
+      md: 768,
+      lg: 1024,
+      xl: 1280,
+      xxl: 1536,
+    },
+    densities: [1, 2],
+    quality: 80,
+  },
+})
+```
+
+**Key options:**
+
+- `format` — order matters; AVIF first, WebP second
+- `screens` — breakpoints for responsive srcset generation
+- `densities` — pixel density multipliers (1x, 2x for retina)
+- `quality` — default quality setting (0–100)
+
+### Static generation with IPX
+
+When using `nuxi generate` for static hosting, IPX processes images at build time:
+
+```ts
+export default defineNuxtConfig({
+  modules: ['@nuxt/image'],
+  image: {
+    provider: 'ipx',
+    presets: {
+      hero: {
+        modifiers: {
+          format: 'avif',
+          quality: 55,
+          width: 1920,
+        },
+      },
+    },
+  },
+})
+```
+
+Use presets to define reusable optimization profiles:
+
+```vue
+<NuxtImg
+  src="/images/hero.jpg"
+  preset="hero"
+  alt="Hero"
+/>
+```
+
+## Static vs SSR image optimization
+
+### SSR mode (default)
+
+Images are optimized on demand by the Nitro server. First request processes and caches; subsequent requests serve from cache.
+
+**Pros:**
+- Works with dynamic images from CMS or user uploads
+- Optimizes only what's actually requested
+- No build-time processing
+
+**Cons:**
+- First request is slower (encoding happens on server)
+- Requires server runtime (Vercel, Netlify, Cloudflare, or self-hosted Nitro)
+
+### Static mode (nuxi generate)
+
+Images are optimized at build time. IPX processes known images during generation.
+
+**Pros:**
+- All images pre-optimized; no server-side encoding
+- Can deploy to any static host (GitHub Pages, S3, Cloudflare Pages)
+
+**Cons:**
+- Build time increases with image count
+- Dynamic images (CMS, user uploads) require external CDN
+- Must rebuild to update images
+
+For static sites with many images, pre-compress aggressively before build to reduce generation time.
+
+## AVIF and WebP strategy in Nuxt
+
+Nuxt Image negotiates formats automatically via IPX. When a browser requests an image:
+
+1. IPX checks if the visitor supports AVIF (via `Accept: image/avif`)
+2. If not, checks WebP support
+3. Falls back to original format (JPEG, PNG)
+
+### Should you pre-convert to AVIF before commit?
+
+**Yes** when:
+
+- The image is a hero or LCP candidate
+- You want to minimize origin bandwidth
+- Build performance matters (less server-side encoding)
+
+**Let Nuxt Image convert** when:
+
+- You're migrating existing JPEG assets gradually
+- The CMS only accepts JPEG uploads
+- You need one source format for simplicity
+
+### Example: commit both AVIF and WebP sources
+
+```
+/public/images/
+  hero.avif      (120 KB)
+  hero.webp      (180 KB)
+  hero.jpg       (500 KB, fallback only)
+```
+
+Use NuxtPicture to serve in order:
+
+```vue
+<NuxtPicture
+  src="/images/hero.jpg"
+  format="avif,webp,jpg"
+  :img-attrs="{ alt: 'Hero image' }"
+  width="1920"
+  height="1080"
+  preload
+/>
+```
+
+Or commit only AVIF — IPX will convert to WebP and JPEG on demand.
+
+Read [AVIF vs WebP](/blog/format-conversion/avif-vs-webp-2026) for format tradeoffs.
+
+## Custom providers for external CDNs
+
+If you host images on Cloudinary, Imgix, or a custom CDN, configure a provider:
+
+```ts
+// nuxt.config.ts
+export default defineNuxtConfig({
+  modules: ['@nuxt/image'],
+  image: {
+    provider: 'cloudinary',
+    cloudinary: {
+      baseURL: 'https://res.cloudinary.com/your-cloud/image/upload/',
+    },
+  },
+})
+```
+
+Or use a custom provider:
+
+```ts
+// nuxt.config.ts
+export default defineNuxtConfig({
+  modules: ['@nuxt/image'],
+  image: {
+    provider: 'custom',
+    providers: {
+      custom: {
+        name: 'custom',
+        provider: '~/providers/custom-provider.ts',
+      },
+    },
+  },
+})
+```
+
+```ts
+// providers/custom-provider.ts
+import { joinURL } from 'ufo'
+import type { ProviderGetImage } from '@nuxt/image'
+
+export const getImage: ProviderGetImage = (
+  src,
+  { modifiers = {}, baseURL = 'https://cdn.example.com' } = {},
+) => {
+  const { width, height, format, quality = 80 } = modifiers
+  const params = []
+  
+  if (width) params.push(`w_${width}`)
+  if (height) params.push(`h_${height}`)
+  if (format) params.push(`f_${format}`)
+  params.push(`q_${quality}`)
+  
+  return {
+    url: joinURL(baseURL, params.join(','), src),
+  }
+}
+```
+
+Even with custom providers, **pre-compress originals before uploading to the CDN origin**. Cloudinary and Imgix optimize on the fly, but they perform best when source files are already clean.
+
+### Vercel Image Optimization
+
+When deploying to Vercel, use the Vercel provider:
+
+```ts
+export default defineNuxtConfig({
+  modules: ['@nuxt/image'],
+  image: {
+    provider: 'vercel',
+  },
+})
+```
+
+Vercel automatically optimizes images at the edge with aggressive caching.
+
+## LCP optimization: priority and preload
+
+The Largest Contentful Paint (LCP) element is often a hero image. Prevent lazy-load delays:
+
+```vue
+<NuxtImg
+  src="/images/hero.avif"
+  alt="Hero"
+  width="1920"
+  height="1080"
+  preload
+  fetchpriority="high"
+/>
+```
+
+**Key props for LCP:**
+
+- `preload` — adds `<link rel="preload">` in document head
+- `fetchpriority="high"` — tells browser to prioritize this fetch
+- `loading="eager"` — disables lazy loading (default when preload is set)
+
+Only use these props on the LCP image. Using them on multiple images wastes bandwidth.
+
+## Common Nuxt image issues
+
+### CLS (Cumulative Layout Shift)
+
+**Problem:** Image loads and pushes content down.
+
+**Fix:** Always set `width` and `height`:
+
+```vue
+<NuxtImg src="/images/hero.avif" alt="Hero" width="1920" height="1080" />
+```
+
+### Slow local development
+
+**Problem:** First image load is slow in dev mode.
+
+**Cause:** IPX optimizes images on demand. The first request encodes; subsequent requests serve from cache.
+
+**Fix:** Accept dev mode slowness, or pre-compress aggressively so IPX passes through with minimal processing.
+
+### Missing provider configuration error
+
+**Problem:** `[nuxt-image] No provider found for ${provider}`
+
+**Fix:** Ensure the provider is installed and configured in `nuxt.config.ts`:
+
+```ts
+image: {
+  provider: 'cloudinary',
+  cloudinary: {
+    baseURL: 'https://res.cloudinary.com/your-cloud/image/upload/',
+  },
+}
+```
+
+### AVIF not serving
+
+**Problem:** Browser supports AVIF but receives WebP or JPEG.
+
+**Cause:** Check `format` in nuxt.config.ts — AVIF must come before WebP.
+
+**Fix:**
+
+```ts
+image: {
+  format: ['avif', 'webp'],
+}
+```
+
+### LCP image lazy-loaded
+
+**Problem:** Hero image has `loading="lazy"` even though it's above fold.
+
+**Fix:** Add `preload` prop:
+
+```vue
+<NuxtImg src="/images/hero.avif" alt="Hero" preload />
+```
+
+### Static generation failing with external images
+
+**Problem:** Build fails when using external image URLs.
+
+**Fix:** Configure `domains` or use a CDN provider that supports static mode:
+
+```ts
+image: {
+  domains: ['cdn.example.com'],
+}
+```
+
+Or pre-download external images and commit to public/.
+
+## Real-world workflow
+
+**1. Export from design tool**
+
+Export at 2400px max width, AVIF or WebP.
+
+**2. Compress locally**
+
+Drop files into Asset Melt, enable metadata stripping, export to `public/images/`.
+
+**3. Commit**
+
+```bash
+git add public/images/hero.avif
+git commit -m "feat: add hero image for Q4 campaign"
+```
+
+**4. Use in component**
+
+```vue
+<template>
+  <section class="relative h-screen">
+    <NuxtImg
+      src="/images/hero.avif"
+      alt="Q4 campaign hero: woman using laptop in cafe"
+      width="1920"
+      height="1080"
+      preload
+      class="w-full h-full object-cover"
+      sizes="100vw"
+    />
+  </section>
+</template>
+```
+
+**5. Verify**
+
+Run Lighthouse on mobile, check LCP element. If it's the hero image and LCP is under 2.5s on 4G, you're good.
+
+## Nuxt vs Next.js vs WordPress vs Astro compression
+
+| Platform | Optimization approach | Your prep step |
+| --- | --- | --- |
+| **Nuxt** | Server-side on demand (IPX); caches variants | Resize and format before commit |
+| **Next.js** | Server-side on demand; caches variants | Resize and format before commit — see [compress for Next.js](/blog/image-compression/compress-images-for-nextjs-2026) |
+| **WordPress** | Plugin-based; varies by CDN | Compress before media library upload — see [compress for WordPress](/blog/image-compression/compress-images-for-wordpress) |
+| **Shopify** | Shopify CDN auto-resizes; preserves originals | Export at 2048px max, WebP or JPEG — see [compress for Shopify](/blog/image-compression/compress-images-for-shopify) |
+
+Nuxt and Next.js offer similar control via server-side optimization. WordPress and Shopify optimize post-upload, so **local prep before upload** is even more critical there.
+
+## Composables and advanced patterns
+
+### useImage composable
+
+Access IPX directly in script setup:
+
+```vue
+<script setup>
+const { $img } = useNuxtApp()
+
+const heroUrl = $img('/images/hero.jpg', { 
+  width: 1920, 
+  format: 'avif',
+  quality: 55 
+})
+</script>
+
+<template>
+  <img :src="heroUrl" alt="Hero" />
+</template>
+```
+
+Useful for generating URLs for CSS backgrounds or Open Graph meta tags.
+
+### Background images with Nuxt Image
+
+```vue
+<script setup>
+const { $img } = useNuxtApp()
+
+const bgUrl = $img('/images/background.avif', { 
+  width: 1920, 
+  format: 'webp' 
+})
+</script>
+
+<template>
+  <div 
+    :style="{ backgroundImage: `url('${bgUrl}')` }"
+    class="h-screen bg-cover"
+  >
+    <!-- Content -->
+  </div>
+</template>
+```
+
+### Responsive background images
+
+```vue
+<script setup>
+const { $img } = useNuxtApp()
+
+const bgSmall = $img('/images/bg.jpg', { width: 640, format: 'webp' })
+const bgMedium = $img('/images/bg.jpg', { width: 1024, format: 'webp' })
+const bgLarge = $img('/images/bg.jpg', { width: 1920, format: 'avif' })
+</script>
+
+<template>
+  <div 
+    :style="{
+      backgroundImage: `
+        image-set(
+          url('${bgSmall}') 640w,
+          url('${bgMedium}') 1024w,
+          url('${bgLarge}') 1920w
+        )
+      `
+    }"
+    class="h-screen bg-cover"
+  >
+    <!-- Content -->
+  </div>
+</template>
+```
+
+## Getting started today
+
+1. Audit `public/` and find images over 500 KB.
+2. Re-export at 1920–2400px max width as AVIF or WebP.
+3. Commit the smaller files and delete originals.
+4. Add `preload` to your LCP image component.
+5. Verify with Lighthouse that LCP improved.
+
+<StudioCta label="Compress your Nuxt images locally" />
+
+**Related reading:** [Compress images without losing quality](/blog/image-compression/how-to-compress-images-without-losing-quality) · [Compress for Next.js](/blog/image-compression/compress-images-for-nextjs-2026) · [AVIF vs WebP](/blog/format-conversion/avif-vs-webp-2026) · [Privacy-first compression](/blog/image-compression/privacy-first-image-compression) · [Optimize for Core Web Vitals](/blog/performance-seo/optimize-images-core-web-vitals-lcp)
