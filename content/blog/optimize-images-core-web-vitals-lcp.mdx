@@ -44,7 +44,7 @@ When that resource is a 2.4 MB camera JPEG displayed at 800 CSS pixels, the brow
 | Metric | How images affect it | Fix priority |
 | --- | --- | --- |
 | **LCP** | Hero image bytes block the largest paint | Compress, resize, modern formats, `fetchpriority` |
-| **CLS** | Missing width/height causes layout jump | Explicit dimensions on `<img>`, reserve space |
+| **CLS** | Missing width/height causes layout jump | Explicit dimensions on `<img>`, reserve space — see [fix image CLS](/blog/performance-seo/fix-image-cls-layout-shift-2026) |
 | **INP** | Decoding huge images on main thread | Smaller files, avoid oversized off-screen assets |
 
 Core Web Vitals will not rescue thin content. They **do** matter when you compete on similar keywords — a faster page with the same intent wins the experience tiebreaker Google describes in its page quality documentation.
