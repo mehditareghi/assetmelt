@@ -1,0 +1,769 @@
+---
+title: "How to Fix Image CLS in 2026: width/height, aspect-ratio, and Layout-Shift-Free Responsive Images"
+description: "Complete guide to preventing Cumulative Layout Shift caused by images — set width and height attributes, use CSS aspect-ratio with responsive srcset, handle art-direction aspect ratio changes in picture, implement lazy-loaded sizes=\"auto\", and debug layout shifts with Chrome DevTools Performance and Web Vitals attribution."
+slug: fix-image-cls-layout-shift-2026
+publishedAt: 2026-10-05
+keywords:
+  - fix image CLS
+  - Cumulative Layout Shift images
+  - prevent layout shift images
+  - width height attributes
+  - aspect-ratio CSS images
+  - responsive images CLS
+  - Core Web Vitals CLS
+  - layout shift debugging 2026
+cluster: performance-seo
+heroImage: hero
+heroImageAlt: "Neon browser wireframe with a dashed, locked image slot holding a landscape icon, while faint orange text bars shift away"
+relatedTools:
+  - batch-image-compressor
+  - avif-compressor
+faq:
+  - question: "What causes images to cause layout shift?"
+    answer: "Images without explicit width and height attributes load with zero dimensions initially. When the browser downloads the image and discovers its true size, it must reflow the page to make room — causing visible content to jump. Setting width and height reserves the correct space immediately."
+  - question: "What is a good CLS score in 2026?"
+    answer: "Google defines good CLS as 0.1 or less at the 75th percentile of real-world users. Most image-related CLS problems can be eliminated by setting width and height on every img element and using CSS aspect-ratio for responsive layouts."
+  - question: "Do I need width and height if I use responsive srcset?"
+    answer: "Yes. Set width and height to the intrinsic dimensions of one srcset candidate (typically the largest or the src fallback). Modern browsers automatically apply aspect-ratio based on those attributes, so responsive images scale correctly without layout shift."
+  - question: "How do I prevent CLS with different aspect ratios in picture?"
+    answer: "Art direction with different aspect ratios per source is tricky — set per-source width and height attributes on each source element (supported in modern browsers as of 2024–2025), or use container-query-based CSS aspect-ratio overrides. Test carefully across breakpoints."
+  - question: "Does loading=\"lazy\" cause CLS?"
+    answer: "Lazy loading does not inherently cause CLS, but lazy-loaded images still need width and height. Without dimensions, lazy images will shift layout when they load. Always reserve space regardless of loading strategy."
+  - question: "How do I debug which images are causing layout shift?"
+    answer: "Use Chrome DevTools Performance panel with Web Vitals enabled. Record a page load, look for Layout Shift regions (red bars), and inspect the affected elements. The Web Vitals JS library with attribution build provides detailed shift sources and DOM nodes."
+  - question: "Can I use Asset Melt to fix CLS?"
+    answer: "Asset Melt helps by exporting images at fixed known dimensions before upload. When you export at 1920×1080, you know the exact width and height to set in your HTML — no guessing from CMS auto-crops or dynamic transforms."
+---
+
+**Cumulative Layout Shift (CLS)** caused by images is the most common and most preventable Core Web Vitals failure. A hero image loads, the page jumps down, the user's cursor lands on the wrong button, and Google penalizes the experience. The fix has been known since 2020: **set width and height attributes on every `<img>` tag**. Yet HTTP Archive data shows 40–50% of pages still ship images without dimensions.
+
+This guide covers the complete 2026 CLS prevention workflow — why images shift, how width/height plus CSS `aspect-ratio` work together, handling responsive `srcset` and art-direction `<picture>` with different aspect ratios, lazy-loaded images with `sizes="auto"`, placeholders (LQIP, blurhash, dominant color) and `object-fit`, CMS/framework patterns (WordPress, Shopify, Next.js Image), debugging with DevTools Performance layout-shift regions, and measuring field vs lab CLS with CrUX and PageSpeed Insights.
+
+## What this guide covers
+
+| Section | What you'll learn |
+| --- | --- |
+| [Why images cause CLS](#why-images-cause-layout-shift) | How browsers allocate space and why missing dimensions break that |
+| [The good CLS threshold](#what-good-cls-looks-like-in-2026) | 0.1 at p75, how it's measured, and why it matters for SEO |
+| [Width/height + aspect-ratio](#the-fix-width-and-height-attributes) | Modern CSS mapping and backward compatibility |
+| [Responsive srcset without shift](#responsive-images-and-cls) | Single aspect ratio across breakpoints |
+| [Art direction different ratios](#art-direction-and-different-aspect-ratios) | Per-source dimensions and container-query workarounds |
+| [Lazy loading + CLS](#lazy-loaded-images-and-cls) | Why lazy images still need dimensions, sizes="auto" |
+| [Placeholders and object-fit](#placeholders-lqip-blurhash-and-object-fit) | LQIP, blurhash, dominant color, and aspect-ratio containers |
+| [CMS/framework patterns](#cms-and-framework-cls-prevention) | WordPress, Shopify, Next.js, Astro/Nuxt |
+| [Debugging CLS](#debugging-layout-shift-with-devtools) | Performance panel, Web Vitals attribution, CrUX vs lab |
+| [Ads, embeds, carousels](#late-loading-content-and-dynamic-heroes) | Reserving space for ads, embeds, and late-swapped heroes |
+
+## Why images cause layout shift
+
+When a browser parses HTML and encounters an `<img>` tag without `width` and `height`, it has no idea how tall the image will be. It allocates **zero height** initially, renders everything below the image, and continues parsing.
+
+Then the image downloads. The browser discovers it's 1920×1080, recalculates layout, and shifts everything down by 1080 CSS pixels (or whatever the rendered height becomes). Text, buttons, and other content jump. That visible instability is **Cumulative Layout Shift**.
+
+### The browser layout timeline
+
+1. **HTML parse** — browser sees `<img src="hero.jpg" alt="Hero">`
+2. **Initial layout** — no dimensions known, image height = 0
+3. **Content below renders** — text, buttons, footer appear where the image space should have been
+4. **Image downloads** — browser now knows it's 1920×1080
+5. **Reflow** — browser shifts everything down to make room
+6. **CLS metric increases** — user sees the jump, Google records it
+
+### Why width and height fix this
+
+When you set `width="1920"` and `height="1080"`, the browser reserves 1920×1080 **intrinsic space** immediately. Before the image downloads, the browser knows the aspect ratio and allocates the correct height based on CSS width constraints (e.g., `img { max-width: 100%; height: auto; }`). Everything below the image renders in the correct position from the start. No reflow, no shift.
+
+<Callout title="Intrinsic dimensions vs CSS dimensions" variant="info">
+The width and height **attributes** declare the image's intrinsic size in pixels. CSS width and height **properties** control rendered dimensions. Modern browsers derive `aspect-ratio: 1920 / 1080` from the attributes, so responsive `width: 100%; height: auto;` scales without shift.
+</Callout>
+
+## What good CLS looks like in 2026
+
+Google's Core Web Vitals thresholds at the **75th percentile of real users**:
+
+- **Good:** 0.1 or less
+- **Needs improvement:** 0.1 to 0.25
+- **Poor:** greater than 0.25
+
+CLS is unitless — it multiplies **impact fraction** (what portion of the viewport shifted) by **distance fraction** (how far it moved). A full-width hero shifting 50% of the viewport down scores worse than a sidebar thumbnail shifting the same distance.
+
+### Why 0.1 is the target
+
+Most image-only CLS fixes get you under 0.1 if you set dimensions on every image. The remaining shifts usually come from:
+
+- **Web fonts** loading and causing text reflow (out of scope for this guide, but briefly: use `font-display: optional` or preload critical fonts)
+- **Ads and embeds** without reserved space
+- **Dynamic carousels** that inject variable-height content
+- **Late JavaScript** that swaps hero images after initial render
+
+Focus on images first — they're the highest-leverage fix.
+
+### CLS and SEO
+
+Core Web Vitals are a **page experience signal** in Google's ranking algorithm. CLS won't rescue thin content, but when two pages compete on similar queries and quality, the one with better experience (including CLS) wins the tiebreaker. More importantly, **users click away from pages that shift aggressively** — bounce rate and engagement indirectly affect SEO over time.
+
+For the broader performance picture, see [optimize images for Core Web Vitals](/blog/performance-seo/optimize-images-core-web-vitals-lcp) and [image SEO guide 2026](/blog/performance-seo/image-seo-guide-2026).
+
+## The fix: width and height attributes
+
+Every `<img>` element should have explicit `width` and `height` attributes matching the **intrinsic dimensions** of the image file:
+
+```html
+<img
+  src="/images/hero.jpg"
+  alt="Hero image"
+  width="1920"
+  height="1080"
+/>
+```
+
+### How modern CSS aspect-ratio mapping works
+
+Since 2021, all major browsers automatically map `width` and `height` attributes to a CSS `aspect-ratio` property. When you write:
+
+```html
+<img src="photo.jpg" alt="Photo" width="1600" height="900" />
+```
+
+The browser applies:
+
+```css
+img {
+  aspect-ratio: 1600 / 900; /* Derived automatically */
+}
+```
+
+Then your responsive CSS:
+
+```css
+img {
+  max-width: 100%;
+  height: auto;
+}
+```
+
+…scales the image correctly. On a 400px-wide mobile screen, the browser renders the image at 400×225 (maintaining the 16:9 ratio) without layout shift.
+
+### Backward compatibility
+
+This works in:
+
+- **Chrome** 90+ (2021)
+- **Safari** 15+ (2021)
+- **Firefox** 89+ (2021)
+- **Edge** Chromium-based (2021+)
+
+Older browsers ignore `aspect-ratio` but still reserve space when `width` and `height` are set — the page may look less refined, but CLS is still prevented.
+
+## Responsive images and CLS
+
+Responsive images with `srcset` and `sizes` prevent layout shift when **one aspect ratio is used across all breakpoints**.
+
+### Single aspect ratio across srcset
+
+Export multiple widths at the same aspect ratio:
+
+```bash
+hero-400.webp    (400×225)
+hero-800.webp    (800×450)
+hero-1600.webp   (1600×900)
+hero-2400.webp   (2400×1350)
+```
+
+All are 16:9. Set `width` and `height` to the **largest or fallback** candidate:
+
+```html
+<img
+  src="/images/hero-1600.webp"
+  srcset="
+    /images/hero-400.webp   400w,
+    /images/hero-800.webp   800w,
+    /images/hero-1600.webp 1600w,
+    /images/hero-2400.webp 2400w
+  "
+  sizes="(min-width: 1024px) 1600px, 100vw"
+  alt="Hero image"
+  width="1600"
+  height="900"
+/>
+```
+
+The browser:
+
+1. Sees `width="1600"` and `height="900"` → derives `aspect-ratio: 1600 / 900`
+2. Evaluates `sizes` → determines rendered width (e.g., 100vw = 400px on mobile)
+3. Picks the best `srcset` candidate (e.g., `hero-800.webp` for a 2× display)
+4. Allocates 400×225 space immediately (before download)
+5. Downloads and paints the image with zero layout shift
+
+### Why this works
+
+All `srcset` candidates share the same aspect ratio. The browser reserves space based on the attribute dimensions and scales proportionally. No reflow needed.
+
+Use the <ToolLink tool="batch-image-compressor">batch image compressor</ToolLink> to export the full `srcset` stack at consistent aspect ratios before upload.
+
+## Art direction and different aspect ratios
+
+**Art direction** means serving different crops at different breakpoints — e.g., a wide cinematic 21:9 hero on desktop, a tighter 4:3 crop on mobile. This creates a CLS challenge because the aspect ratio changes.
+
+### The modern solution: per-source width and height
+
+As of 2024–2025, modern browsers support `width` and `height` attributes on `<source>` elements within `<picture>`:
+
+```html
+<picture>
+  <source
+    media="(min-width: 768px)"
+    srcset="/images/hero-wide.avif"
+    type="image/avif"
+    width="2100"
+    height="900"
+  />
+  <source
+    media="(min-width: 768px)"
+    srcset="/images/hero-wide.webp"
+    type="image/webp"
+    width="2100"
+    height="900"
+  />
+  <source
+    srcset="/images/hero-mobile.avif"
+    type="image/avif"
+    width="800"
+    height="600"
+  />
+  <source
+    srcset="/images/hero-mobile.webp"
+    type="image/webp"
+    width="800"
+    height="600"
+  />
+  <img
+    src="/images/hero-mobile.jpg"
+    alt="Hero image"
+    width="800"
+    height="600"
+  />
+</picture>
+```
+
+Each `<source>` declares its own dimensions. The browser picks the matching source based on `media` queries and reserves space accordingly.
+
+### Browser support for source width/height
+
+- **Chrome** 114+ (2023)
+- **Safari** 17+ (2023)
+- **Firefox** 116+ (2023)
+
+Older browsers fall back to the `<img>` dimensions — acceptable for a fallback, but mobile users may see a layout shift if the fallback aspect ratio differs from the source.
+
+### Fallback strategy for older browsers
+
+If you need to support pre-2023 browsers and must art-direct with different ratios, consider:
+
+1. **Use the same aspect ratio across breakpoints** — crop differently in your design tool but export at a shared ratio.
+2. **Accept a minor shift on old browsers** — serve the correct experience to 95%+ of users.
+3. **Use container queries + CSS aspect-ratio override** (advanced) — requires JavaScript or CSS container queries to dynamically adjust aspect-ratio when the `<picture>` changes sources.
+
+Most teams ship per-source dimensions and call it done — legacy browser CLS on art-direction cases is rare in 2026 traffic.
+
+## Lazy-loaded images and CLS
+
+**Lazy loading does not cause CLS by itself.** The mistake is omitting `width` and `height` on lazy-loaded images.
+
+### Correct lazy-loading with dimensions
+
+```html
+<img
+  src="/images/photo.webp"
+  alt="Photo"
+  loading="lazy"
+  width="1200"
+  height="800"
+/>
+```
+
+The browser:
+
+1. Sees `width` and `height` → reserves 1200×800 space
+2. Sees `loading="lazy"` → defers download until near viewport
+3. User scrolls toward the image → browser fetches it
+4. Image loads into the pre-reserved space → zero layout shift
+
+### sizes="auto" for lazy-loaded images
+
+`sizes="auto"` (supported in Chrome 117+, Safari 17.4+, Firefox 127+) lets the browser infer rendered image width after layout:
+
+```html
+<img
+  src="/images/article-800.webp"
+  srcset="
+    /images/article-400.webp   400w,
+    /images/article-800.webp   800w,
+    /images/article-1200.webp 1200w
+  "
+  sizes="auto"
+  alt="Article figure"
+  width="1200"
+  height="800"
+  loading="lazy"
+/>
+```
+
+**Rules:**
+
+- Use `sizes="auto"` only with `loading="lazy"`
+- Still set `width` and `height` to reserve space and derive `aspect-ratio`
+- The browser measures rendered width after layout, picks the best `srcset` candidate, and fetches it before the image enters the viewport
+
+This simplifies responsive markup for below-the-fold content images — no manual media queries in `sizes`.
+
+**Do not use `sizes="auto"` on your LCP hero** — above-the-fold images need explicit `sizes` and `fetchpriority="high"`. See [image lazy loading best practices 2026](/blog/performance-seo/image-lazy-loading-best-practices-2026) for full lazy-loading guidance.
+
+## Placeholders: LQIP, blurhash, and object-fit
+
+Placeholders improve perceived performance by showing a preview before the full image loads. When implemented correctly, they do not cause CLS.
+
+### Low-Quality Image Placeholder (LQIP)
+
+Serve a tiny blurred version (e.g., 20×15 scaled up) as the `src`, then swap in the full image:
+
+```html
+<img
+  src="/images/hero-lqip.jpg"
+  data-src="/images/hero.webp"
+  alt="Hero"
+  width="1600"
+  height="900"
+  class="lqip"
+/>
+```
+
+```css
+.lqip {
+  filter: blur(20px);
+  transition: filter 0.3s;
+}
+
+.lqip.loaded {
+  filter: blur(0);
+}
+```
+
+```js
+const img = document.querySelector('.lqip')
+const fullSrc = img.dataset.src
+
+const fullImg = new Image()
+fullImg.src = fullSrc
+fullImg.onload = () => {
+  img.src = fullSrc
+  img.classList.add('loaded')
+}
+```
+
+**CLS prevention:** The `width` and `height` attributes reserve the same space for both the placeholder and the full image. No shift occurs when the src swaps.
+
+### Blurhash and dominant color
+
+Blurhash encodes a blurred preview as a short string. Decode it on page load and set as a CSS `background-image` on a container, then overlay the real `<img>`:
+
+```html
+<div class="image-container" style="aspect-ratio: 16 / 9; background: #3a5f7d;">
+  <img
+    src="/images/hero.webp"
+    alt="Hero"
+    width="1600"
+    height="900"
+    style="width: 100%; height: 100%; object-fit: cover;"
+  />
+</div>
+```
+
+The container reserves space via `aspect-ratio`. The `<img>` fills the container with `object-fit: cover`. No layout shift.
+
+**Dominant color** is simpler — extract the average color (e.g., `#3a5f7d`) and set as `background-color`. When the image loads, it paints over the solid color. Use `object-fit` to ensure the image covers the container.
+
+### object-fit and aspect-ratio containers
+
+When you can't control image aspect ratios (user-generated content, CMS imports), wrap images in containers with fixed `aspect-ratio`:
+
+```css
+.gallery-item {
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+}
+
+.gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+```
+
+Every image — regardless of intrinsic dimensions — renders in a 4:3 box. CLS is prevented because the container reserves space. Images crop to fit.
+
+**Trade-off:** You lose flexibility in per-image aspect ratios. Good for uniform grids, less good for editorial layouts where each photo's composition matters.
+
+## CMS and framework CLS prevention
+
+### WordPress
+
+**Classic editor:**
+
+When you insert an image via the Media Library, WordPress auto-adds `width` and `height` attributes. If you paste raw HTML, add them manually.
+
+**Block editor (Gutenberg):**
+
+The Image block outputs `width` and `height` by default. If they're missing, your theme or a plugin may strip them — check theme CSS for `img { height: auto; }` without aspect-ratio support.
+
+**Responsive images:**
+
+WordPress generates `srcset` for uploaded images. All variants share the same aspect ratio (WordPress crops proportionally). Set `width` and `height` on the `<img>` to the full-size dimensions.
+
+For deep WordPress optimization, see [compress images for WordPress](/blog/image-compression/compress-images-for-wordpress).
+
+### Shopify
+
+Shopify's Liquid `{{ image_url }}` and `{{ image_tag }}` filters output `width` and `height` attributes automatically when you use the `image_tag` helper:
+
+```liquid
+{{ product.featured_image | image_url: width: 1200 | image_tag: alt: product.title }}
+```
+
+**Output:**
+
+```html
+<img src="product.jpg?width=1200" alt="Product" width="1200" height="800" />
+```
+
+If you manually write `<img>` tags, retrieve dimensions from the image object:
+
+```liquid
+<img
+  src="{{ product.featured_image | image_url: width: 1200 }}"
+  alt="{{ product.title }}"
+  width="{{ product.featured_image.width }}"
+  height="{{ product.featured_image.height }}"
+/>
+```
+
+Shopify sets dimensions on original uploads. If you upload a 2000×1500 image, Shopify knows the ratio and scales `width` and `height` when you request a specific width.
+
+For Shopify-specific compression prep, see [compress images for Shopify](/blog/image-compression/compress-images-for-shopify).
+
+### Next.js Image component
+
+`next/image` automatically reserves space and prevents CLS:
+
+```jsx
+import Image from 'next/image'
+
+<Image
+  src="/images/hero.webp"
+  alt="Hero"
+  width={1600}
+  height={900}
+  priority
+/>
+```
+
+The `width` and `height` props set intrinsic dimensions. Next.js generates responsive `srcset` and optimized formats. CLS is prevented out of the box.
+
+**Fill mode (background-like images):**
+
+```jsx
+<div style={{ position: 'relative', aspectRatio: '16 / 9' }}>
+  <Image
+    src="/images/hero.webp"
+    alt="Hero"
+    fill
+    style={{ objectFit: 'cover' }}
+  />
+</div>
+```
+
+The container reserves space via `aspectRatio`. The `fill` prop makes the image fill the container. No shift.
+
+### Astro and Nuxt
+
+Both frameworks offer optimized image components that handle dimensions automatically when you provide `width` and `height`:
+
+**Astro:**
+
+```astro
+---
+import { Image } from 'astro:assets'
+import hero from '../images/hero.webp'
+---
+
+<Image src={hero} alt="Hero" width={1600} height={900} />
+```
+
+**Nuxt (Nuxt Image):**
+
+```vue
+<NuxtImg
+  src="/images/hero.webp"
+  alt="Hero"
+  width="1600"
+  height="900"
+/>
+```
+
+If you skip the framework component and use raw `<img>`, add `width` and `height` manually.
+
+## Debugging layout shift with DevTools
+
+### Chrome DevTools Performance panel
+
+1. Open DevTools → **Performance** tab
+2. Enable **Web Vitals** in the settings (gear icon)
+3. Click **Record** and load your page
+4. Stop recording
+5. Look for red **Layout Shift** bars in the timeline
+6. Click a shift bar → DevTools highlights the affected DOM nodes
+
+**What to look for:**
+
+- Shifts near the start of the timeline (initial render) — likely images without dimensions
+- Shifts after network requests complete — late-loaded content or ads
+- Multiple small shifts — missing dimensions on inline images or thumbnails
+
+### Web Vitals JavaScript attribution build
+
+Install the official Web Vitals library with attribution:
+
+```bash
+npm install web-vitals
+```
+
+```js
+import { onCLS } from 'web-vitals/attribution'
+
+onCLS((metric) => {
+  console.log('CLS:', metric.value)
+  metric.entries.forEach((entry) => {
+    console.log('Shifted element:', entry.sources?.[0]?.node)
+    console.log('Shift amount:', entry.value)
+  })
+})
+```
+
+The attribution build identifies which DOM nodes caused shifts. Look for `<img>` elements without `width` and `height`.
+
+### PageSpeed Insights and Lighthouse
+
+Run PageSpeed Insights (mobile):
+
+- Check the **CLS** score in the Core Web Vitals section
+- Expand **Diagnostics** → "Avoid large layout shifts"
+- PSI lists elements that contributed to CLS
+
+**Field data vs lab data:**
+
+- **Field data (CrUX)** — real-world CLS from actual users over 28 days
+- **Lab data (Lighthouse)** — synthetic test on a throttled connection
+
+If field CLS is poor but lab CLS is good, the problem may be:
+
+- Ads or embeds that load in production but not in Lighthouse
+- User-specific content (logged-in state, personalized widgets)
+- Network variability causing late image loads
+
+### Chrome UX Report (CrUX)
+
+Check real-world CLS in Google Search Console → **Core Web Vitals** report. Group issues by page type (product, blog, homepage) to identify patterns.
+
+CrUX updates on a rolling 28-day window. After deploying CLS fixes, wait 2–4 weeks for the field data to reflect changes.
+
+## Late-loading content and dynamic heroes
+
+### Ads without reserved space
+
+Third-party ads are a leading cause of CLS. Reserve space before the ad loads:
+
+```html
+<div class="ad-slot" style="min-height: 250px;">
+  <!-- Ad script injects here -->
+</div>
+```
+
+Or use `aspect-ratio`:
+
+```css
+.ad-slot {
+  aspect-ratio: 300 / 250;
+  background: #f0f0f0;
+}
+```
+
+The ad script fills the reserved container. If the ad fails to load, the space remains — better than a late shift.
+
+### Embeds (YouTube, Twitter, Instagram)
+
+Use aspect-ratio containers:
+
+```html
+<div style="position: relative; aspect-ratio: 16 / 9;">
+  <iframe
+    src="https://www.youtube.com/embed/VIDEO_ID"
+    style="position: absolute; width: 100%; height: 100%;"
+    frameborder="0"
+    allow="autoplay; encrypted-media"
+    allowfullscreen
+  ></iframe>
+</div>
+```
+
+The container reserves 16:9 space. The iframe fills it. No shift when the embed loads.
+
+### Carousels and late-swapped heroes
+
+If a carousel or hero swaps images after initial render (e.g., client-side personalization), ensure:
+
+1. The initial hero and swapped hero have the **same aspect ratio**
+2. Dimensions are set on the `<img>` before and after the swap
+3. The swap happens before the user scrolls (ideally within 500ms)
+
+**Better approach:** Server-render the correct hero. Client-side swaps always risk CLS.
+
+## Web fonts and CLS (brief note)
+
+Web font loading can cause text reflow and CLS, but that's outside this guide's scope. Quick tips:
+
+- Use `font-display: optional` to prevent invisible text and reflow
+- Preload critical fonts: `<link rel="preload" href="font.woff2" as="font" type="font/woff2" crossorigin>`
+- Match fallback font metrics to reduce reflow when custom fonts load
+
+For image-only CLS, fonts are a separate (though related) concern.
+
+## CLS checklist: preventing image layout shift
+
+Before deploying any page:
+
+- [ ] Every `<img>` has `width` and `height` attributes
+- [ ] Responsive `srcset` candidates share the same aspect ratio, or per-source dimensions are set
+- [ ] Lazy-loaded images below the fold have `width` and `height`
+- [ ] Art-direction `<picture>` elements use per-source `width` and `height` (or accept fallback shift)
+- [ ] Placeholders (LQIP, blurhash, dominant color) use containers with `aspect-ratio`
+- [ ] Ad slots and embeds have reserved space (min-height or aspect-ratio)
+- [ ] CSS does not override `aspect-ratio` without understanding the implications
+- [ ] Test in Chrome DevTools Performance with Web Vitals enabled
+- [ ] Run PageSpeed Insights mobile and verify CLS ≤ 0.1
+- [ ] Monitor CrUX field data in Search Console after deploy
+
+## Asset Melt and CLS prevention
+
+Asset Melt helps by exporting images at **fixed known dimensions** before upload. When you export a hero at 1920×1080, you know exactly which `width` and `height` to set in your HTML — no guessing from CMS auto-crops or CDN transforms.
+
+Workflow:
+
+1. Open the <ToolLink tool="batch-image-compressor">batch image compressor</ToolLink>
+2. Set a max dimension preset (e.g., 1920px) or export multiple widths for `srcset`
+3. Export as AVIF, WebP, and JPEG
+4. Note the output dimensions (e.g., 1920×1080)
+5. Upload to your CMS
+6. Set `width="1920"` and `height="1080"` in your HTML
+
+Because Asset Melt encodes locally before upload, you control dimensions and aspect ratios. No surprises. No CMS auto-crop that changes the ratio mid-deploy.
+
+## Measuring CLS success
+
+After deploying dimension fixes:
+
+1. **Lighthouse (lab)** — CLS should drop to 0 or near-zero on the test page
+2. **PageSpeed Insights (field)** — check the 28-day CrUX score; expect improvement after 2–4 weeks
+3. **Search Console → Core Web Vitals** — track the number of "Good" pages over time
+4. **Real User Monitoring** — instrument with Web Vitals JS and track CLS on production traffic
+
+**Success looks like:**
+
+- 90%+ of pages under 0.1 CLS at p75
+- Zero image-related shifts in DevTools Performance
+- Stable layout on mobile (test on real devices, not just desktop DevTools emulation)
+
+## Common CLS mistakes (and how to avoid them)
+
+### 1. Omitting width and height entirely
+
+**Problem:** The oldest and most common mistake.
+
+**Fix:** Set `width` and `height` on every `<img>`, even decorative ones.
+
+### 2. Setting width and height in CSS only
+
+**Problem:**
+
+```css
+img {
+  width: 100%;
+  height: auto;
+}
+```
+
+This scales images but does not reserve space before download.
+
+**Fix:** Set **attributes** in HTML:
+
+```html
+<img src="photo.jpg" alt="Photo" width="1200" height="800" />
+```
+
+The CSS still works, but the browser now knows the aspect ratio upfront.
+
+### 3. Mismatched aspect ratios in srcset
+
+**Problem:** Exporting responsive widths with different crops:
+
+```
+hero-400.webp   (400×300, 4:3)
+hero-800.webp   (800×450, 16:9)
+hero-1600.webp  (1600×900, 16:9)
+```
+
+The browser reserves space for 16:9 (from `width="1600"` and `height="900"`), but mobile gets the 4:3 variant — layout shift.
+
+**Fix:** Export all widths at the same aspect ratio, or use per-source dimensions in `<picture>`.
+
+### 4. Forgetting dimensions on lazy-loaded images
+
+**Problem:**
+
+```html
+<img src="photo.webp" alt="Photo" loading="lazy" />
+```
+
+Lazy loading defers download, but without dimensions, space is not reserved.
+
+**Fix:**
+
+```html
+<img src="photo.webp" alt="Photo" loading="lazy" width="1200" height="800" />
+```
+
+### 5. Using background-image for content
+
+**Problem:** CSS background images can't have `width` and `height` attributes. Reserving space requires manual container sizing.
+
+**Fix:** Use `<img>` or `<picture>` for content images. Reserve space with container `aspect-ratio` if you must use background images.
+
+### 6. Swapping image src after load without matching dimensions
+
+**Problem:** Initial hero is 1600×900, swapped hero is 1600×1200 → layout shift.
+
+**Fix:** Ensure initial and swapped images have identical aspect ratios, or avoid client-side swaps.
+
+## Getting started today
+
+1. Audit your top 5 landing pages in PageSpeed Insights (mobile)
+2. Check the CLS score — if > 0.1, expand diagnostics for image-related shifts
+3. Open DevTools Performance → record a page load → find Layout Shift bars → identify shifted images
+4. Add `width` and `height` to those images (start with the hero)
+5. Re-export images at fixed dimensions with Asset Melt if the CMS auto-crops unpredictably
+6. Redeploy and re-test in Lighthouse
+7. Monitor CrUX for 28 days
+
+<StudioCta label="Export images with known dimensions" />
+
+**Related reading:** [Optimize images for Core Web Vitals](/blog/performance-seo/optimize-images-core-web-vitals-lcp) · [Image lazy loading best practices 2026](/blog/performance-seo/image-lazy-loading-best-practices-2026) · [Responsive images guide](/blog/performance-seo/responsive-images-guide) · [How images affect LCP](/blog/performance-seo/how-images-affect-lcp) · [Image SEO guide 2026](/blog/performance-seo/image-seo-guide-2026)
