@@ -25,7 +25,7 @@ faq:
   - question: "Is AVIF encoding slower than WebP?"
     answer: "Yes — AVIF encoding is more CPU-intensive. For batch workflows, WebP encodes faster. Asset Melt runs codecs in Web Workers so the UI stays responsive during long queues."
   - question: "Does AVIF support animation like animated WebP?"
-    answer: "AVIF can contain animated sequences, but animated WebP has broader tooling support today. For still images on the web, AVIF's still-image profile is the relevant comparison."
+    answer: "AVIF can contain animated sequences, but animated WebP has broader tooling support today. For still images on the web, AVIF's still-image profile is the relevant comparison. For animated content, see the guide on replacing animated GIFs."
   - question: "Will AVIF look worse on older displays?"
     answer: "AVIF decodes to the same sRGB pixels as WebP or JPEG. Older displays simply receive a larger file via the fallback source in your picture element — not lower quality from the AVIF itself."
 ---
@@ -210,4 +210,4 @@ When in doubt, export both AVIF and WebP from the same master in Asset Melt and 
 
 <StudioCta label="Compare AVIF and WebP in the studio" to="avif" />
 
-Read also: [How to compress images in the browser](/blog/image-compression/compress-images-in-browser) and our [Squoosh alternative guide](/blog/image-compression/squoosh-alternative-guide).
+Read also: [How to compress images in the browser](/blog/image-compression/compress-images-in-browser), [Squoosh alternative guide](/blog/image-compression/squoosh-alternative-guide), and [Replace Animated GIFs in 2026](/blog/format-conversion/replace-animated-gif-webp-avif-video-2026) for animated WebP and AVIF.

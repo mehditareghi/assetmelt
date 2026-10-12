@@ -7,6 +7,13 @@
     <language>en-us</language>
     <atom:link href="https://assetmelt.com/rss.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>Replace Animated GIFs in 2026: Animated WebP, AVIF, or MP4/WebM?</title>
+      <link>https://assetmelt.com/blog/format-conversion/replace-animated-gif-webp-avif-video-2026</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/format-conversion/replace-animated-gif-webp-avif-video-2026</guid>
+      <description>Replace animated GIFs on the web with animated WebP, animated AVIF, or MP4/WebM video — file size, browser support, accessibility, platform constraints, and conversion workflows for loops, reactions, product demos, and UI recordings.</description>
+      <pubDate>Mon, 12 Oct 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
       <title>How to Compress Images for Next.js in 2026: App Router, Server Components, and Modern Formats</title>
       <link>https://assetmelt.com/blog/image-compression/compress-images-for-nextjs-2026</link>
       <guid isPermaLink="true">https://assetmelt.com/blog/image-compression/compress-images-for-nextjs-2026</guid>
@@ -137,13 +144,6 @@
       <link>https://assetmelt.com/blog/performance-seo/best-image-sizes-open-graph-social-media</link>
       <guid isPermaLink="true">https://assetmelt.com/blog/performance-seo/best-image-sizes-open-graph-social-media</guid>
       <description>Use the right image dimensions, file sizes, formats, and safe areas for Open Graph, Twitter/X cards, LinkedIn, Slack, Discord, and social previews.</description>
-      <pubDate>Mon, 22 Jun 2026 00:00:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>How to Compress Images for Shopify</title>
-      <link>https://assetmelt.com/blog/image-compression/compress-images-for-shopify</link>
-      <guid isPermaLink="true">https://assetmelt.com/blog/image-compression/compress-images-for-shopify</guid>
-      <description>Optimize Shopify product photos, collection images, banners, and social previews before upload with private local compression.</description>
       <pubDate>Mon, 22 Jun 2026 00:00:00 GMT</pubDate>
     </item>
   </channel>
