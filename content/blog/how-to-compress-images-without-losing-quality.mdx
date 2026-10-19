@@ -3,7 +3,7 @@ title: "How to Compress Images Without Losing Quality"
 description: "The complete guide to visually lossless image compression — resize first, choose the right format, tune quality carefully, hit byte budgets, and verify results before publishing to WordPress, Shopify, or the open web."
 slug: how-to-compress-images-without-losing-quality
 publishedAt: 2026-06-27
-updatedAt: 2026-08-11
+updatedAt: 2026-10-19
 keywords:
   - compress images without losing quality
   - lossless image compression
@@ -307,11 +307,11 @@ If you inherit a folder of already-compressed images, be gentler. Resize when di
 
 ## Special cases
 
-**Screenshots** often need different treatment from photos. Lossy compression can make text fuzzy, even when the file size looks attractive. Try PNG or lossless WebP first. If the screenshot is mostly photographic content, lossy WebP at quality 90+ may be fine.
+**Screenshots** often need different treatment from photos. Lossy compression can make text fuzzy, even when the file size looks attractive. Try PNG or lossless WebP first. If the screenshot is mostly photographic content, lossy WebP at quality 90+ may be fine. For a complete workflow covering lossless optimization, palette quantization, and when to switch formats, see [how to compress PNG images](/blog/image-compression/compress-png-images-2026).
 
 **Logos and icons** should usually be SVG. If you must use raster, keep them lossless and sized exactly. A blurry logo is one of the fastest ways to make a polished page feel careless.
 
-**Transparent PNGs** exported from design tools can be enormous. Before reaching for quality sliders, check whether WebP lossless or a trimmed palette PNG would suffice. Flat icons with few colors compress dramatically when palette-reduced.
+**Transparent PNGs** exported from design tools can be enormous. Before reaching for quality sliders, check whether WebP lossless or a trimmed palette PNG would suffice. Flat icons with few colors compress dramatically when palette-reduced. The [PNG compression guide](/blog/image-compression/compress-png-images-2026) covers OxiPNG lossless optimization and palette quantization workflows for screenshots, product cutouts, and graphics.
 
 **Animated GIFs** are rarely the right web format in 2026. Convert to video (WebM/MP4) or static WebP/AVIF for large animation — GIF compression is inefficient and quality-poor for photos.
 
@@ -449,6 +449,7 @@ This pillar introduces the cluster. Each guide below goes deep on one slice of t
 | --- | --- |
 | [Best image compression settings for web](/blog/image-compression/best-image-compression-settings-for-web) | JPEG, WebP, and AVIF presets by image role |
 | [Reduce image size under 100KB](/blog/image-compression/reduce-image-size-under-100kb) | Hard byte caps for thumbnails and cards |
+| [Compress PNG images](/blog/image-compression/compress-png-images-2026) | PNG lossless optimization, palette quantization, screenshots, transparency |
 | [JPEG vs PNG vs WebP vs AVIF](/blog/image-compression/jpeg-vs-png-vs-webp-vs-avif) | Format comparison when quality tradeoffs confuse you |
 | [Compress images for WordPress](/blog/image-compression/compress-images-for-wordpress) | Pre-upload workflow for WP Media Library |
 | [Compress images for Shopify](/blog/image-compression/compress-images-for-shopify) | Product photos, banners, and collection images |
