@@ -1,0 +1,695 @@
+---
+title: "How to Optimize Images for Remix in 2026: Vite, Route Loaders, and Modern Formats"
+description: "Complete guide to optimizing images for Remix 2.x — use Vite asset imports, ship AVIF and WebP with responsive srcset, implement blur placeholders via route loaders, and prep assets locally before committing to avoid runtime overhead."
+slug: optimize-images-for-remix-2026
+publishedAt: 2026-10-26
+keywords:
+  - Remix image optimization
+  - optimize images for Remix
+  - Remix Vite images 2026
+  - Remix AVIF WebP
+  - Remix route loader images
+  - Remix responsive images
+cluster: format-conversion
+heroImage: hero
+heroImageAlt: "Remix logo with AVIF and WebP image formats flowing through Vite build pipeline"
+relatedTools:
+  - batch-image-compressor
+  - avif-compressor
+  - privacy-first-image-compression
+faq:
+  - question: "Does Remix automatically optimize images?"
+    answer: "No, Remix delegates asset handling to Vite. Vite bundles and fingerprints image imports but does not compress, resize, or convert formats at build time. You must optimize images before committing them to your repo."
+  - question: "Should I commit compressed images to my Remix repo?"
+    answer: "Yes. Pre-compress to AVIF and WebP locally before commit. Vite will fingerprint and serve them efficiently, but it will not make oversized camera JPEGs smaller. Smaller committed files mean faster git clones and lower CDN bandwidth."
+  - question: "What image format works best with Remix?"
+    answer: "Ship AVIF for heroes and large photos, WebP for general content, and JPEG or PNG as fallback. Use picture elements to serve the best format each browser supports. Remix and Vite pass them through unchanged."
+  - question: "How do I generate responsive image variants in Remix?"
+    answer: "Export multiple widths locally (e.g., 640w, 1200w, 1920w) before commit. Use srcset in your markup to let the browser pick the right size. Remix does not generate variants at build time — you bring finished assets."
+  - question: "Can I use image CDNs with Remix?"
+    answer: "Yes. Fetch image URLs from route loaders and pass them to your components. Pre-compress originals before uploading to the CDN origin for best results, even when the CDN offers on-the-fly transforms."
+  - question: "How do I prevent layout shift (CLS) with Remix images?"
+    answer: "Always set width and height attributes on img elements, or use CSS aspect-ratio on containers. Remix does not reserve space automatically — you must provide dimensions explicitly."
+---
+
+**Image optimization for Remix** in 2026 is explicit, not magical. Unlike frameworks with built-in image components, Remix 2.x delegates asset handling to Vite — which fingerprints and bundles imports efficiently but does **not** compress, resize, or convert formats. That philosophy puts control in your hands: you choose formats, generate responsive variants, and optimize quality before committing. Remix then serves those assets quickly, with no runtime encoding overhead.
+
+This guide covers the full pipeline for Remix 2.x (the Vite-based rewrite that became the default in late 2024) — how to prep images locally, import them through Vite, structure responsive markup, load dynamic URLs via route loaders, and avoid common layout shift and performance pitfalls.
+
+## What this guide covers
+
+| Section | What you will learn |
+| --- | --- |
+| [Why optimize before Remix](#why-optimize-images-before-remix-sees-them) | What Vite does and does not do |
+| [The optimization split](#the-optimization-split-you-vs-vite) | Responsibilities: you prep, Vite bundles |
+| [Local prep workflow](#local-prep-workflow-compress-before-commit) | Resize, format, strip metadata, export variants |
+| [Vite asset imports](#vite-asset-imports-in-remix) | Import images as URLs, handle TypeScript |
+| [Responsive images](#responsive-images-with-srcset-and-picture) | srcset, sizes, and art direction patterns |
+| [AVIF and WebP strategy](#avif-and-webp-strategy-in-remix) | picture element fallback chains |
+| [Dynamic images](#dynamic-images-from-route-loaders) | CMS URLs, external sources, and loader data |
+| [Blur placeholders](#blur-placeholders-and-lqip) | Base64 generation and route loader delivery |
+| [Image CDNs](#using-image-cdns-with-remix) | Cloudinary, Imgix, and when to use them |
+| [Troubleshooting](#common-remix-image-issues) | CLS, missing imports, AVIF rendering |
+
+## Why optimize images before Remix sees them
+
+Remix 2.x builds on Vite, which fingerprints and serves static assets efficiently. When you import an image:
+
+```tsx
+import heroUrl from '~/assets/hero.avif'
+```
+
+Vite produces a hashed URL like `/assets/hero-a7f3c9.avif` and serves it from your build output. That is excellent for cache busting and CDN delivery.
+
+What Vite **does not do**:
+
+- Compress or resize images at build time
+- Generate responsive variants (320w, 640w, 1200w)
+- Convert JPEG to AVIF or WebP automatically
+- Strip EXIF metadata from public assets
+- Create blur placeholders for progressive loading
+
+Those steps happen before commit, in a local tool. The winning strategy: **optimize locally** → commit clean assets → let Vite fingerprint and serve them.
+
+<Callout title="Performance and Core Web Vitals" variant="info">
+Smaller source files improve LCP, especially on first visits before CDN caches warm. For deeper Core Web Vitals tuning — priority hints, lazy loading, and LCP-specific markup — see [optimize images for Core Web Vitals](/blog/performance-seo/optimize-images-core-web-vitals-lcp).
+</Callout>
+
+## The optimization split: you vs Vite
+
+Think of image optimization as a two-stage pipeline:
+
+| Stage | Your responsibility | Vite responsibility |
+| --- | --- | --- |
+| **Source prep** | Resize, format conversion, quality tuning, metadata stripping, responsive variant export | — |
+| **Build & delivery** | — | Fingerprint URLs, bundle imports, serve with long cache headers |
+
+You own the bytes before they hit the repo. Vite owns the URLs and caching strategy.
+
+### What Vite does automatically
+
+- Fingerprints image URLs with content hashes (e.g., `hero-a7f3c9.avif`)
+- Bundles image imports as static assets in `build/client/assets/`
+- Serves them with efficient caching headers
+- Handles URL rewrites in production builds
+
+### What you must do manually
+
+- Resize originals to reasonable max dimensions (e.g., 1920–2400px wide for heroes)
+- Export to efficient formats before commit (AVIF, WebP, or high-quality JPEG/PNG)
+- Generate responsive variants at multiple widths
+- Strip EXIF metadata from public assets
+- Write srcset and sizes markup for responsive delivery
+- Provide width and height attributes to prevent layout shift
+
+## Local prep workflow: compress before commit
+
+Before any image enters your Remix project, run this checklist:
+
+### 1. Resize to display width × 2
+
+Most marketing heroes display at 1200–1600 CSS pixels wide. Export at **2400–3200px max** to cover retina displays. Do not commit 6000px camera originals.
+
+Open the <ToolLink tool="batch-image-compressor">batch image compressor</ToolLink>, set max dimension to 2400px, and export.
+
+### 2. Choose the right format
+
+| Asset type | Best source format for Remix |
+| --- | --- |
+| Hero photography | AVIF or WebP with JPEG fallback |
+| Blog inline images | WebP or JPEG |
+| UI screenshots | PNG or lossless WebP |
+| Logos with transparency | SVG (when possible) or PNG |
+| Product photos | AVIF or WebP with JPEG fallback |
+
+For maximum performance, commit AVIF for photos — it offers the smallest file sizes at high visual quality. Always provide a WebP or JPEG fallback for older browsers.
+
+### 3. Export responsive variants
+
+Generate multiple widths from the same source — typically 640w, 1200w, and 1920w for full-width heroes:
+
+```
+app/assets/images/
+  hero-640.avif
+  hero-1200.avif
+  hero-1920.avif
+  hero-640.webp
+  hero-1200.webp
+  hero-1920.webp
+  hero.jpg (fallback)
+```
+
+Asset Melt lets you batch-export with consistent quality settings. Export once, commit all variants.
+
+### 4. Strip metadata
+
+Enable **Strip metadata** in Asset Melt's studio settings. Re-encoding removes EXIF GPS coordinates, device info, and timestamps before commit.
+
+See [privacy-first image compression](/blog/image-compression/privacy-first-image-compression) for why metadata stripping matters for public repos.
+
+### 5. Commit to app/assets or public
+
+**Option A: Import via Vite (recommended)**
+
+```
+app/assets/images/hero-640.avif
+app/assets/images/hero-1200.avif
+app/assets/images/hero.webp
+```
+
+Vite fingerprints these during build. Use imports in components.
+
+**Option B: Serve from public/ (for static assets)**
+
+```
+public/images/hero.avif
+```
+
+These serve at `/images/hero.avif` without fingerprinting. Use when URLs must be predictable (e.g., for meta tags or external references).
+
+Smaller committed files = faster clones and less CDN bandwidth.
+
+## Vite asset imports in Remix
+
+### Basic image import
+
+```tsx
+import heroUrl from '~/assets/images/hero.avif'
+
+export default function Hero() {
+  return (
+    <img
+      src={heroUrl}
+      alt="Asset Melt studio compressing images locally"
+      width={1920}
+      height={1080}
+    />
+  )
+}
+```
+
+`heroUrl` resolves to `/assets/hero-a7f3c9.avif` at build time. Vite handles the hashing.
+
+### TypeScript support
+
+If TypeScript complains about `.avif` or `.webp` imports, add a type declaration file:
+
+```ts
+// app/types/assets.d.ts
+declare module '*.avif' {
+  const src: string
+  export default src
+}
+
+declare module '*.webp' {
+  const src: string
+  export default src
+}
+
+declare module '*.jpg' {
+  const src: string
+  export default src
+}
+
+declare module '*.png' {
+  const src: string
+  export default src
+}
+```
+
+Include this file in your `tsconfig.json` if needed.
+
+### Import multiple variants
+
+```tsx
+import hero640Avif from '~/assets/images/hero-640.avif'
+import hero1200Avif from '~/assets/images/hero-1200.avif'
+import hero1920Avif from '~/assets/images/hero-1920.avif'
+import hero640Webp from '~/assets/images/hero-640.webp'
+import hero1200Webp from '~/assets/images/hero-1200.webp'
+import hero1920Webp from '~/assets/images/hero-1920.webp'
+import heroJpg from '~/assets/images/hero.jpg'
+```
+
+Vite tree-shakes unused imports. You can organize these in a separate constants file if the component imports list becomes unwieldy.
+
+## Responsive images with srcset and picture
+
+Remix does not generate responsive variants. You must export them locally and write srcset manually.
+
+### Single format with srcset
+
+```tsx
+import hero640 from '~/assets/images/hero-640.webp'
+import hero1200 from '~/assets/images/hero-1200.webp'
+import hero1920 from '~/assets/images/hero-1920.webp'
+
+export default function Hero() {
+  return (
+    <img
+      src={hero1200}
+      srcSet={`${hero640} 640w, ${hero1200} 1200w, ${hero1920} 1920w`}
+      sizes="(min-width: 1024px) 1200px, 100vw"
+      alt="Hero image"
+      width={1920}
+      height={1080}
+    />
+  )
+}
+```
+
+**Key points:**
+
+- `srcSet` describes available widths; browser picks based on viewport and DPR
+- `sizes` tells the browser how wide the image renders at each breakpoint
+- `width` and `height` prevent layout shift (CLS)
+
+### Multi-format with picture
+
+Ship AVIF for capable browsers, WebP as fallback, JPEG for legacy:
+
+```tsx
+import hero1200Avif from '~/assets/images/hero-1200.avif'
+import hero1200Webp from '~/assets/images/hero-1200.webp'
+import hero1200Jpg from '~/assets/images/hero.jpg'
+
+export default function Hero() {
+  return (
+    <picture>
+      <source srcSet={hero1200Avif} type="image/avif" />
+      <source srcSet={hero1200Webp} type="image/webp" />
+      <img
+        src={hero1200Jpg}
+        alt="Hero image"
+        width={1920}
+        height={1080}
+      />
+    </picture>
+  )
+}
+```
+
+Always include `type` on `source` elements. Without it, browsers may download multiple formats.
+
+### Combining srcset and picture
+
+For the full responsive + multi-format stack:
+
+```tsx
+import hero640Avif from '~/assets/images/hero-640.avif'
+import hero1200Avif from '~/assets/images/hero-1200.avif'
+import hero1920Avif from '~/assets/images/hero-1920.avif'
+import hero640Webp from '~/assets/images/hero-640.webp'
+import hero1200Webp from '~/assets/images/hero-1200.webp'
+import hero1920Webp from '~/assets/images/hero-1920.webp'
+import heroJpg from '~/assets/images/hero.jpg'
+
+export default function Hero() {
+  const avifSrcSet = `${hero640Avif} 640w, ${hero1200Avif} 1200w, ${hero1920Avif} 1920w`
+  const webpSrcSet = `${hero640Webp} 640w, ${hero1200Webp} 1200w, ${hero1920Webp} 1920w`
+
+  return (
+    <picture>
+      <source srcSet={avifSrcSet} sizes="(min-width: 1024px) 1200px, 100vw" type="image/avif" />
+      <source srcSet={webpSrcSet} sizes="(min-width: 1024px) 1200px, 100vw" type="image/webp" />
+      <img
+        src={heroJpg}
+        alt="Hero image"
+        width={1920}
+        height={1080}
+      />
+    </picture>
+  )
+}
+```
+
+This pattern delivers the smallest possible file to every visitor. Verbose, but correct.
+
+Read [AVIF vs WebP](/blog/format-conversion/avif-vs-webp-2026) for format tradeoffs.
+
+## AVIF and WebP strategy in Remix
+
+Browsers pick formats via the `type` attribute on `source` elements. The `Accept` header matters for server-negotiated delivery, but Remix is client-side — you control fallback order explicitly.
+
+### Should you commit both AVIF and WebP?
+
+**Yes** when:
+
+- The image is a hero or LCP candidate
+- You want maximum browser coverage with minimum bytes
+- You have the local tooling to export both formats consistently
+
+**Ship WebP only** when:
+
+- You are migrating existing JPEG assets gradually
+- AVIF encode time blocks your deadline (AVIF is slower to encode)
+
+**Ship AVIF only** when:
+
+- You provide a JPEG fallback for ancient browsers
+- Your audience uses modern browsers (2024+ Chrome, Edge, Firefox, Safari)
+
+### Example: commit AVIF + WebP + JPEG
+
+```
+app/assets/images/
+  hero-1200.avif    (140 KB)
+  hero-1200.webp    (210 KB)
+  hero.jpg          (520 KB, fallback only)
+```
+
+Use a picture element as shown above. Browsers automatically select the first supported format.
+
+## Dynamic images from route loaders
+
+When images come from a CMS, database, or user uploads, you cannot import them at build time. Fetch URLs in route loaders and pass them to components.
+
+### Route loader example
+
+```tsx
+// app/routes/blog.$slug.tsx
+import type { LoaderFunctionArgs } from '@remix-run/node'
+import { json } from '@remix-run/node'
+import { useLoaderData } from '@remix-run/react'
+
+export async function loader({ params }: LoaderFunctionArgs) {
+  const post = await fetchPost(params.slug)
+
+  return json({
+    title: post.title,
+    heroUrl: post.heroUrl,
+    heroAlt: post.heroAlt,
+    heroWidth: post.heroWidth,
+    heroHeight: post.heroHeight,
+  })
+}
+
+export default function BlogPost() {
+  const { title, heroUrl, heroAlt, heroWidth, heroHeight } = useLoaderData<typeof loader>()
+
+  return (
+    <article>
+      <img
+        src={heroUrl}
+        alt={heroAlt}
+        width={heroWidth}
+        height={heroHeight}
+        loading="lazy"
+      />
+      <h1>{title}</h1>
+      {/* ... */}
+    </article>
+  )
+}
+```
+
+**Key points:**
+
+- Store width and height in your CMS — you need them to prevent layout shift
+- Set `loading="lazy"` on below-the-fold images
+- Omit `loading` on LCP candidates (above-the-fold heroes)
+
+### Multi-format dynamic images
+
+If your CMS stores AVIF, WebP, and JPEG URLs separately:
+
+```tsx
+export async function loader({ params }: LoaderFunctionArgs) {
+  const post = await fetchPost(params.slug)
+
+  return json({
+    title: post.title,
+    heroAvif: post.heroAvifUrl,
+    heroWebp: post.heroWebpUrl,
+    heroJpg: post.heroJpgUrl,
+    heroAlt: post.heroAlt,
+    heroWidth: 1920,
+    heroHeight: 1080,
+  })
+}
+
+export default function BlogPost() {
+  const { title, heroAvif, heroWebp, heroJpg, heroAlt, heroWidth, heroHeight } =
+    useLoaderData<typeof loader>()
+
+  return (
+    <article>
+      <picture>
+        <source srcSet={heroAvif} type="image/avif" />
+        <source srcSet={heroWebp} type="image/webp" />
+        <img
+          src={heroJpg}
+          alt={heroAlt}
+          width={heroWidth}
+          height={heroHeight}
+        />
+      </picture>
+      <h1>{title}</h1>
+    </article>
+  )
+}
+```
+
+Pre-compress and upload AVIF/WebP/JPEG variants to your CMS or CDN storage before publishing.
+
+## Blur placeholders and LQIP
+
+Low-quality image placeholders (LQIP) improve perceived performance by showing a blurred preview during load.
+
+### Generate blur data URLs
+
+Use a library like [plaiceholder](https://plaiceholder.co/) or [blurhash](https://blurha.sh/) to generate base64-encoded previews. Run this server-side during content processing or at build time:
+
+```tsx
+// app/lib/blur.server.ts
+import { getPlaiceholder } from 'plaiceholder'
+
+export async function getBlurDataUrl(imagePath: string) {
+  const { base64 } = await getPlaiceholder(imagePath)
+  return base64
+}
+```
+
+Store the blur data URL in your CMS or generate it in the route loader:
+
+```tsx
+export async function loader({ params }: LoaderFunctionArgs) {
+  const post = await fetchPost(params.slug)
+  const blurDataUrl = await getBlurDataUrl(post.heroLocalPath)
+
+  return json({
+    title: post.title,
+    heroUrl: post.heroUrl,
+    heroAlt: post.heroAlt,
+    blurDataUrl,
+  })
+}
+
+export default function BlogPost() {
+  const { title, heroUrl, heroAlt, blurDataUrl } = useLoaderData<typeof loader>()
+
+  return (
+    <article>
+      <div className="relative">
+        <img
+          src={blurDataUrl}
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 blur-xl"
+        />
+        <img
+          src={heroUrl}
+          alt={heroAlt}
+          width={1920}
+          height={1080}
+          className="relative"
+        />
+      </div>
+      <h1>{title}</h1>
+    </article>
+  )
+}
+```
+
+Alternatively, use CSS `background-image` with the blur data URL and layer the real image on top.
+
+### CSS aspect-ratio for progressive reveal
+
+```tsx
+<div className="relative aspect-video bg-gray-200">
+  <img
+    src={heroUrl}
+    alt={heroAlt}
+    className="absolute inset-0 w-full h-full object-cover"
+    loading="lazy"
+  />
+</div>
+```
+
+The `aspect-video` utility reserves space even before the image loads, preventing CLS.
+
+## Using image CDNs with Remix
+
+If you host images on Cloudinary, Imgix, or another CDN, fetch URLs from route loaders and pass them to components as shown above.
+
+### Cloudinary example
+
+```tsx
+export async function loader({ params }: LoaderFunctionArgs) {
+  const post = await fetchPost(params.slug)
+  const cloudinaryUrl = `https://res.cloudinary.com/your-cloud/image/upload/f_auto,c_limit,w_1200,q_auto/${post.cloudinaryPublicId}.jpg`
+
+  return json({
+    title: post.title,
+    heroUrl: cloudinaryUrl,
+    heroAlt: post.heroAlt,
+  })
+}
+```
+
+**Even with CDN transforms**, pre-compress originals before uploading to the CDN storage. Cloudinary and Imgix perform best when source files are already clean — you avoid double compression and get faster edge-cache hits.
+
+### When to use a CDN vs Vite imports
+
+**Use Vite imports** for:
+
+- Marketing assets you control
+- Fixed hero images per page template
+- Small to medium asset counts (dozens to hundreds of images)
+
+**Use a CDN** for:
+
+- User-generated content
+- Large catalogs (thousands of product images)
+- Real-time image transforms (crops, filters, overlays)
+- Multi-region delivery with low latency requirements
+
+Vite imports are simpler and cheaper for most Remix apps. CDNs add complexity but handle scale better.
+
+## Common Remix image issues
+
+### CLS (Cumulative Layout Shift)
+
+**Problem:** Image loads and pushes content down.
+
+**Fix:** Always set `width` and `height` attributes, or use CSS `aspect-ratio` on the container:
+
+```tsx
+<img src={heroUrl} alt="Hero" width={1920} height={1080} />
+```
+
+Or:
+
+```tsx
+<div className="aspect-video">
+  <img src={heroUrl} alt="Hero" className="w-full h-full object-cover" />
+</div>
+```
+
+### Missing Vite import types
+
+**Problem:** TypeScript error: `Cannot find module '~/assets/hero.avif' or its corresponding type declarations.`
+
+**Fix:** Add asset type declarations as shown in the [Vite asset imports](#vite-asset-imports-in-remix) section.
+
+### AVIF not rendering
+
+**Problem:** Browser supports AVIF but displays fallback instead.
+
+**Cause:** Missing `type="image/avif"` on the `source` element.
+
+**Fix:**
+
+```tsx
+<picture>
+  <source srcSet={heroAvif} type="image/avif" />
+  <source srcSet={heroWebp} type="image/webp" />
+  <img src={heroJpg} alt="Hero" width={1920} height={1080} />
+</picture>
+```
+
+### Large bundle size from image imports
+
+**Problem:** Vite bundles every imported image, inflating the client bundle.
+
+**Cause:** Importing images directly in components that render on many routes.
+
+**Fix:** Move images to `public/` if they should not be fingerprinted, or use dynamic imports for code-split routes.
+
+### Slow git clones
+
+**Problem:** Repo clone takes minutes due to large committed images.
+
+**Cause:** Committing multi-megabyte camera JPEGs.
+
+**Fix:** Pre-compress all images locally before commit. Use Git LFS for truly large assets if compression is not enough.
+
+## Real-world workflow
+
+**1. Export from design tool**
+
+Export at 2400px max width, AVIF and WebP.
+
+**2. Compress locally**
+
+Drop files into Asset Melt, enable metadata stripping, export to `app/assets/images/`.
+
+**3. Export responsive variants**
+
+Export 640w, 1200w, 1920w for each format (AVIF, WebP, JPEG fallback).
+
+**4. Commit**
+
+```bash
+git add app/assets/images/hero-*.{avif,webp,jpg}
+git commit -m "feat: add Q4 campaign hero with responsive variants"
+```
+
+**5. Use in component**
+
+```tsx
+import hero1200Avif from '~/assets/images/hero-1200.avif'
+import hero1200Webp from '~/assets/images/hero-1200.webp'
+import heroJpg from '~/assets/images/hero.jpg'
+
+export default function Hero() {
+  return (
+    <picture>
+      <source srcSet={hero1200Avif} type="image/avif" />
+      <source srcSet={hero1200Webp} type="image/webp" />
+      <img
+        src={heroJpg}
+        alt="Q4 campaign hero: woman using laptop in cafe"
+        width={1920}
+        height={1080}
+      />
+    </picture>
+  )
+}
+```
+
+**6. Verify**
+
+Run Lighthouse on mobile, check LCP element. If it is the hero image and LCP is under 2.5s on 4G, you are good.
+
+## Remix vs Next.js vs WordPress image optimization
+
+| Platform | Optimization approach | Your prep step |
+| --- | --- | --- |
+| **Remix** | Vite fingerprints; no build-time compression | Resize, format conversion, and responsive variant export before commit |
+| **Next.js** | Server-side on demand; caches variants | Resize and format before commit — [Next.js guide](/blog/image-compression/compress-images-for-nextjs-2026) |
+| **WordPress** | Plugin-based; varies by CDN | Compress before media library upload — [WordPress guide](/blog/image-compression/compress-images-for-wordpress) |
+
+Remix gives you explicit control with zero runtime overhead. Next.js automates more but adds server encoding cost. WordPress depends entirely on plugin quality.
+
+## Getting started today
+
+1. Audit `app/assets/` and `public/` for images over 500 KB.
+2. Re-export at 1920–2400px max width as AVIF and WebP.
+3. Commit the smaller files and delete oversized originals.
+4. Update hero components to use picture elements with format fallbacks.
+5. Verify with Lighthouse that LCP improved and CLS is under 0.1.
+
+<StudioCta label="Compress your Remix images locally" />
+
+**Related reading:** [Best format for website images](/blog/format-conversion/best-format-for-website-images) · [AVIF vs WebP in 2026](/blog/format-conversion/avif-vs-webp-2026) · [Compress images without losing quality](/blog/image-compression/how-to-compress-images-without-losing-quality) · [Privacy-first compression](/blog/image-compression/privacy-first-image-compression)
