@@ -60,13 +60,13 @@ Most teams still upload 4 MB camera JPEGs and hope a CMS plugin fixes everything
 Three forces converged:
 
 1. **Google Images and visual search** still drive meaningful traffic for ecommerce, travel, food, and how-to content. Filename, alt text, and page context help Google match queries to your assets.
-2. **Page experience signals** — LCP, CLS, INP — penalize bloated, poorly marked-up images. HTTP Archive data puts images at **45–55% of median page weight**. Smaller files rank better on experience, not because Google counts kilobytes, but because users stay longer.
+2. **Page experience signals** — LCP, INP (Interaction to Next Paint), and CLS — penalize bloated, poorly marked-up images. HTTP Archive data puts images at **45–55% of median page weight**. Smaller files rank better on experience, not because Google counts kilobytes, but because users stay longer. INP replaced FID as a Core Web Vitals metric in 2024 and measures full interaction latency — images can hurt INP when large images decode synchronously during interactions like carousel clicks or lightbox opens.
 3. **Privacy expectations rose.** Surveys consistently show a majority of users worry about uploading personal photos to third-party tools. EXIF metadata can leak GPS coordinates accurate to a few meters. Stripping metadata before publish is now part of responsible image hygiene, not a paranoid extra step.
 
 The good news: you do not need an enterprise DAM or a $500/month CDN to get 90% of the benefit. You need a repeatable checklist and a local tool for the bytes.
 
 <Callout title="Performance SEO is a sibling discipline" variant="info">
-For LCP-specific tuning — hero priority, fetchpriority, lazy-loading rules — read our [Core Web Vitals image guide](/blog/performance-seo/optimize-images-core-web-vitals-lcp). This article focuses on discoverability, accessibility, and the prep work that feeds both.
+For LCP-specific tuning — hero priority, fetchpriority, lazy-loading rules — read our [Core Web Vitals image guide](/blog/performance-seo/optimize-images-core-web-vitals-lcp). For INP and interaction performance with images, see [Do images hurt INP?](/blog/performance-seo/images-and-inp-2026). This article focuses on discoverability, accessibility, and the prep work that feeds both.
 </Callout>
 
 ## The three pillars of image SEO
