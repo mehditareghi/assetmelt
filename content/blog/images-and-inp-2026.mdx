@@ -155,7 +155,7 @@ Use `decoding="async"` on:
 
 - **LCP images** — synchronous decode ensures paint happens as soon as bytes arrive
 - **Critical above-the-fold content** — async decode can delay initial render
-- **Small images** (<50 KB, <800px wide) — decode is fast enough that async overhead isn't worth it
+- **Small images** (under 50 KB, under 800px wide) — decode is fast enough that async overhead isn't worth it
 
 For LCP and other critical images, omit `decoding` (defaults to `auto`) or explicitly use `decoding="sync"`.
 
@@ -502,7 +502,7 @@ Compare `duration` for images loaded during interactions. If a carousel slide ta
 
 ### General image optimization
 
-- [ ] Compress images to reasonable file sizes (heroes <200 KB, thumbnails <80 KB)
+- [ ] Compress images to reasonable file sizes (heroes under 200 KB, thumbnails under 80 KB)
 - [ ] Resize images to max display dimensions (no 4000px images in 800px containers)
 - [ ] Use modern formats (AVIF, WebP) for smaller file sizes and faster decode
 - [ ] Strip EXIF metadata from public assets
@@ -525,7 +525,7 @@ Compare `duration` for images loaded during interactions. If a carousel slide ta
 
 - [ ] Preload adjacent carousel slides with `<link rel="preload" as="image">`
 - [ ] Use `decoding="async"` on non-visible carousel slides
-- [ ] Load all carousel images upfront if total count is small (<10 images)
+- [ ] Load all carousel images upfront if total count is small (under 10 images)
 - [ ] Avoid swapping `src` during click handlers — preload instead
 
 ### Lightboxes
