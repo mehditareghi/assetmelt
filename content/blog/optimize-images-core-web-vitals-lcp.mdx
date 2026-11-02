@@ -45,7 +45,9 @@ When that resource is a 2.4 MB camera JPEG displayed at 800 CSS pixels, the brow
 | --- | --- | --- |
 | **LCP** | Hero image bytes block the largest paint | Compress, resize, modern formats, `fetchpriority` |
 | **CLS** | Missing width/height causes layout jump | Explicit dimensions on `<img>`, reserve space |
-| **INP** | Decoding huge images on main thread | Smaller files, avoid oversized off-screen assets |
+| **INP** | Large images decoded on main thread during interactions | Smaller files, `decoding="async"`, preload carousel/lightbox images |
+
+INP (Interaction to Next Paint) replaced FID (First Input Delay) as a Core Web Vitals metric in 2024. Unlike FID, which only measured input delay on the first interaction, **INP measures the full interaction latency** — input delay, processing, and presentation — across all interactions during a page visit. Images hurt INP when large images decode synchronously during user interactions like clicking carousel arrows or opening lightboxes. For a complete INP guide, see [Do images hurt INP?](/blog/performance-seo/images-and-inp-2026).
 
 Core Web Vitals will not rescue thin content. They **do** matter when you compete on similar keywords — a faster page with the same intent wins the experience tiebreaker Google describes in its page quality documentation.
 
@@ -204,4 +206,4 @@ Performance teams sometimes route all images through cloud CDNs with on-the-fly 
 
 <StudioCta label="Optimize your LCP images in the studio" to="webp" />
 
-Related reading: [How to compress images in the browser](/blog/image-compression/compress-images-in-browser), [HEIC to JPG without uploading](/blog/format-conversion/heic-to-jpg-browser-guide), and [AVIF vs WebP in 2026](/blog/format-conversion/avif-vs-webp-2026).
+Related reading: [Do images hurt INP?](/blog/performance-seo/images-and-inp-2026), [How to compress images in the browser](/blog/image-compression/compress-images-in-browser), [HEIC to JPG without uploading](/blog/format-conversion/heic-to-jpg-browser-guide), and [AVIF vs WebP in 2026](/blog/format-conversion/avif-vs-webp-2026).

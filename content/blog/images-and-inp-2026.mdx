@@ -1,0 +1,563 @@
+---
+title: "Do Images Hurt INP? Image Decoding, Lazy Loading, and Interaction to Next Paint in 2026"
+description: "Learn how images affect Interaction to Next Paint (INP) — main-thread image decode blocking interactions, decoding=async, oversized carousel images, JS lazy-load libraries vs native loading=lazy, and a practical INP diagnostic checklist using Chrome DevTools and web-vitals attribution."
+slug: images-and-inp-2026
+publishedAt: 2026-11-02
+keywords:
+  - images and INP
+  - Interaction to Next Paint images
+  - image decoding performance
+  - decoding async attribute
+  - INP optimization 2026
+  - image lazy loading INP
+  - Core Web Vitals INP
+cluster: performance-seo
+heroImage: hero
+heroImageAlt: "Glowing image card icon with a cursor click sending ripples, representing fast interaction response"
+relatedTools:
+  - batch-image-compressor
+  - avif-compressor
+faq:
+  - question: "Can images cause poor INP scores?"
+    answer: "Yes. Large images decoded on the main thread can block user interactions. Heavy JavaScript lazy-load libraries, synchronous image processing, and layout thrashing during carousel/lightbox interactions all hurt INP."
+  - question: "What is decoding=\"async\" and should I use it?"
+    answer: "decoding=\"async\" hints that the browser should decode the image off the main thread when possible. Use it on large below-the-fold images, carousel slides, and gallery thumbnails — not on critical LCP images where decode must complete quickly."
+  - question: "Does lazy loading improve or hurt INP?"
+    answer: "Native loading=\"lazy\" is INP-neutral — it defers image loading but doesn't block interactions. Heavy JavaScript lazy-load libraries (especially those that poll scroll or manipulate DOM synchronously) can hurt INP. Prefer native lazy loading."
+  - question: "How do I find which images are hurting INP?"
+    answer: "Use Chrome DevTools Performance panel to record an interaction, look for long tasks containing image decode work, or use web-vitals library attribution to identify which elements triggered slow INP entries. Look for decode, rasterize, or composite phases."
+  - question: "Should I always use decoding=\"async\" on all images?"
+    answer: "No. For LCP images and critical above-the-fold content, synchronous decode (the default) is often faster because it completes before paint. Use decoding=\"async\" selectively for large images that aren't immediately critical."
+  - question: "Can image carousels and lightboxes cause INP issues?"
+    answer: "Yes. Carousels that decode huge images on swipe, lightboxes that lazily load full-resolution images on click, and galleries that process images in JavaScript during interaction can all create long tasks that delay INP."
+---
+
+**Interaction to Next Paint (INP)** measures how quickly a page responds to user interactions — clicks, taps, and key presses. While LCP focuses on loading and CLS tracks layout stability, INP captures the experience of **actually using** the page. In 2026, INP is a full Core Web Vitals ranking signal, and images — especially large, synchronously decoded images and heavy lazy-load implementations — are a common culprit behind poor INP scores.
+
+This guide explains how images affect INP, when image decode blocks interactions, how to diagnose image-related INP regressions, and practical fixes that keep your site responsive even when serving rich visual content.
+
+## What this guide covers
+
+| Section | What you'll learn |
+| --- | --- |
+| [What INP measures](#what-inp-measures) | Input delay, processing, and presentation delay |
+| [How images affect INP](#how-images-affect-inp) | Main-thread decode, JS lazy-load libraries, layout thrashing |
+| [Image decode and the main thread](#image-decode-and-the-main-thread) | Synchronous vs async decode, when it matters |
+| [The decoding attribute](#the-decoding-attribute-async-sync-auto) | How to hint async decode to the browser |
+| [Lazy loading strategies](#lazy-loading-strategies-and-inp) | Native vs JavaScript lazy load, INP tradeoffs |
+| [Carousels and galleries](#carousels-galleries-and-lightboxes) | Interaction-triggered image loads and decode |
+| [Client-side image processing](#client-side-image-processing-and-workers) | Canvas, WASM codecs, offloading to Workers |
+| [Diagnosing INP issues](#diagnosing-image-related-inp-issues) | DevTools, web-vitals attribution, identifying bottlenecks |
+| [Practical checklist](#practical-inp-checklist-for-images) | Actionable fixes for common image INP problems |
+
+## What INP measures
+
+**Interaction to Next Paint** is the 98th percentile of all interaction latencies during a page visit. Each interaction has three phases:
+
+1. **Input delay** — time from user action (click, tap) until the browser can start handling it
+2. **Processing time** — running event handlers, updating the DOM
+3. **Presentation delay** — rendering the visual update (layout, paint, composite)
+
+INP sums these three phases. Google's "good" threshold is **200 ms or less** at the 75th percentile of real users.
+
+### Why INP replaced FID
+
+First Input Delay (FID) only measured input delay on the first interaction and ignored processing and rendering. **INP measures the full round-trip** for every interaction and picks the worst few. A site can have great FID but terrible INP if interactions trigger long tasks or slow renders.
+
+Image-related INP problems usually show up in the **processing** and **presentation** phases — synchronous image decode blocks the main thread during processing, and layout recalculation or repaint during image reveal adds presentation delay.
+
+## How images affect INP
+
+Images don't click themselves. The problem is when **user interactions** trigger image-related work on the main thread:
+
+| Scenario | INP impact | Why it hurts |
+| --- | --- | --- |
+| Clicking carousel arrow to load next slide | High | Browser decodes large image synchronously, blocking the interaction |
+| Opening lightbox on thumbnail click | High | Full-resolution image decodes during click handler |
+| Scrolling gallery with JS lazy-load library | Medium | Scroll-triggered DOM manipulation and decode on main thread |
+| Expanding accordion with inline images | Medium | Layout reflow + synchronous decode of newly visible images |
+| Hovering thumbnail triggers image swap | Low-Medium | Depends on image size and whether decode is async |
+| Page load with native loading="lazy" | None | Decode happens async during scroll, not blocking interactions |
+
+The common thread: **synchronous image decode during an interaction** creates a long task that delays the next paint.
+
+<Callout title="Optimize images first" variant="tip">
+Smaller images decode faster. Before tuning decode behavior, compress and resize images to reasonable dimensions. Use the <ToolLink tool="avif-compressor">AVIF compressor</ToolLink> or <ToolLink tool="batch-image-compressor">batch image compressor</ToolLink> to reduce file size — faster download and faster decode.
+</Callout>
+
+## Image decode and the main thread
+
+When a browser displays an `<img>`, it must:
+
+1. **Fetch** the image bytes (network)
+2. **Decode** the compressed format (JPEG, WebP, AVIF) into a bitmap (CPU-intensive)
+3. **Rasterize** the bitmap for display (GPU or CPU)
+4. **Composite** layers and paint (GPU)
+
+By default, **image decode happens synchronously** on the main thread when the browser needs the image for paint. For small images, this is fast — a few milliseconds. For a 3000×2000px hero or a 5 MB carousel slide, decode can take 50–200 ms on mobile devices.
+
+### When decode blocks interactions
+
+If an interaction (click, tap, key press) triggers a DOM change that makes a large image visible, and that image decodes synchronously, the **event handler processing phase includes decode time**. The browser cannot paint the next frame until decode completes, so INP grows.
+
+**Common triggers:**
+
+- Carousel next/prev buttons loading new slides
+- Lightbox/modal opening with full-size images
+- Accordion or tab panels revealing hidden images
+- Infinite scroll adding new images to the DOM
+- Hover effects swapping `src` attributes
+
+### How async decode helps
+
+Browsers can decode images **off the main thread** when hinted. This moves decode work to a background thread, freeing the main thread to handle interactions and paint. The tradeoff: async decode may delay the image's appearance by a few frames, but it keeps interactions responsive.
+
+## The decoding attribute: async, sync, auto
+
+The `decoding` attribute on `<img>` hints to the browser how to prioritize decode:
+
+```html
+<img src="/large-photo.webp" alt="Photo" decoding="async" width="1200" height="800" />
+```
+
+### Attribute values
+
+- **`decoding="async"`** — decode off the main thread when possible; prioritize keeping the main thread free
+- **`decoding="sync"`** — decode synchronously; block until decode completes before painting
+- **`decoding="auto"`** (default) — browser decides based on image size, context, and heuristics
+
+### When to use decoding="async"
+
+Use `decoding="async"` on:
+
+- **Below-the-fold images** — not immediately visible, no rush
+- **Carousel slides** (non-active) — decode while user views current slide
+- **Gallery thumbnails** — decode in background, paint when ready
+- **Lightbox images** — decode starts when visible, doesn't block interaction
+- **Large images** (>1 MB, >2000px wide) — anything that takes >30ms to decode
+
+**Example: carousel with async decode**
+
+```html
+<div class="carousel">
+  <!-- Active slide: sync decode for immediate paint -->
+  <img src="/slide-1.avif" alt="Slide 1" width="1200" height="800" />
+
+  <!-- Inactive slides: async decode to avoid blocking interactions -->
+  <img src="/slide-2.avif" alt="Slide 2" loading="lazy" decoding="async" width="1200" height="800" />
+  <img src="/slide-3.avif" alt="Slide 3" loading="lazy" decoding="async" width="1200" height="800" />
+</div>
+```
+
+### When NOT to use decoding="async"
+
+**Do not** use `decoding="async"` on:
+
+- **LCP images** — synchronous decode ensures paint happens as soon as bytes arrive
+- **Critical above-the-fold content** — async decode can delay initial render
+- **Small images** (under 50 KB, under 800px wide) — decode is fast enough that async overhead isn't worth it
+
+For LCP and other critical images, omit `decoding` (defaults to `auto`) or explicitly use `decoding="sync"`.
+
+```html
+<!-- LCP hero: omit decoding or use sync -->
+<img src="/hero.avif" alt="Hero" width="1920" height="1080" fetchpriority="high" />
+```
+
+### Browser support
+
+`decoding` is supported in all modern browsers (Chrome, Safari, Firefox, Edge). Older browsers ignore the attribute and use default behavior — graceful degradation.
+
+## Lazy loading strategies and INP
+
+Lazy loading defers image loading until the image is near the viewport. This reduces initial page weight and can improve LCP by prioritizing above-the-fold resources. But **how** you lazy-load affects INP.
+
+### Native loading="lazy" is INP-safe
+
+Native `loading="lazy"` is implemented by the browser and does not involve JavaScript polling, Intersection Observer callbacks, or synchronous DOM manipulation. The browser handles scroll detection and image loading in its internal pipeline, so **no main-thread work blocks interactions**.
+
+```html
+<img src="/photo.webp" alt="Photo" loading="lazy" width="800" height="600" />
+```
+
+**INP impact: None.** Decode happens asynchronously in the background as the user scrolls. No long tasks.
+
+### JavaScript lazy-load libraries can hurt INP
+
+Many older lazy-load libraries (and some modern ones) use patterns that hurt INP:
+
+| Anti-pattern | INP impact |
+| --- | --- |
+| **Scroll event listener** without throttling | Fires synchronously on every scroll, creating many tiny tasks |
+| **Synchronous DOM reads/writes** (offsetTop, getBoundingClientRect) in scroll handler | Forces layout thrashing |
+| **Intersection Observer callbacks** that do heavy work | Can delay interaction response if callback runs during interaction |
+| **Image src swap** triggering synchronous decode | Decode happens on main thread, blocking interactions |
+
+**Example of a problematic pattern:**
+
+```js
+// Anti-pattern: synchronous scroll handler
+window.addEventListener('scroll', () => {
+  document.querySelectorAll('img[data-src]').forEach((img) => {
+    const rect = img.getBoundingClientRect() // Forces layout
+    if (rect.top < window.innerHeight) {
+      img.src = img.dataset.src // Triggers synchronous decode
+    }
+  })
+})
+```
+
+**Why it hurts INP:**
+
+- `getBoundingClientRect()` forces layout recalculation
+- Runs on every scroll, even during interactions (click, tap)
+- `img.src` assignment may trigger synchronous decode of large image
+
+### Better JavaScript lazy-load pattern
+
+If you must use JavaScript lazy-load (for custom thresholds, animations, etc.), use **Intersection Observer** with async decode hints:
+
+```js
+const observer = new IntersectionObserver(
+  (entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const img = entry.target
+        img.src = img.dataset.src
+        img.decoding = 'async' // Hint async decode
+        observer.unobserve(img)
+      }
+    })
+  },
+  { rootMargin: '100px' }, // Load slightly before entering viewport
+)
+
+document.querySelectorAll('img[data-src]').forEach((img) => observer.observe(img))
+```
+
+**Better for INP:**
+
+- Intersection Observer is throttled and batched by the browser
+- `decoding="async"` moves decode off main thread
+- Early `rootMargin` reduces visible delay
+
+**Best for INP: use native `loading="lazy"` unless you have a specific reason not to.**
+
+For a complete lazy-loading guide, see [image lazy loading best practices 2026](/blog/performance-seo/image-lazy-loading-best-practices-2026).
+
+## Carousels, galleries, and lightboxes
+
+Image carousels, galleries, and lightboxes are INP hotspots because they **trigger image loads during user interactions** (clicks, swipes). If those images are large and decode synchronously, the interaction feels sluggish.
+
+### Carousel INP anti-pattern
+
+User clicks "next" → JavaScript swaps the visible slide → browser decodes new image synchronously → next paint is delayed → INP suffers.
+
+**Problem code:**
+
+```js
+nextButton.addEventListener('click', () => {
+  currentSlide++
+  const slide = slides[currentSlide]
+  slide.src = `/slides/slide-${currentSlide}.jpg` // Large image, sync decode
+  showSlide(currentSlide)
+})
+```
+
+**Why it hurts:**
+
+- Image decode happens during click event processing
+- Main thread is blocked until decode completes
+- User sees frozen UI or delayed animation
+
+### Carousel INP fix: preload + async decode
+
+**Strategy 1: Preload adjacent slides**
+
+```html
+<!-- Preload next slide in background -->
+<link rel="preload" as="image" href="/slides/slide-2.avif" />
+```
+
+**Strategy 2: Use decoding="async" on carousel images**
+
+```html
+<img src="/slides/slide-2.avif" alt="Slide 2" decoding="async" width="1200" height="800" loading="lazy" />
+```
+
+**Strategy 3: Load all slides upfront (if count is small)**
+
+```html
+<div class="carousel">
+  <img src="/slides/slide-1.avif" alt="Slide 1" width="1200" height="800" />
+  <img src="/slides/slide-2.avif" alt="Slide 2" width="1200" height="800" loading="lazy" decoding="async" />
+  <img src="/slides/slide-3.avif" alt="Slide 3" width="1200" height="800" loading="lazy" decoding="async" />
+</div>
+```
+
+All slides are in DOM; browser lazy-loads and async-decodes them in background. When user clicks "next", the image is already decoded and ready to paint.
+
+### Lightbox INP pattern
+
+Clicking a thumbnail opens a lightbox with a full-resolution image. If the full-res image is 3 MB and decodes synchronously, the lightbox feels slow to open.
+
+**Fix: decode full-res image asynchronously**
+
+```js
+thumbnail.addEventListener('click', (e) => {
+  e.preventDefault()
+  openLightbox() // Show lightbox immediately with loading state
+
+  const fullImg = new Image()
+  fullImg.decoding = 'async'
+  fullImg.src = thumbnail.dataset.fullSrc
+  fullImg.onload = () => {
+    lightboxContainer.innerHTML = ''
+    lightboxContainer.appendChild(fullImg)
+  }
+})
+```
+
+**Better for INP:**
+
+- Lightbox opens immediately (fast paint)
+- Image decode happens async
+- Main thread stays responsive during decode
+
+**Even better: preload likely lightbox images**
+
+If analytics show certain thumbnails are clicked often, preload their full-res versions:
+
+```html
+<link rel="prefetch" as="image" href="/photos/popular-photo-full.avif" />
+```
+
+### Infinite scroll galleries
+
+Infinite scroll adds new images to the DOM as the user scrolls. If implemented poorly (synchronous DOM manipulation + large images), INP can suffer.
+
+**INP-safe infinite scroll:**
+
+- Use native `loading="lazy"` on images
+- Add `decoding="async"` on large gallery images
+- Debounce scroll detection or use Intersection Observer
+- Avoid synchronous layout reads (offsetTop, getBoundingClientRect) in scroll handlers
+
+```html
+<!-- New images added via JavaScript during scroll -->
+<img src="/gallery/photo-10.webp" alt="Photo 10" loading="lazy" decoding="async" width="800" height="600" />
+```
+
+## Client-side image processing and workers
+
+Some sites do client-side image work: resizing, filtering, format conversion, watermarking. If this happens **on the main thread during or after an interaction**, it can destroy INP.
+
+### Main-thread image processing (bad for INP)
+
+```js
+uploadButton.addEventListener('click', () => {
+  const canvas = document.createElement('canvas')
+  const ctx = canvas.getContext('2d')
+  const img = new Image()
+  img.src = uploadedFile
+  img.onload = () => {
+    canvas.width = 1200
+    canvas.height = 800
+    ctx.drawImage(img, 0, 0, 1200, 800) // Main-thread canvas work
+    const resizedBlob = canvas.toBlob(/* ... */) // More main-thread work
+    uploadResizedImage(resizedBlob)
+  }
+})
+```
+
+**Problem:** Canvas operations are synchronous and block the main thread. If user interacts during processing, INP suffers.
+
+### Offload to Web Worker (good for INP)
+
+Move image processing to a Worker:
+
+```js
+// worker.js
+self.onmessage = async (e) => {
+  const imageBitmap = await createImageBitmap(e.data.blob)
+  const canvas = new OffscreenCanvas(1200, 800)
+  const ctx = canvas.getContext('2d')
+  ctx.drawImage(imageBitmap, 0, 0, 1200, 800)
+  const resizedBlob = await canvas.convertToBlob({ type: 'image/webp', quality: 0.8 })
+  self.postMessage({ resizedBlob })
+}
+```
+
+```js
+// main.js
+const worker = new Worker('/worker.js')
+uploadButton.addEventListener('click', () => {
+  worker.postMessage({ blob: uploadedFile })
+  worker.onmessage = (e) => {
+    uploadResizedImage(e.data.resizedBlob)
+  }
+})
+```
+
+**Better for INP:**
+
+- Image processing runs off main thread
+- User interactions remain responsive
+- Main thread only receives final result
+
+For privacy-first browser-based compression with WASM codecs, see [compress images in the browser](/blog/image-compression/compress-images-in-browser).
+
+## Diagnosing image-related INP issues
+
+### Step 1: Measure INP in the field
+
+Use **Chrome User Experience Report (CrUX)** or **Real User Monitoring (RUM)** to see actual INP scores:
+
+- PageSpeed Insights → Field Data tab → INP metric
+- Google Search Console → Core Web Vitals → INP
+- Sentry, Datadog, or custom RUM
+
+If INP is "needs improvement" (200–500 ms) or "poor" (>500 ms), investigate.
+
+### Step 2: Use web-vitals library with attribution
+
+Google's `web-vitals` library can report INP with **attribution** — which element and event triggered the slow interaction:
+
+```html
+<script type="module">
+  import { onINP } from 'https://unpkg.com/web-vitals@4?module'
+
+  onINP(
+    (metric) => {
+      console.log('INP:', metric.value, 'ms')
+      console.log('Attribution:', metric.attribution)
+      // Send to analytics
+    },
+    { reportAllChanges: true },
+  )
+</script>
+```
+
+**Attribution fields:**
+
+- `eventTarget` — the DOM element clicked/tapped
+- `eventType` — click, pointerdown, keydown, etc.
+- `loadState` — dom-interactive, dom-content-loaded, etc.
+- `interactionTime` — timestamp of interaction
+- `processedEventEntries` — PerformanceEventTiming entries
+
+Look for image-related elements (carousel buttons, lightbox triggers, gallery containers) in `eventTarget`.
+
+### Step 3: Record in Chrome DevTools Performance panel
+
+1. Open Chrome DevTools → Performance tab
+2. Click **Record** (or Cmd+E)
+3. Perform the slow interaction (click carousel, open lightbox)
+4. Stop recording
+5. Inspect the timeline for **long tasks** (>50 ms)
+
+**What to look for:**
+
+- **Decode Image** entries in the main thread during or after the interaction
+- **Layout** / **Recalculate Style** spikes after image loads
+- **Long Task** warnings (red triangles) overlapping with interaction events
+
+If you see "Decode Image" in the task breakdown and it's >30–50 ms, that's a smoking gun.
+
+### Step 4: Test with Interaction to Next Paint in Lighthouse
+
+Lighthouse 10+ includes **experimental INP measurement** in lab conditions. Run a Lighthouse report:
+
+```bash
+npm install -g lighthouse
+lighthouse https://example.com --only-categories=performance --preset=desktop
+```
+
+Look for:
+
+- INP score and flagged interactions
+- "Minimize main-thread work" audit
+- "Avoid long main-thread tasks" audit
+
+### Step 5: Inspect image decode timing
+
+Use PerformanceObserver to log image decode timing:
+
+```js
+const observer = new PerformanceObserver((list) => {
+  for (const entry of list.getEntries()) {
+    if (entry.name.includes('.jpg') || entry.name.includes('.webp') || entry.name.includes('.avif')) {
+      console.log('Image loaded:', entry.name)
+      console.log('Duration:', entry.duration, 'ms')
+      console.log('Decode time:', entry.decodedBodySize, 'bytes')
+    }
+  }
+})
+observer.observe({ type: 'resource', buffered: true })
+```
+
+Compare `duration` for images loaded during interactions. If a carousel slide takes 150 ms to decode, that's your INP bottleneck.
+
+## Practical INP checklist for images
+
+### General image optimization
+
+- [ ] Compress images to reasonable file sizes (heroes under 200 KB, thumbnails under 80 KB)
+- [ ] Resize images to max display dimensions (no 4000px images in 800px containers)
+- [ ] Use modern formats (AVIF, WebP) for smaller file sizes and faster decode
+- [ ] Strip EXIF metadata from public assets
+
+### Markup and attributes
+
+- [ ] Add `width` and `height` to every `<img>` (prevents layout shift during decode)
+- [ ] Use `loading="lazy"` on below-the-fold images
+- [ ] Add `decoding="async"` to large below-the-fold images (carousels, galleries, lightboxes)
+- [ ] Do NOT use `loading="lazy"` or `decoding="async"` on LCP images
+
+### Lazy loading
+
+- [ ] Prefer native `loading="lazy"` over JavaScript lazy-load libraries
+- [ ] If using JavaScript lazy-load, use Intersection Observer (not scroll events)
+- [ ] Avoid synchronous layout reads (getBoundingClientRect) in scroll handlers
+- [ ] Set `decoding="async"` on lazy-loaded images
+
+### Carousels and galleries
+
+- [ ] Preload adjacent carousel slides with `<link rel="preload" as="image">`
+- [ ] Use `decoding="async"` on non-visible carousel slides
+- [ ] Load all carousel images upfront if total count is small (under 10 images)
+- [ ] Avoid swapping `src` during click handlers — preload instead
+
+### Lightboxes
+
+- [ ] Open lightbox UI immediately, load full-res image asynchronously
+- [ ] Use `decoding="async"` on full-res lightbox images
+- [ ] Prefetch likely lightbox images based on analytics
+
+### Client-side image processing
+
+- [ ] Move canvas/image processing to Web Workers (OffscreenCanvas)
+- [ ] Avoid synchronous canvas operations during interaction handlers
+- [ ] Use `createImageBitmap()` for async image decode in workers
+
+### Measurement and monitoring
+
+- [ ] Measure INP in the field (CrUX, RUM)
+- [ ] Use web-vitals library with attribution to identify slow interactions
+- [ ] Record interactions in Chrome DevTools Performance panel
+- [ ] Look for long "Decode Image" tasks (>30 ms)
+- [ ] Test on mid-range mobile devices (not just flagship phones or desktop)
+
+## Getting started today
+
+1. Check your site's INP score in PageSpeed Insights (Field Data tab).
+2. If INP is "needs improvement" or "poor", install web-vitals and log attribution.
+3. Identify the slowest interactions (carousel clicks, lightbox opens, gallery scrolls).
+4. Record those interactions in Chrome DevTools Performance panel.
+5. Look for image decode tasks >30 ms during or after the interaction.
+6. Apply fixes from the checklist above (async decode, preload, compression).
+7. Re-test INP in lab and field.
+
+<StudioCta label="Compress images to improve INP" />
+
+**Related reading:** [Optimize images for Core Web Vitals](/blog/performance-seo/optimize-images-core-web-vitals-lcp) · [Image lazy loading best practices](/blog/performance-seo/image-lazy-loading-best-practices-2026) · [How images affect LCP](/blog/performance-seo/how-images-affect-lcp) · [Responsive images guide](/blog/performance-seo/responsive-images-guide)
