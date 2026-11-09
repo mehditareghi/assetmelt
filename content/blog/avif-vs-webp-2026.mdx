@@ -42,11 +42,15 @@ The right choice depends on your audience, your CMS, and whether you optimize fo
 | Browser display support | Excellent in 2026 | Universal |
 | Encode speed | Slower | Faster |
 | Alpha transparency | Yes | Yes |
-| HDR / wide gamut | Strong | Good |
+| HDR / wide gamut | Strong (AVIF gain map support emerging) | No gain map support |
 | Legacy tooling | Weaker | Moderate |
 | Animated images | Possible, less tooling | Mature |
 
 For most marketing sites and SaaS apps in 2026, the practical answer is **use both** in a `<picture>` fallback chain — not pick one forever.
+
+<Callout title="HDR and gain maps" variant="info">
+AVIF supports HDR gain maps (ISO 21496-1 standard), while WebP does not. For HDR photo workflows, see [HDR photos and gain maps on the web](/blog/format-conversion/hdr-gain-map-images-2026). For typical web publishing, SDR AVIF and WebP are simpler and universally compatible.
+</Callout>
 
 ## Why AVIF wins on file size
 

@@ -1,0 +1,358 @@
+---
+title: "HDR Photos on the Web in 2026: Ultra HDR JPEG, Gain Maps, and What Happens When You Convert"
+description: "Modern phones save HDR photos with gain maps (Android Ultra HDR JPEG, iPhone HEIC/JPEG with gain maps, ISO 21496-1 standard, AVIF gain maps). Learn how browsers display them, what happens to the HDR layer when you convert or compress, and when to keep HDR vs SDR."
+slug: hdr-gain-map-images-2026
+publishedAt: 2026-11-09
+keywords:
+  - HDR photos web
+  - Ultra HDR JPEG
+  - gain map images
+  - HDR to SDR conversion
+  - AVIF gain map
+  - HEIC HDR photos
+  - ISO 21496-1 gain map
+cluster: format-conversion
+heroImage: hero
+heroImageAlt: "Layered illustration showing dim teal SDR base image behind bright white-gold HDR image with radiant sun, representing base plus gain map for HDR photography"
+relatedTools:
+  - heic-to-jpg
+  - batch-image-compressor
+  - avif-compressor
+faq:
+  - question: "What is a gain map in HDR photos?"
+    answer: "A gain map is a secondary image layer that tells HDR-capable displays how to boost brightness and expand color range beyond the standard (SDR) base image. The SDR base shows on old devices; the gain map reveals highlights and richer color on HDR displays."
+  - question: "Do iPhones save HDR photos?"
+    answer: "Yes. Recent iPhones (iPhone 12 and newer with iOS updates) can save photos with gain maps in HEIC and JPEG containers when HDR capture is enabled. These conform to the ISO 21496-1 standard."
+  - question: "Does converting HEIC to JPG keep the HDR gain map?"
+    answer: "It depends on the tool. Most HEIC-to-JPG converters strip the gain map and return only the SDR base image. Specialized tools that preserve gain map metadata can retain it, but many CMS upload pipelines strip it anyway."
+  - question: "Can I use HDR photos on my website?"
+    answer: "Yes, but support is browser and OS dependent. Chrome, Safari, and Edge on HDR-capable displays can show gain map HDR in AVIF, JPEG, and HEIC (where supported). Older browsers and SDR displays fall back to the SDR base image automatically."
+  - question: "Will resizing or compressing remove the HDR gain map?"
+    answer: "Usually yes. Most image processing tools decode to SDR, resize, and re-encode without preserving gain map metadata. If you need HDR delivery, test your pipeline on an HDR display before publishing."
+  - question: "What is Android Ultra HDR?"
+    answer: "Android Ultra HDR is Google's implementation of ISO 21496-1 gain map HDR in JPEG. Pixel phones and other Android devices save photos with a standard JPEG base and a gain map for HDR playback on compatible displays."
+---
+
+Modern smartphones capture scenes with brightness ranges that far exceed what traditional JPEG was designed to handle — think a sunset with the sun in the frame or a window in a dark room. To preserve that extra dynamic range, phones now embed **HDR gain maps** in the photos they save.
+
+If you have seen your iPhone or Android photos look more vivid on your phone screen than on an old laptop or in a web form upload preview, you have witnessed gain maps in action. The bright version is the HDR rendering. The duller version is the **SDR base** — what older devices see.
+
+This guide explains what HDR gain maps are, how the ISO 21496-1 standard works, which formats support gain maps, how browsers display them in 2026, and what happens to the HDR data when you convert, resize, or compress your photos for the web. If you work with iPhone HEIC files, Android Ultra HDR JPEGs, or any modern camera output destined for a website, this is critical context.
+
+## What this guide covers
+
+| Section | What you'll learn |
+| --- | --- |
+| [What is a gain map](#what-is-a-gain-map) | SDR base + gain map layer = HDR display |
+| [ISO 21496-1 standard](#iso-21496-1-the-gain-map-standard) | The spec behind Ultra HDR and Apple's HDR photos |
+| [Formats that support gain maps](#formats-that-support-gain-maps) | JPEG, HEIC, AVIF, and browser limitations |
+| [How phones save HDR photos](#how-phones-save-hdr-photos) | Android Ultra HDR JPEG vs iPhone HEIC/JPEG |
+| [Browser and OS support](#browser-and-os-support-in-2026) | Who can render gain map HDR today |
+| [What happens when you convert](#what-happens-when-you-convert-or-compress) | HEIC to JPG, resizing, WebP, metadata stripping |
+| [When to keep HDR](#when-to-keep-hdr-vs-sdr) | Use cases where gain maps matter |
+| [Checking for gain maps](#how-to-check-if-an-image-has-a-gain-map) | Inspecting metadata and testing on HDR displays |
+| [HDR and Asset Melt](#hdr-photos-and-asset-melt) | How local conversion handles gain maps |
+
+## What is a gain map
+
+A **gain map** is a secondary compressed image layer — often much smaller than the main photo — that stores instructions for an HDR-capable display to boost brightness and expand color gamut beyond the standard dynamic range.
+
+### The two-layer model
+
+HDR photos with gain maps contain:
+
+1. **SDR base image** — a standard JPEG, HEIC, or AVIF that looks reasonable on any display. This is your compatibility layer. Older browsers, email clients, and non-HDR screens show this.
+2. **Gain map** — a lower-resolution auxiliary image (often stored as JPEG or AVIF) that encodes per-pixel brightness and color adjustments. HDR displays combine the SDR base and the gain map to produce a higher dynamic range final image.
+
+When you open an HDR photo on an iPhone or Pixel with an HDR screen, the OS compositor decodes both layers and merges them. On an SDR display or in a tool that does not recognize gain maps, only the base image renders — so the photo still looks acceptable, just with clipped highlights and less vivid color.
+
+### Why this approach works
+
+Backwards compatibility. A single file works on old and new systems. The SDR base ensures no one sees a blank image or broken file. The gain map is optional — if the viewer supports it, they get the HDR experience; if not, they see the SDR fallback seamlessly.
+
+## ISO 21496-1: the gain map standard
+
+The **ISO 21496-1** standard (finalized in 2024, with implementations appearing in 2023 on some devices) defines how to embed gain map metadata in JPEG and other formats. This is the specification behind:
+
+- **Android Ultra HDR JPEG** (Google Pixel phones, Snapdragon-based devices)
+- **Apple HDR photos** in HEIC and JPEG (iPhone 12 and later with software updates)
+- **AVIF gain map support** (emerging as of 2026)
+
+### How the standard works
+
+1. The image container (JPEG, HEIC, or AVIF) stores a standard SDR image as the primary payload.
+2. An auxiliary image (the gain map) is stored in a separate embedded stream or metadata block.
+3. Metadata specifies the gain map's resolution, encoding, and the tone-mapping function to apply.
+4. HDR-aware renderers decode both images, apply the gain function, and composite the result.
+
+The standard allows for various tone-mapping curves — linear gain, logarithmic boosts, or custom functions. The most common approach is a log-based gain that brightens highlights more than midtones.
+
+### Compatibility promise
+
+A conforming ISO 21496-1 image will:
+
+- Display correctly as SDR in any legacy viewer (the base image stands alone).
+- Render as HDR when opened in a conforming HDR viewer.
+- Preserve both layers through lossless container rewrites (if tools respect the metadata).
+
+In practice, **most image processing pipelines in 2026 do not preserve gain maps** — they decode to SDR, process, and re-encode without the auxiliary layer.
+
+## Formats that support gain maps
+
+### JPEG with gain map (Ultra HDR)
+
+Google's **Android Ultra HDR** implementation stores the gain map in a JPEG file using the MPF (Multi-Picture Format) container structure. The main image is a standard JPEG that any software can decode. The gain map is stored as an auxiliary JPEG in an extended metadata block.
+
+**Browser support (2026):**
+- Chrome on Android and Windows (HDR displays) renders Ultra HDR JPEG natively.
+- Safari on macOS and iOS can display gain map JPEG on HDR-capable devices.
+- Firefox support is partial — check on HDR hardware.
+
+**Tooling:** Most image editors strip the gain map when you open and save. Specialized HDR photo tools (Google Photos on Android, Apple Photos on iOS) preserve it.
+
+### HEIC with gain map (Apple HDR)
+
+Apple's HEIC container can store a gain map as an auxiliary image track. Recent iPhones save HDR photos this way. The base image is the HEVC-encoded primary, and the gain map is a smaller auxiliary track.
+
+**Compatibility:** HEIC itself is not widely supported outside Apple ecosystems. When you convert HEIC to JPEG in most tools, the gain map is discarded. Some converters that explicitly target HDR workflows can preserve it, but that is rare.
+
+**Apple Photos and iCloud** preserve gain maps across exports when you choose "Keep HDR" options. Exporting to third-party destinations often results in SDR-only files.
+
+### AVIF with gain map
+
+AVIF's container (based on HEIF) supports auxiliary images. As of 2026, **AVIF gain map support is emerging** but not yet universal. Some encoders (libaom extensions, experimental builds) can write gain map AVIF; browser rendering support is actively being implemented.
+
+**Practical status:** AVIF is a promising HDR-native format for the web, but most AVIF production workflows in 2026 produce standard SDR AVIF. HDR AVIF with gain maps is ahead-of-the-curve territory — test on target hardware before deploying.
+
+### Formats that do NOT support gain maps
+
+- **PNG** — no HDR or gain map support
+- **WebP** — no gain map support (standard WebP is SDR-only)
+- **Legacy JPEG** (pre-Ultra HDR) — no auxiliary image support
+
+If your pipeline converts to WebP or PNG, the HDR layer is lost. The output is the SDR base image only.
+
+## How phones save HDR photos
+
+### Android (Google Pixel and others)
+
+Pixel phones running Android 14+ with camera updates save photos as **Ultra HDR JPEG** by default when the scene has high dynamic range (e.g., bright sky, strong backlight). The file extension is still `.jpg`, but the container includes the gain map.
+
+**When HDR is used:**
+- Bright sunlight in frame
+- Sunset or sunrise scenes
+- Backlit subjects
+- High-contrast interiors
+
+**When SDR is used:**
+- Evenly lit scenes
+- Low dynamic range subjects
+- Older devices or camera modes that do not support Ultra HDR
+
+### iPhone (Apple HEIC and JPEG)
+
+iPhone 12 and later with iOS updates can capture HDR photos. The default save format is HEIC with gain map. When "Most Compatible" mode is enabled (Settings → Camera → Formats), the iPhone may save JPEG with gain map instead, depending on iOS version.
+
+**Apple Photos** shows the HDR rendering on the iPhone screen. When you AirDrop or export, the file includes the gain map if you select "Keep HDR" or "Automatic" — but uploading via web forms or third-party apps often triggers an SDR export.
+
+### Other devices
+
+High-end Android phones from Samsung, Sony, and others are beginning to support ISO 21496-1 gain map photos. Check device specs and camera settings for "HDR photo" or "Ultra HDR" toggle.
+
+## Browser and OS support in 2026
+
+| Platform | Gain map JPEG (Ultra HDR) | HEIC gain map | AVIF gain map |
+| --- | --- | --- | --- |
+| **Chrome (Windows/Android HDR displays)** | ✅ Supported | ❌ (HEIC unsupported) | 🟡 Partial (experimental) |
+| **Safari (macOS/iOS HDR displays)** | ✅ Supported | ✅ Supported | 🟡 Emerging |
+| **Firefox (HDR displays)** | 🟡 Partial | ❌ | ❌ |
+| **Edge (Windows HDR displays)** | ✅ Chromium base | ❌ | 🟡 Chromium base |
+
+**Practical takeaway:** On an HDR-capable display, Chrome and Safari will render Ultra HDR JPEG and (Safari only) HEIC with gain maps as intended. On SDR displays or in unsupported browsers, the SDR base shows — no broken images, just no HDR boost.
+
+### Testing HDR rendering
+
+To verify a photo's HDR rendering:
+
+1. Open it on a known HDR display (iPhone 12+, recent MacBook Pro, HDR gaming monitor, Pixel phone).
+2. Compare against the same file on an SDR display (older laptop, standard office monitor).
+3. Look for brighter highlights, richer colors, and better shadow detail on the HDR display.
+
+If you see no difference, the file may not contain a gain map, or the display/browser combination does not support HDR rendering.
+
+## What happens when you convert or compress
+
+This is where HDR photos and web publishing workflows collide — and where most gain maps are lost.
+
+### HEIC to JPG conversion
+
+**Common tools (online converters, basic scripts):**
+- Decode HEIC to pixel data (SDR base).
+- Discard gain map metadata.
+- Encode pixels to standard JPEG.
+- Result: SDR-only JPEG, no HDR.
+
+**HDR-preserving tools (rare):**
+- Decode HEIC and extract gain map.
+- Convert both layers to Ultra HDR JPEG (if targeting JPEG output).
+- Result: HDR-capable JPEG, but only if the tool explicitly supports it.
+
+Most users converting HEIC to JPG for web forms or CMS uploads will lose the HDR data. The converted JPEG looks fine on SDR displays but will not brighten on HDR displays.
+
+### Resizing or compressing
+
+**Standard image processing:**
+- Decode source image to pixel buffer (SDR base).
+- Apply resize, crop, or quality adjustments.
+- Encode to output format.
+- Gain map is not in the pixel buffer — it is auxiliary metadata — so it is discarded.
+
+**HDR-aware processing:**
+- Decode SDR base and gain map separately.
+- Resize both (gain map at scaled resolution).
+- Re-encode with updated gain map metadata.
+- Result: smaller HDR-capable file.
+
+As of 2026, most web-focused compression tools (including browser-based WASM codecs in many apps) do not preserve gain maps. The SDR base is resized and compressed; the gain map is stripped.
+
+### Converting to WebP or PNG
+
+WebP and PNG have no gain map support. The conversion process decodes the source to SDR pixels and encodes in the target format. The HDR layer is lost.
+
+**Result:** If your pipeline produces WebP for web delivery (common in 2026 for compatibility and compression), you will serve SDR images even if the source was HDR.
+
+### Metadata stripping
+
+Many CMS upload forms, social media platforms, and email clients strip EXIF and auxiliary metadata on upload to reduce file size and remove sensitive data (GPS coordinates, timestamps). Gain maps are stored in auxiliary metadata, so they are often collateral damage.
+
+**Platforms known to strip gain maps:**
+- WordPress (most installs, unless HDR plugin is active)
+- Facebook and Instagram (re-encode uploads to their own formats)
+- Email (Gmail, Outlook — typically re-encode attachments)
+- Slack and Discord (image processing for previews)
+
+If you upload an Ultra HDR JPEG or HEIC to these platforms, expect only the SDR base to reach viewers.
+
+## When to keep HDR vs SDR
+
+HDR photos with gain maps add file size (typically 10–30% larger than SDR-only JPEG at the same base quality). You should preserve HDR when:
+
+### When HDR matters
+
+- **Photography portfolios** showcasing sunset, landscape, or architectural shots where highlight detail is critical.
+- **Product photography** with metallic or reflective surfaces that benefit from HDR specular highlights.
+- **Editorial content** on HDR-aware platforms (e.g., Apple News, dedicated photo sites).
+- **Archival masters** where you want to future-proof for HDR delivery later.
+- **Marketing pages** targeting users with HDR displays (premium laptops, flagship phones).
+
+### When SDR is fine
+
+- **General web thumbnails** — most users will not notice HDR in a 300px thumbnail.
+- **Email campaigns** — email clients strip HDR and may not render it anyway.
+- **Social media** — platforms re-encode and usually discard gain maps.
+- **Legacy CMS** — if your upload pipeline strips metadata, there is no point preserving HDR.
+- **Performance-critical delivery** — serving SDR saves bytes and encode time.
+
+### File size trade-offs
+
+An example 12-megapixel photo:
+
+- SDR JPEG at quality 85: ~2.5 MB
+- Ultra HDR JPEG (same SDR base + gain map): ~3.0 MB
+- SDR AVIF at equivalent quality: ~1.2 MB
+- AVIF with gain map (when supported): ~1.5 MB (estimate)
+
+HDR adds overhead, but AVIF HDR may still be smaller than JPEG SDR for the same perceptual quality.
+
+## How to check if an image has a gain map
+
+### Metadata inspection (command-line)
+
+Use `exiftool` to inspect JPEG or HEIC files:
+
+```bash
+exiftool photo.jpg | grep -i "gain\|hdr\|multi"
+```
+
+For Ultra HDR JPEG, look for:
+- `MPFVersion` or `Multi-Picture Format`
+- `GainMapMin`, `GainMapMax`
+- `HDRGainMap` or similar tags
+
+For HEIC, look for auxiliary image tracks:
+- `AuxiliaryImageType: urn:com:apple:photo:2020:aux:hdrgainmap`
+
+### Visual test
+
+Open the image on:
+1. An HDR display (recent iPhone, MacBook Pro with XDR, HDR monitor) in a browser or Photos app.
+2. An SDR display (older laptop, standard desktop monitor).
+
+If highlights are noticeably brighter and colors richer on the HDR display, the gain map is present and being rendered.
+
+If the image looks identical on both, either no gain map exists, or the viewer does not support HDR rendering.
+
+### Browser DevTools
+
+Some browsers expose HDR metadata in the console or network inspector. In Chrome DevTools, inspect the image element and check for HDR-related rendering hints (experimental as of 2026).
+
+## HDR photos and Asset Melt
+
+Asset Melt's local browser-based conversion uses WASM codecs (libjxl, rav1e, MozJPEG, etc.) that, as of 2026, decode source images to SDR pixel buffers before processing. This means:
+
+- Dropping an Ultra HDR JPEG or HEIC with gain map into the studio will decode the SDR base.
+- The gain map is not preserved through resize, quality adjustment, or format conversion.
+- Exported JPEG, WebP, or AVIF will be SDR-only.
+
+**Why:** Preserving gain maps through arbitrary resize and quality transforms requires HDR-aware codecs and gain map re-encoding logic. Browser WASM codecs optimized for speed and compatibility typically do not implement this.
+
+**When you need HDR output:** Use native platform tools (Apple Photos on macOS/iOS, Google Photos on Android, specialized HDR photo software) for HDR-preserving workflows. Export final HDR masters from those tools, then use Asset Melt for SDR variants when needed.
+
+**Privacy benefit:** Because conversion happens locally, even if the gain map is stripped, your HDR photo never leaves your device. You control the SDR export and delivery.
+
+## Practical workflow: HDR photos for the web
+
+If you want to deliver HDR photos on your website:
+
+1. **Capture and archive HDR masters** — keep original Ultra HDR JPEG or HEIC files with gain maps intact.
+2. **Use an HDR-aware encoder** — Apple Photos export with "Keep HDR," Google Photos export, or specialized tools.
+3. **Test on HDR displays** — verify the gain map is present and renders correctly in your target browser.
+4. **Provide SDR fallbacks** — use a `<picture>` element with HDR AVIF/JPEG and SDR fallbacks.
+5. **Accept file size trade-offs** — HDR variants are larger; serve them only to HDR-capable clients if bandwidth matters.
+
+### Example picture element (future-looking)
+
+```html
+<picture>
+  <source srcset="hero-hdr.avif" type="image/avif" media="(dynamic-range: high)" />
+  <source srcset="hero-sdr.avif" type="image/avif" />
+  <source srcset="hero-sdr.webp" type="image/webp" />
+  <img src="hero-sdr.jpg" alt="Sunset over mountains" width="1920" height="1080" />
+</picture>
+```
+
+The `media="(dynamic-range: high)"` query (CSS Media Queries Level 5) lets browsers choose HDR sources only on HDR displays. As of 2026, support is emerging — test before deploying.
+
+### Simpler approach for most sites
+
+Serve SDR AVIF + WebP + JPEG and skip HDR complexity. The visual difference is subtle on many web assets, and most users browse on SDR displays. Reserve HDR workflows for hero photography where the extra dynamic range is the point of the image.
+
+## HDR gain maps vs HDR video
+
+Gain map HDR photos follow a different path than HDR video (HDR10, Dolby Vision). Video uses embedded tone-mapping metadata and 10-bit color, but does not use a two-layer gain map model. Photo gain maps are a still-image solution designed for backward compatibility with SDR workflows.
+
+When editing HDR video, you work with 10-bit PQ or HLG color spaces. When editing HDR photos, you often work with the SDR base and apply gain map adjustments in software that understands ISO 21496-1.
+
+## Related reading
+
+After understanding HDR gain maps, these guides tie into your format and conversion workflows:
+
+- **[HEIC to JPG in the browser](/blog/format-conversion/heic-to-jpg-browser-guide)** — step-by-step conversion (note: most conversions strip gain maps)
+- **[HEIC vs JPG](/blog/format-conversion/heic-vs-jpg)** — format comparison (now with HDR context)
+- **[AVIF vs WebP](/blog/format-conversion/avif-vs-webp-2026)** — modern formats (and why WebP cannot carry gain maps)
+- **[Best format for website images](/blog/format-conversion/best-format-for-website-images)** — the pillar guide for format decisions
+- **[JPEG XL guide](/blog/format-conversion/jpeg-xl-jxl-guide-2026)** — another format with HDR support (12–16 bit color)
+
+<StudioCta label="Convert HDR photos to web formats locally" />
+
+**Bottom line:** HDR photos with gain maps are technically impressive and visually striking on HDR displays, but web delivery in 2026 remains challenging. Most workflows strip the gain map. If you need HDR, use specialized tools and test on target hardware. For general web publishing, SDR delivery is simpler, faster, and universally compatible.
