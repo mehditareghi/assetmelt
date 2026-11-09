@@ -79,7 +79,11 @@ A single HEIC file is easy. The pain starts when you have a folder from AirDrop 
 
 ## Troubleshooting
 
-If a converted photo looks rotated, the source probably relied on EXIF orientation. A good pipeline normalizes orientation during decode. If colors look slightly different, the source may use wide-gamut color and the browser may map it to sRGB. For critical print or retouching work, compare against Apple's Preview export before delivering.
+If a converted photo looks rotated, the source probably relied on EXIF orientation. A good pipeline normalizes orientation during decode. If colors look slightly different, the source may use wide-gamut color and the browser may map it to sRġGB. For critical print or retouching work, compare against Apple's Preview export before delivering.
+
+## HDR and gain maps
+
+Recent iPhones save HDR photos with gain maps in HEIC containers. Most HEIC-to-JPG converters strip the gain map and return only the SDR base. For details on HDR photos, gain maps, and what happens during conversion, read [HDR photos and gain maps](/blog/format-conversion/hdr-gain-map-images-2026).
 
 For a step-by-step conversion workflow, read [HEIC to JPG in the browser](/blog/format-conversion/heic-to-jpg-browser-guide). For website formats, read [best format for website images](/blog/format-conversion/best-format-for-website-images).
 

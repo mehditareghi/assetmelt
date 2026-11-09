@@ -292,6 +292,16 @@ Need a four-way comparison with byte-size examples? Read [JPEG vs PNG vs WebP vs
 
 If you shoot on iPhone, your camera roll is probably HEIC. That is fine for storage. It is **not** fine for most web upload forms, Windows share folders, or client email attachments.
 
+### HDR photos and gain maps
+
+Recent iPhones (iPhone 12 and newer with updates) and Android phones can save **HDR photos with gain maps** — a secondary image layer that tells HDR-capable displays how to boost brightness and expand color range beyond standard (SDR) images. These conform to the ISO 21496-1 standard.
+
+**What happens when you convert:** Most HEIC-to-JPG converters, resize tools, and CMS upload pipelines strip the gain map and return only the SDR base image. If you need HDR delivery, use specialized HDR-aware tools and test on HDR displays.
+
+For most web publishing in 2026, **SDR is simpler and universally compatible**. Reserve HDR workflows for photography portfolios or premium marketing pages where the extra dynamic range matters.
+
+Read [HDR photos and gain maps](/blog/format-conversion/hdr-gain-map-images-2026) for the full technical story.
+
 ### The iPhone-to-web pipeline
 
 1. **Shoot in HEIC** — keep it on the phone for storage efficiency.
