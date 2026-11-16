@@ -7,6 +7,13 @@
     <language>en-us</language>
     <atom:link href="https://assetmelt.com/rss.xml" rel="self" type="application/rss+xml" />
     <item>
+      <title>How to Compress Images for Email Newsletters in 2026: Size Budgets, Retina, Gmail Clipping, and Dark Mode</title>
+      <link>https://assetmelt.com/blog/image-compression/compress-images-for-email-2026</link>
+      <guid isPermaLink="true">https://assetmelt.com/blog/image-compression/compress-images-for-email-2026</guid>
+      <description>The complete guide to email image optimization — why email differs from web images, per-image and total-message weight budgets, 2× retina best practices, Gmail's 102 KB HTML clipping, dark-mode transparency pitfalls, and a local prep workflow.</description>
+      <pubDate>Mon, 16 Nov 2026 00:00:00 GMT</pubDate>
+    </item>
+    <item>
       <title>How to Compress Images for Next.js in 2026: App Router, Server Components, and Modern Formats</title>
       <link>https://assetmelt.com/blog/image-compression/compress-images-for-nextjs-2026</link>
       <guid isPermaLink="true">https://assetmelt.com/blog/image-compression/compress-images-for-nextjs-2026</guid>
@@ -137,13 +144,6 @@
       <link>https://assetmelt.com/blog/performance-seo/best-image-sizes-open-graph-social-media</link>
       <guid isPermaLink="true">https://assetmelt.com/blog/performance-seo/best-image-sizes-open-graph-social-media</guid>
       <description>Use the right image dimensions, file sizes, formats, and safe areas for Open Graph, Twitter/X cards, LinkedIn, Slack, Discord, and social previews.</description>
-      <pubDate>Mon, 22 Jun 2026 00:00:00 GMT</pubDate>
-    </item>
-    <item>
-      <title>How to Compress Images for Shopify</title>
-      <link>https://assetmelt.com/blog/image-compression/compress-images-for-shopify</link>
-      <guid isPermaLink="true">https://assetmelt.com/blog/image-compression/compress-images-for-shopify</guid>
-      <description>Optimize Shopify product photos, collection images, banners, and social previews before upload with private local compression.</description>
       <pubDate>Mon, 22 Jun 2026 00:00:00 GMT</pubDate>
     </item>
   </channel>

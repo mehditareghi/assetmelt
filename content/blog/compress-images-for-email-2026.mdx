@@ -1,0 +1,447 @@
+---
+title: "How to Compress Images for Email Newsletters in 2026: Size Budgets, Retina, Gmail Clipping, and Dark Mode"
+description: "The complete guide to email image optimization — why email differs from web images, per-image and total-message weight budgets, 2× retina best practices, Gmail's 102 KB HTML clipping, dark-mode transparency pitfalls, and a local prep workflow."
+slug: compress-images-for-email-2026
+publishedAt: 2026-11-16
+keywords:
+  - compress images for email
+  - email image optimization
+  - Gmail clipping 102KB
+  - retina images for email
+  - dark mode email images
+  - email image size limits
+  - newsletter image compression
+cluster: image-compression
+heroImage: hero
+heroImageAlt: "Neon cyan envelope with a magenta image card rising out of it, with small compression chevrons, on a dark background"
+relatedTools:
+  - batch-image-compressor
+  - compress-under-100kb
+  - privacy-first-image-compression
+faq:
+  - question: "Why are email images different from website images?"
+    answer: "Email clients don't support srcset, picture elements, or modern formats like AVIF and WebP consistently. Most require static JPEG or PNG with explicit width/height attributes, and many block images by default."
+  - question: "What is Gmail's 102 KB clipping issue?"
+    answer: "Gmail clips the HTML message body when it exceeds approximately 102 KB of markup. This is about the HTML code itself, not image file sizes — but large inline styles and base64-encoded images can trigger clipping, hiding content below the fold."
+  - question: "Should I use 2× retina images in email?"
+    answer: "Yes for important visuals like logos, hero banners, and product photos. Export at 2× the display dimensions (e.g., 1200px wide for a 600px layout), then compress aggressively. Most devices now have high-density screens."
+  - question: "What image format is safest for email newsletters?"
+    answer: "JPEG for photos and WebP-to-JPEG conversions; PNG for logos with transparency or solid graphics. Avoid AVIF, WebP, and HEIC — support is inconsistent or absent in many email clients."
+  - question: "How do I make logos work in dark mode email?"
+    answer: "Use PNG with transparency, ensure logo artwork has adequate contrast, and consider supplying two versions (light and dark) with media query swaps in the email HTML. Test in Outlook, Apple Mail, and Gmail dark modes."
+  - question: "What is the total image budget for an email campaign?"
+    answer: "Aim for under 1 MB total across all images, with individual inline images under 150–200 KB and heroes under 250 KB. Lighter emails load faster, especially on mobile data, and reduce the risk of spam filtering."
+  - question: "Can I use animated GIFs in email?"
+    answer: "Yes, email clients widely support animated GIF. However, they are notoriously large — expect 500 KB to several MB without aggressive optimization. Use short loops, reduce frames, and compress with tools that dither carefully."
+  - question: "Do I need to strip EXIF metadata before sending email images?"
+    answer: "Yes. EXIF can contain GPS coordinates, timestamps, and device info. Stripping metadata also reduces file size slightly. Always sanitize images before attaching them to public campaigns."
+---
+
+Compressing images for email is not the same as compressing images for the web. **Email clients are not browsers.** You cannot count on `srcset` for responsive images, AVIF for modern compression, or CDN transforms for format negotiation. Most email clients still expect static JPEG or PNG files with explicit dimensions, and many block images by default until the recipient clicks "load images."
+
+That makes email image optimization a different discipline — more conservative on format choice, more aggressive on file size, and far more concerned with weight budgets, dark-mode transparency, and the infamous **Gmail 102 KB HTML clipping limit**.
+
+This guide walks through the entire email image workflow — from choosing formats and dimensions to avoiding transparency pitfalls and preparing batches locally with privacy-first tools. It is especially relevant during high-volume campaign seasons like **Black Friday, Cyber Monday, and year-end holiday sends**, when inbox clutter is high and load speed matters even more.
+
+## What this guide covers
+
+| Section | What you will learn |
+| --- | --- |
+| [Why email images differ](#why-email-images-differ-from-web-images) | No srcset, limited format support, image blocking |
+| [Format choice for email](#format-choice-for-email-newsletters) | JPEG, PNG, GIF; avoid AVIF and WebP |
+| [Size budgets](#per-image-and-total-message-weight-budgets) | Per-image caps and total campaign limits |
+| [Retina and dimensions](#retina-2x-images-and-explicit-dimensions) | Export 2× wide with width/height attributes |
+| [Gmail clipping](#gmail-102-kb-html-clipping-explained) | What it is, what triggers it, how to avoid it |
+| [Image blocking and alt text](#image-blocking-and-alt-text-strategy) | Why images may not load, and how alt text rescues your message |
+| [Dark mode pitfalls](#dark-mode-transparency-and-logo-rendering) | PNG transparency issues in dark themes |
+| [Animated GIF weight](#animated-gifs-in-email-campaigns) | When to use them and how to keep them small |
+| [Privacy and metadata](#strip-exif-metadata-for-privacy) | GPS, timestamps, and why stripping matters |
+| [Local workflow](#a-local-privacy-first-email-image-workflow) | Batch prep with browser-based tools |
+| [Email image checklist](#email-image-checklist) | Pre-send audit for every campaign |
+
+## Why email images differ from web images
+
+On the web, you control the HTML, CSS, and JavaScript. You serve `<picture>` elements with multiple sources, lean on CDN transforms for AVIF and WebP, and use lazy loading for below-the-fold assets.
+
+In email, you control only what the recipient's email client chooses to honor — and most clients strip or ignore advanced features:
+
+| Feature | Web support | Email support |
+| --- | --- | --- |
+| `srcset` and `picture` | Universal | Rarely supported |
+| AVIF / WebP | Broad modern browser support | Inconsistent or absent |
+| Lazy loading | Native and polyfill-backed | Not applicable |
+| CSS media queries | Full support | Limited; some clients honor dark mode |
+| External stylesheets | Standard | Blocked or stripped |
+| JavaScript | Standard | Completely blocked |
+
+That leaves **static image tags with explicit src, width, height, and alt attributes** as the only reliable pattern. The image itself must be web-accessible, appropriately sized, and conservatively encoded.
+
+<Callout title="Email clients are not standardized" variant="info">
+Outlook on Windows still uses the Word rendering engine for HTML. Apple Mail honors some CSS but not all. Gmail rewrites markup and proxies images. Test every major client — Outlook, Apple Mail, Gmail web, and mobile — before sending a campaign to thousands of recipients.
+</Callout>
+
+## Format choice for email newsletters
+
+Email format support in 2026 remains surprisingly conservative. The safest bet is still **JPEG for photos** and **PNG for graphics or logos with transparency**. Animated GIF works for motion, though file sizes can balloon.
+
+| Format | Email client support | Best for | Avoid when |
+| --- | --- | --- | --- |
+| **JPEG** | Universal | Photos, hero banners, product shots | Logos with sharp edges or transparency |
+| **PNG** | Universal | Logos, graphics, screenshots with text | Large photos where JPEG would be smaller |
+| **GIF (static)** | Universal | Simple graphics, retro aesthetic | Modern photos — JPEG is smaller and better quality |
+| **GIF (animated)** | Widely supported | Subtle motion, cinemagraphs | Long loops or high frame rates — size explodes |
+| **WebP** | Inconsistent | Not recommended for email | Primary format choice — use as fallback only if testing confirms support |
+| **AVIF** | Rare or absent | Not recommended for email | Primary format choice — convert to JPEG |
+| **HEIC** | Absent | Not recommended for email | iPhone exports — convert before embedding |
+| **SVG** | Blocked or sanitized | Not recommended for email | Logos — use PNG instead for email |
+
+### Convert modern formats before sending
+
+If your design team hands you AVIF, WebP, or HEIC files, convert them to JPEG or PNG before embedding in email templates. Use the <ToolLink tool="batch-image-compressor">batch image compressor</ToolLink> to transcode a folder of mixed formats in one pass.
+
+For iPhone HEIC exports, see [HEIC to JPG browser guide](/blog/format-conversion/heic-to-jpg-browser-guide) for a step-by-step local workflow.
+
+## Per-image and total-message weight budgets
+
+Email campaigns should be lightweight. Large messages cost mobile users data, take longer to load on slow connections, and can be flagged by spam filters or clipped by clients.
+
+### Individual image budgets
+
+| Image role | Target max size | Notes |
+| --- | --- | --- |
+| Header logo | Under 50 KB | Often reused across campaigns; cache-friendly |
+| Hero banner | Under 200–250 KB | The largest single image; worth aggressive optimization |
+| Inline product or content image | Under 150 KB | Multiple images add up fast |
+| Footer logo or badge | Under 30 KB | Tiny in layout; should be tiny in bytes |
+| Animated GIF | Under 500 KB | Aim for shorter loops and fewer frames |
+
+Use the <ToolLink tool="compress-under-100kb">under 100 KB compressor</ToolLink> for logos, badges, and thumbnails where strict size caps apply.
+
+### Total message budget
+
+A complete email — HTML markup, inline CSS, and all embedded or linked images — should stay under **1 MB total** for broad deliverability and fast mobile loads. Some organizations target **600–800 KB** for campaigns sent to international audiences on slower networks.
+
+**Gmail's 102 KB HTML clipping** (covered below) refers to the HTML markup itself, not image bytes, but keeping images small helps avoid clipping triggers when styles or tracking pixels bloat the HTML.
+
+## Retina (2×) images and explicit dimensions
+
+Most modern devices — phones, tablets, and laptops — have high-density displays. A 600px-wide email hero rendered at 1× looks soft on retina screens. The solution is to **export images at 2× the display dimensions**, then constrain them with explicit `width` and `height` attributes in the HTML.
+
+### How 2× retina works in email
+
+If your email layout displays an image at **600px wide** in the design, export the source at **1200px wide**. In the `<img>` tag, set `width="600"` so the client renders it at the intended size. The extra pixels make the image crisp on high-DPI screens without layout shifts.
+
+```html
+<img 
+  src="hero-1200w.jpg" 
+  width="600" 
+  height="300" 
+  alt="Black Friday sale hero banner" 
+  style="display:block; max-width:100%; height:auto;" 
+/>
+```
+
+The `style="max-width:100%"` ensures mobile clients scale the image down gracefully when the viewport is narrower than 600px.
+
+### Retina export targets
+
+| Layout display width | Export source width | HTML width attribute |
+| --- | --- | --- |
+| 600px | 1200px | `width="600"` |
+| 300px (thumbnail) | 600px | `width="300"` |
+| 100px (logo) | 200px | `width="100"` |
+
+After exporting at 2×, compress aggressively. A 1200px JPEG at quality 75–80 often looks excellent at 600px rendered size and stays well under 200 KB.
+
+### Why explicit dimensions matter
+
+Email clients often disable CSS or ignore inline styles. Explicit `width` and `height` attributes ensure the layout does not collapse or shift when images load slowly or when the recipient has images blocked by default.
+
+## Gmail 102 KB HTML clipping explained
+
+Gmail has a well-known quirk: when the HTML body of an email exceeds approximately **102 KB** (102,400 bytes of raw HTML text), Gmail **clips** the message. Content below the clipping point is hidden behind a "View entire message" link, and recipients who do not click that link never see the bottom of your email.
+
+### What Gmail clipping measures
+
+Clipping is triggered by the **HTML source code size**, not the total weight of linked images. Large inline `<style>` blocks, verbose table structures, and especially **base64-encoded inline images** can push you over the limit.
+
+### What triggers clipping
+
+- Inline CSS repeated across many elements (use shared classes instead)
+- Base64-encoded images embedded in `<img src="data:image/...">` tags
+- Verbose table-based layouts with deeply nested `<td>` elements
+- Large tracking pixels or repeated analytics snippets
+- Long attribute strings (e.g., inline styles on every paragraph)
+
+### How to avoid clipping
+
+1. **Link images externally** rather than embedding them as base64.
+2. **Compress and minify HTML** — remove whitespace and comments before sending.
+3. **Use concise CSS classes** rather than repeating inline styles.
+4. **Test message size** — view the raw HTML source and check its byte count.
+5. **Keep campaigns focused** — shorter messages with fewer sections are less likely to clip.
+
+For campaigns with many product cards or a long narrative, consider splitting content into multiple linked sections or shortening the in-email preview and linking to a web landing page for the full story.
+
+<Callout title="Image file size does not cause clipping" variant="tip">
+A 300 KB hero image served as `<img src="https://cdn.example.com/hero.jpg">` adds ~60 bytes of HTML (the tag and URL). It is the markup that counts, not the image payload. However, inlining that image as base64 would add ~400 KB to the HTML and definitely trigger clipping.
+</Callout>
+
+## Image blocking and alt text strategy
+
+Many email clients — especially Outlook, Thunderbird, and some corporate mail gateways — **block images by default** until the recipient manually enables them. Your email must communicate value even when images are hidden.
+
+### Why alt text is critical in email
+
+Unlike web pages where images usually load, email images may never load for a significant portion of recipients. Alt text is the only signal they see in place of the image.
+
+**Good email alt text:**
+
+- Describes the image content concisely
+- Reinforces the message or CTA even when the image is blocked
+- Avoids "image" or "photo" (screen readers already announce that)
+- Stays short — 125 characters or fewer for readability
+
+### Examples
+
+| Image role | Weak alt text | Strong alt text |
+| --- | --- | --- |
+| Hero banner | `alt="banner"` | `alt="Black Friday: 40% off sitewide, ends Monday"` |
+| Product card | `alt="product image"` | `alt="Organic cotton hoodie, charcoal gray, $68"` |
+| Logo | `alt="logo"` | `alt="Assetmelt logo"` |
+| Decorative divider | `alt=""` | `alt=""` (empty is correct for decorative images) |
+
+Test your campaigns with images blocked. If the message still makes sense and the call-to-action is clear, your alt text strategy is working.
+
+## Dark mode transparency and logo rendering
+
+Many email clients now support dark mode: Apple Mail, Outlook, Gmail on iOS and Android. When a recipient's device is in dark mode, the email background often inverts to dark gray or black — and that can make **transparent PNG logos with light artwork invisible**.
+
+### The dark mode logo problem
+
+If your logo is white or light-colored text on a transparent PNG background, it may disappear when the email renders on a dark background. The transparency that worked beautifully on white paper now renders as white-on-black or light-gray-on-dark-gray — illegible.
+
+### Solutions
+
+1. **Add a background to the logo image itself** — export the logo on a solid light background (not transparent).
+2. **Provide two logo versions** — a light version for light mode, a dark version for dark mode, swapped via `prefers-color-scheme` media query in the email CSS (test client support).
+3. **Use a border or padding** — surround transparent logos with a subtle border or background color in the email HTML, so they remain visible on any background.
+4. **Test in dark mode** — preview the email in Apple Mail dark mode, Outlook dark mode, and Gmail app dark mode before sending.
+
+For other brand graphics with transparency, follow the same principle: assume the background can be light or dark, and design accordingly.
+
+<Callout title="Dark mode adoption is growing fast" variant="info">
+As of late 2026, approximately 40–50% of mobile email opens occur in dark mode. Ignoring dark-mode testing risks alienating a large segment of your audience.
+</Callout>
+
+## Animated GIFs in email campaigns
+
+Animated GIFs are widely supported in email and can add engaging motion — a product rotating, a countdown timer, or a subtle cinemagraph background. However, **GIF files are notoriously large**, often 500 KB to several MB for even short animations.
+
+### When to use animated GIF in email
+
+- **Product showcases** — a 360° spin or color variant loop
+- **Countdown timers** — builds urgency for limited-time offers
+- **Cinemagraphs** — a mostly-still photo with one subtle moving element
+- **Tutorial snippets** — a quick how-to loop (but keep it under 10 seconds)
+
+### How to keep GIF file size manageable
+
+1. **Limit frames** — aim for 10–30 frames for a 2–5 second loop.
+2. **Reduce dimensions** — export GIFs at email layout width (e.g., 600px), not full camera resolution.
+3. **Dither carefully** — GIF's 256-color palette requires dithering for smooth gradients; balance quality and file size.
+4. **Optimize with GIF-specific tools** — tools like Gifski or browser-based compressors can significantly reduce size.
+5. **Provide a static fallback** — Outlook 2007–2019 on Windows shows only the first frame of a GIF; ensure that frame is meaningful.
+
+**Target budget:** Under 500 KB for animated GIFs in email. Larger files risk slow loads and higher bounce rates on mobile.
+
+For most campaigns, static images compressed as JPEG or PNG are safer and faster. Reserve GIF for moments when motion genuinely enhances the message.
+
+## Strip EXIF metadata for privacy
+
+Smartphone and camera photos often embed EXIF metadata:
+
+- **GPS coordinates** (accurate to meters)
+- **Capture timestamp**
+- **Device model and settings**
+- **Embedded thumbnail previews**
+- **Copyright and author fields**
+
+Sending an email image with GPS coordinates intact can inadvertently leak the location where the photo was taken — especially risky for user-generated content, behind-the-scenes campaign shots, or product photography taken at a home office or warehouse.
+
+### Why stripping matters for email
+
+Beyond privacy, EXIF adds bytes — sometimes 5–50 KB per image. Stripping metadata reduces file size and ensures no personal information travels with the image.
+
+Most email service providers do not strip EXIF automatically. If you upload an image with metadata to your ESP's media library, that metadata may be preserved in the served file. **Strip it yourself before upload.**
+
+The <ToolLink tool="privacy-first-image-compression">privacy-first image compression</ToolLink> tool runs entirely in the browser and includes **Strip metadata** as a default option, ensuring EXIF never leaves your device in the first place.
+
+For the broader privacy and verification angle, see [privacy-first image compression](/blog/image-compression/privacy-first-image-compression).
+
+## A local, privacy-first email image workflow
+
+Most email image prep workflows involve uploading files to a cloud optimizer, downloading results, then uploading again to the ESP media library. That exposes your images — and any EXIF metadata still attached — to third-party servers.
+
+A **browser-based, client-side workflow** keeps files on your device throughout the process:
+
+1. **Collect source images** — product shots, hero banners, logos — from design exports or phone.
+2. **Open the batch image compressor** — drop the folder into the browser tool.
+3. **Apply email preset**:
+   - **Max width:** 1200px for retina heroes (600px display width), 600px for inline images
+   - **Format:** JPEG for photos (quality 75–82), PNG for logos
+   - **Metadata:** Strip all EXIF
+4. **Review file sizes** — aim for under 150–200 KB per inline image, under 250 KB for heroes.
+5. **Export as ZIP** — download the optimized batch.
+6. **Upload to ESP** — Mailchimp, SendGrid, Klaviyo, or whichever platform you use.
+
+Because the compression runs in Web Workers inside your browser, **image bytes never leave your device** during optimization. You control what you upload and when. For more on how browser-based compression works, see [compress images in the browser](/blog/image-compression/compress-images-in-browser).
+
+<Callout title="Campaign seasons demand fast iteration" variant="tip">
+Black Friday, Cyber Monday, and holiday email campaigns often require dozens of images prepared under tight deadlines. A local batch workflow eliminates upload-download latency and keeps your unreleased campaign assets private until you are ready to send.
+</Callout>
+
+## Realistic email image examples
+
+Let me walk through a few common campaign scenarios with real targets:
+
+### Scenario 1: Black Friday hero banner
+
+- **Display dimensions:** 600 × 300 CSS pixels
+- **Export dimensions:** 1200 × 600 (2× retina)
+- **Format:** JPEG
+- **Quality:** 78–82
+- **Target size:** Under 200 KB
+- **Metadata:** Stripped
+- **HTML:** `<img src="bf-hero-1200w.jpg" width="600" height="300" alt="Black Friday: 40% off everything, shop now">`
+
+After exporting at 1200px wide and compressing with quality 80, the file is typically 140–180 KB — fast to load, crisp on retina, and clear on 1× screens.
+
+### Scenario 2: Product grid (3 thumbnails)
+
+- **Display dimensions:** 180 × 180 CSS pixels each
+- **Export dimensions:** 360 × 360 (2× retina)
+- **Format:** JPEG
+- **Quality:** 78
+- **Target size:** Under 80 KB each
+- **Metadata:** Stripped
+- **HTML:** `<img src="product-a-360w.jpg" width="180" height="180" alt="Ceramic mug, midnight blue, $24">`
+
+Three thumbnails at 80 KB each = 240 KB total. Inline text and surrounding layout add minimal weight.
+
+### Scenario 3: Animated GIF product spin
+
+- **Display dimensions:** 400 × 400 CSS pixels
+- **Export dimensions:** 400 × 400 (GIF size scales poorly; keep 1× for animations)
+- **Format:** GIF, 20 frames, 2-second loop
+- **Optimization:** Dithered, palette reduced
+- **Target size:** Under 400 KB
+- **Fallback:** First frame shows product front-facing
+
+Animated GIFs should be used sparingly. One animated element per email is usually enough.
+
+### Scenario 4: Footer logo
+
+- **Display dimensions:** 120 × 40 CSS pixels
+- **Export dimensions:** 240 × 80 (2× retina)
+- **Format:** PNG with transparency
+- **Optimization:** Palette reduced, metadata stripped
+- **Target size:** Under 20 KB
+- **HTML:** `<img src="footer-logo-240w.png" width="120" height="40" alt="Assetmelt logo">`
+
+Logos are reused across campaigns. Optimize once, reference everywhere.
+
+## Email image checklist
+
+Before you hit send on a campaign, run through this checklist:
+
+### Format and compatibility
+
+- [ ] All images are JPEG or PNG (no AVIF, WebP, HEIC, or raw formats)
+- [ ] Logos with transparency are PNG
+- [ ] Animated GIFs have meaningful first frames (for Outlook)
+
+### Dimensions and retina
+
+- [ ] Hero banner exported at 2× display width (e.g., 1200px for 600px layout)
+- [ ] All images have explicit `width` and `height` attributes in HTML
+- [ ] Inline images are appropriately sized for email layout (not full camera resolution)
+
+### File size
+
+- [ ] Hero under 200–250 KB
+- [ ] Inline images under 150 KB each
+- [ ] Logos and badges under 50 KB
+- [ ] Animated GIFs under 500 KB
+- [ ] Total email (HTML + images) under 1 MB
+
+### Metadata and privacy
+
+- [ ] EXIF metadata stripped from all images
+- [ ] No GPS coordinates, timestamps, or device info in image files
+- [ ] Images processed locally before upload to ESP (if privacy matters)
+
+### Alt text
+
+- [ ] Every image has descriptive, meaningful alt text
+- [ ] Alt text communicates value even when images are blocked
+- [ ] Decorative images have `alt=""` (empty)
+
+### Dark mode
+
+- [ ] Logos and graphics with transparency tested in dark mode (Apple Mail, Outlook, Gmail)
+- [ ] Light-colored logos on transparent backgrounds either have a fallback or are exported with a solid background
+
+### Gmail clipping
+
+- [ ] HTML source checked for size (should be under 102 KB)
+- [ ] Images linked externally (not base64-encoded inline)
+- [ ] Inline styles minimized; CSS classes used where possible
+
+### Testing
+
+- [ ] Preview sent to personal accounts: Gmail, Outlook, Apple Mail, mobile
+- [ ] Images load correctly in each client
+- [ ] Alt text displays when images are blocked
+- [ ] Layout does not break when images are slow to load
+
+## When to bend the rules
+
+These guidelines are conservative by design. If you are sending a high-touch, low-volume campaign to a known audience on modern devices, you can afford to push file sizes higher or include a larger animated GIF. The 200 KB hero target is a guideline for broad deliverability, not a hard law.
+
+Similarly, if your ESP supports modern formats and your audience skews toward recent Gmail and Apple Mail versions, you might experiment with WebP as a linked format — but always test thoroughly and monitor delivery metrics.
+
+For most campaigns, especially high-volume sends during competitive seasons, the safe path is the fast path.
+
+## Email campaigns in context
+
+Email image optimization is part of a broader performance and user-experience discipline. Pair these techniques with:
+
+- **Responsive layout testing** — preview on phones, tablets, and desktop clients
+- **Load-time monitoring** — track campaign open rates and bounce rates by device and network
+- **Accessibility audits** — ensure screen readers handle your alt text gracefully
+- **A/B testing** — compare lightweight campaigns against image-heavy campaigns to measure engagement
+
+For the foundational compression techniques — resizing, quality tuning, format choice, and metadata stripping — that also apply to email, see [how to compress images without losing quality](/blog/image-compression/how-to-compress-images-without-losing-quality).
+
+For strict byte-budget scenarios like thumbnails and badges, see [reduce image size under 100KB](/blog/image-compression/reduce-image-size-under-100kb).
+
+For general format decision-making, see [JPEG vs PNG vs WebP vs AVIF](/blog/image-compression/jpeg-vs-png-vs-webp-vs-avif) and [best format for website images](/blog/format-conversion/best-format-for-website-images).
+
+For privacy-conscious batch workflows, see [privacy-first image compression](/blog/image-compression/privacy-first-image-compression) and [compress images in the browser](/blog/image-compression/compress-images-in-browser).
+
+## Workflow recap
+
+1. **Convert** any AVIF, WebP, or HEIC sources to JPEG or PNG before embedding.
+2. **Resize** to 2× the email layout display width for retina.
+3. **Compress** with quality 75–82 for JPEG, optimize palette for PNG.
+4. **Strip metadata** to remove EXIF privacy leaks and save bytes.
+5. **Set explicit dimensions** in HTML (`width` and `height` attributes).
+6. **Write descriptive alt text** for every image.
+7. **Test dark mode** for logos and graphics with transparency.
+8. **Check HTML size** to avoid Gmail clipping.
+9. **Preview in major clients** — Gmail, Outlook, Apple Mail, mobile — before sending.
+
+Email image optimization is less glamorous than web performance tuning, but it directly affects deliverability, engagement, and mobile load speed. In a crowded inbox during Black Friday or year-end sales, a fast-loading, well-optimized email with crisp visuals and readable alt text stands out — even when images are blocked.
+
+<StudioCta label="Compress images for email locally" />
